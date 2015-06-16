@@ -66,12 +66,18 @@ class repository_omero extends repository
 
         $this->setting = 'omero_';
 
+        $this->omero_restendpoint = $this->get_option('omero_restendpoint');
         $this->omero_key = "omero_key"; //FIXME: to restore ---> $this->get_option('omero_key');
         $this->omero_secret = "omero_secret"; // FIXME: to restore --> $this->get_option('omero_secret');
 
         // one day
         $this->cachedfilettl = 60 * 60 * 24;
 
+        if (isset($options['omero_restendpoint'])) {
+            $this->omero_restendpoint = $options['omero_restendpoint'];
+        }else {
+            $this->omero_restendpoint = get_user_preferences($this->setting . '_omero_restendpoint', '');
+        }
         if (isset($options['access_key'])) {
             $this->access_key = $options['access_key'];
         } else {
@@ -92,7 +98,15 @@ class repository_omero extends repository
             'repo_id' => $repositoryid
         ));
 
+        $toprint = "";
+        foreach($options as $k=>$v){
+            $toprint .= $k;
+        }
+
+        error_log("REST ENDPOINT: " . $this->omero_restendpoint . $toprint . "---" . implode(",", $options));
+
         $args = array(
+            'omero_restendpoint' => $this->omero_restendpoint,
             'oauth_consumer_key' => $this->omero_key,
             'oauth_consumer_secret' => $this->omero_secret,
             'oauth_callback' => $callbackurl->out(false),
@@ -438,6 +452,9 @@ class repository_omero extends repository
      */
     public function set_option($options = array())
     {
+        if (!empty($options['omero_restendpoint'])) {
+            set_config('omero_restendpoint', trim($options['omero_restendpoint']), 'omero');
+        }
         if (!empty($options['omero_key'])) {
             set_config('omero_key', trim($options['omero_key']), 'omero');
         }
@@ -448,6 +465,8 @@ class repository_omero extends repository
             $this->cachelimit = (int)trim($options['omero_cachelimit']);
             set_config('omero_cachelimit', $this->cachelimit, 'omero');
         }
+
+        //unset($options['omero_restendpoint']);
         unset($options['omero_key']);
         unset($options['omero_secret']);
         unset($options['omero_cachelimit']);
@@ -592,9 +611,13 @@ class repository_omero extends repository
     {
         global $CFG;
         parent::type_config_form($mform);
+        $endpoint = get_config('omero', 'omero_restendpoint');
         $key = get_config('omero', 'omero_key');
         $secret = get_config('omero', 'omero_secret');
 
+        if (empty($endpoint)) {
+            $endpoint = 'http://omero.crs4.it:8080/webgateway';
+        }
         if (empty($key)) {
             $key = '';
         }
@@ -603,6 +626,9 @@ class repository_omero extends repository
         }
 
         $strrequired = get_string('required');
+
+        $mform->addElement('text', 'omero_restendpoint', get_string('omero_restendpoint', 'repository_omero'), array('value' => $endpoint, 'size' => '80'));
+        $mform->setType('omero_restendpoint', PARAM_RAW_TRIMMED);
 
         $mform->addElement('text', 'omero_key', get_string('apikey', 'repository_omero'), array('value' => $key, 'size' => '40'));
         $mform->setType('omero_key', PARAM_RAW_TRIMMED);
@@ -627,7 +653,7 @@ class repository_omero extends repository
      */
     public static function get_type_option_names()
     {
-        return array('omero_key', 'omero_secret', 'pluginname', 'omero_cachelimit');
+        return array('omero_restendpoint', 'omero_key', 'omero_secret', 'pluginname', 'omero_cachelimit');
     }
 
     /**
@@ -673,8 +699,7 @@ class repository_omero extends repository
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
         }
 
-        // return $this->get_file_download_link($ref->url);
-        return "http://omero.crs4.it:8080/webgateway" . $this->omero->get_thumbnail_url(preg_replace("/imgData\/(\d+).jpeg/", "$1", $ref->path));
+        return "$this->omero_restendpoint/" . $this->omero->get_thumbnail_url(preg_replace("/imgData\/(\d+).jpeg/", "$1", $ref->path));
     }
 
     /**
@@ -691,7 +716,7 @@ class repository_omero extends repository
 
         global $USER, $CFG;
         $reference = new stdClass;
-        $reference->path = "http://omero.crs4.it:8080/webgateway/render_thumbnail/201";
+        $reference->path = "$this->omero_restendpoint/render_thumbnail/201"; // FIXME: static URL
         $reference->userid = $USER->id;
         $reference->username = fullname($USER);
         $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
@@ -707,7 +732,7 @@ class repository_omero extends repository
             if ($url) {
                 unset($reference->access_key);
                 unset($reference->access_secret);
-                $reference->url = "http://omero.crs4.it:8080/webgateway/render_thumbnail/201";
+                $reference->url = "$this->omero_restendpoint/render_thumbnail/201"; // FIXME: static URL
             }
         }
         return serialize($reference);
@@ -904,35 +929,5 @@ class repository_omero extends repository
             }
         }
     }
-
-
 }
 
-/**
- * omero plugin cron task
- */
-function repository_omero_cron()
-{
-    $instances = repository::get_instances(array('type' => 'omero'));
-    foreach ($instances as $instance) {
-        $instance->cron();
-    }
-}
-
-
-function startsWith($haystack, $needle)
-{
-    // search backwards starting from haystack length characters from the end
-    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
-}
-
-
-function get_omero_item_id_from_url($url)
-{
-    $result = -1;
-    $parts = split("/", $url);
-    if (count($parts) > 2) {
-        return $parts[2];
-    }
-    return $result;
-}
