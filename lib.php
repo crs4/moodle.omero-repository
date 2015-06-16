@@ -201,8 +201,8 @@ class repository_omero extends repository
         $list['manage'] = 'https://www.omero.com/home';
         $list['dynload'] = true;
         $list['nologin'] = true;
-        $list['logouturl'] = 'https://www.omero.com/logout';
-        $list['message'] = get_string('logoutdesc', 'repository_omero');
+        #$list['logouturl'] = 'https://www.omero.com/logout';
+        #$list['message'] = get_string('logoutdesc', 'repository_omero');
 
 
         // Build the navigation bar
