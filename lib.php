@@ -19,8 +19,8 @@
  *
  * @since Moodle 2.0
  * @package    repository_omero
- * @copyright  2012 Marina Glancy
- * @copyright  2010 Dongsheng Cai {@link http://dongsheng.org}
+ * @copyright  2015 CRS4
+ * @author
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once($CFG->dirroot . '/repository/lib.php');

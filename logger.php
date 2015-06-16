@@ -1,10 +1,9 @@
 <?php
 
 /**
- * Created by PhpStorm.
- * User: kikkomep
- * Date: 27/01/15
- * Time: 11:11
+ * @copyright  2015 CRS4
+ * @author
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class Logger
 {

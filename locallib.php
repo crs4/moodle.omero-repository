@@ -19,9 +19,8 @@
  *
  * @since Moodle 2.0
  * @package    repository_omero
- * @copyright  2012 Marina Glancy
- * @copyright  2010 Dongsheng Cai
- * @author     Dongsheng Cai <dongsheng@moodle.com>
+ * @copyright  2015 CRS4
+ * @author
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
