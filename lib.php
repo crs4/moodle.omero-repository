@@ -24,7 +24,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once($CFG->dirroot . '/repository/lib.php');
-require_once(dirname(__FILE__).'/locallib.php');
+require_once(dirname(__FILE__) . '/locallib.php');
+require_once(dirname(__FILE__) . '/logger.php');
 
 /**
  * Repository to access omero files
@@ -33,18 +34,22 @@ require_once(dirname(__FILE__).'/locallib.php');
  * @copyright  2010 Dongsheng Cai
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class repository_omero extends repository {
+class repository_omero extends repository
+{
     /** @var omero the instance of omero client */
     private $omero;
     /** @var array files */
     public $files;
     /** @var bool flag of login status */
-    public $logged=false;
+    public $logged = false;
     /** @var int maximum size of file to cache in moodle filepool */
-    public $cachelimit=null;
+    public $cachelimit = null;
 
     /** @var int cached file ttl */
     private $cachedfilettl = null;
+
+    /** @var Logger */
+    private $logger = null;
 
     /**
      * Constructor of omero plugin
@@ -53,15 +58,16 @@ class repository_omero extends repository {
      * @param stdClass $context
      * @param array $options
      */
-    public function __construct($repositoryid, $context = SYSCONTEXTID, $options = array()) {
+    public function __construct($repositoryid, $context = SYSCONTEXTID, $options = array())
+    {
         global $CFG;
-        $options['page']    = optional_param('p', 1, PARAM_INT);
+        $options['page'] = optional_param('p', 1, PARAM_INT);
         parent::__construct($repositoryid, $context, $options);
 
         $this->setting = 'omero_';
 
-        $this->omero_key = $this->get_option('omero_key');
-        $this->omero_secret  = $this->get_option('omero_secret');
+        $this->omero_key = "omero_key"; //FIXME: to restore ---> $this->get_option('omero_key');
+        $this->omero_secret = "omero_secret"; // FIXME: to restore --> $this->get_option('omero_secret');
 
         // one day
         $this->cachedfilettl = 60 * 60 * 24;
@@ -69,29 +75,31 @@ class repository_omero extends repository {
         if (isset($options['access_key'])) {
             $this->access_key = $options['access_key'];
         } else {
-            $this->access_key = get_user_preferences($this->setting.'_access_key', '');
+            $this->access_key = get_user_preferences($this->setting . '_access_key', '');
         }
         if (isset($options['access_secret'])) {
             $this->access_secret = $options['access_secret'];
         } else {
-            $this->access_secret = get_user_preferences($this->setting.'_access_secret', '');
+            $this->access_secret = get_user_preferences($this->setting . '_access_secret', '');
         }
 
         if (!empty($this->access_key) && !empty($this->access_secret)) {
             $this->logged = true;
         }
 
-        $callbackurl = new moodle_url($CFG->wwwroot.'/repository/repository_callback.php', array(
-            'callback'=>'yes',
-            'repo_id'=>$repositoryid
-            ));
+        $callbackurl = new moodle_url($CFG->wwwroot . '/repository/repository_callback.php', array(
+            'callback' => 'yes',
+            'repo_id' => $repositoryid
+        ));
 
         $args = array(
-            'oauth_consumer_key'=>$this->omero_key,
-            'oauth_consumer_secret'=>$this->omero_secret,
+            'oauth_consumer_key' => $this->omero_key,
+            'oauth_consumer_secret' => $this->omero_secret,
             'oauth_callback' => $callbackurl->out(false),
             'api_root' => 'https://api.omero.com/1/oauth',
         );
+
+        $this->logger = new Logger("omero-lib");
 
         $this->omero = new omero($args);
     }
@@ -101,7 +109,8 @@ class repository_omero extends repository {
      *
      * @param string $access_key
      */
-    public function set_access_key($access_key) {
+    public function set_access_key($access_key)
+    {
         $this->access_key = $access_key;
     }
 
@@ -110,7 +119,8 @@ class repository_omero extends repository {
      *
      * @param string $access_secret
      */
-    public function set_access_secret($access_secret) {
+    public function set_access_secret($access_secret)
+    {
         $this->access_secret = $access_secret;
     }
 
@@ -120,7 +130,8 @@ class repository_omero extends repository {
      *
      * @return bool
      */
-    public function check_login() {
+    public function check_login()
+    {
         //return !empty($this->logged);
         return true; // disabled plugin loigin
     }
@@ -130,9 +141,10 @@ class repository_omero extends repository {
      *
      * @return array
      */
-    public function print_login() {
+    public function print_login()
+    {
         $result = $this->omero->request_token();
-        set_user_preference($this->setting.'_request_secret', $result['oauth_token_secret']);
+        set_user_preference($this->setting . '_request_secret', $result['oauth_token_secret']);
         $url = $result['authorize_url'];
         if ($this->options['ajax']) {
             $ret = array();
@@ -142,7 +154,7 @@ class repository_omero extends repository {
             $ret['login'] = array($popup_btn);
             return $ret;
         } else {
-            echo '<a target="_blank" href="'.$url.'">'.get_string('login', 'repository').'</a>';
+            echo '<a target="_blank" href="' . $url . '">' . get_string('login', 'repository') . '</a>';
         }
     }
 
@@ -151,12 +163,13 @@ class repository_omero extends repository {
      *
      * @return array
      */
-    public function callback() {
-        $token  = optional_param('oauth_token', '', PARAM_TEXT);
-        $secret = get_user_preferences($this->setting.'_request_secret', '');
+    public function callback()
+    {
+        $token = optional_param('oauth_token', '', PARAM_TEXT);
+        $secret = get_user_preferences($this->setting . '_request_secret', '');
         $access_token = $this->omero->get_access_token($token, $secret);
-        set_user_preference($this->setting.'_access_key', $access_token['oauth_token']);
-        set_user_preference($this->setting.'_access_secret', $access_token['oauth_token_secret']);
+        set_user_preference($this->setting . '_access_key', $access_token['oauth_token']);
+        set_user_preference($this->setting . '_access_secret', $access_token['oauth_token_secret']);
     }
 
     /**
@@ -166,115 +179,233 @@ class repository_omero extends repository {
      * @param int $page
      * @return array
      */
-    public function get_listing($path = '', $page = '1') {
+    public function get_listing($path = '', $page = '1')
+    {
         global $OUTPUT;
-        if (empty($path) || $path=='/') {
+
+        // format the current selected URL
+        if (empty($path) || $path == '/') {
             $path = '/';
+            $_SESSION['prova'] = "";
         } else {
             $path = file_correct_filepath($path);
         }
         $encoded_path = str_replace("%2F", "/", rawurlencode($path));
+
+        $this->logger->debug("Current path: " . $encoded_path . " --- " . $path);
+
+
+        // Initializes the data structures needed to build the response
         $list = array();
         $list['list'] = array();
         $list['manage'] = 'https://www.omero.com/home';
         $list['dynload'] = true;
-        $list['nosearch'] = true;
+        $list['nologin'] = true;
         $list['logouturl'] = 'https://www.omero.com/logout';
         $list['message'] = get_string('logoutdesc', 'repository_omero');
-        // process breadcrumb trail
-        $list['path'] = array(
-            array('name'=>get_string('omero', 'repository_omero'), 'path'=>'/')
-        );
 
-        $result = $this->omero->get_listing($encoded_path, $this->access_key, $this->access_secret);
 
-        if (!is_object($result) || empty($result)) {
-            return $list;
-        }
-        if (empty($result->path)) {
-            $current_path = '/';
+        // Build the navigation bar
+        $navigation_list = array();
+        $list['path'] = $this->build_navigation_from_url($navigation_list, $path);
+
+        // Enable/Disable the search field
+        $list['nosearch'] = true;
+
+        // true if the list is a search result
+        $list['issearchresult'] = false;
+
+
+        if (PathUtils::is_root_path($path)) {
+            $this->logger->debug("The root path has been selected !!!");
+
+            $response = $this->omero->process_request(PathUtils::build_project_list_url(),
+                $this->access_key, $this->access_secret);
+
+            foreach ($response as $item) {
+                $obj = $this->process_list_item("Project", $item);
+                $list['list'][] = $obj;
+            }
+
         } else {
-            $current_path = file_correct_filepath($result->path);
-        }
 
-        $trail = '';
-        if (!empty($path)) {
-            $parts = explode('/', $path);
-            if (count($parts) > 1) {
-                foreach ($parts as $part) {
-                    if (!empty($part)) {
-                        $trail .= ('/'.$part);
-                        $list['path'][] = array('name'=>$part, 'path'=>$trail);
-                    }
+            $selected_obj_info = $this->omero->process_request($path, $this->access_key, $this->access_secret);
+            if ($this->is_project($selected_obj_info)) {
+
+                $this->logger->debug("Project selected!!!");
+                $response = $this->omero->process_request(
+                    PathUtils::build_dataset_list_url($selected_obj_info->id),
+                    $this->access_key, $this->access_secret);
+                foreach ($response as $item) {
+                    $list['list'][] = $this->process_list_item("Dataset", $item);
                 }
+
+            } else if ($this->is_dataset($selected_obj_info)) {
+
+                $this->logger->debug("Dataset selected!!!");
+                $response = $this->omero->process_request(
+                    PathUtils::build_image_list_url($selected_obj_info->id),
+                    $this->access_key, $this->access_secret);
+                foreach ($response as $item) {
+                    $processed_item = $this->process_list_item("Image", $item, "Series 1");
+                    if ($processed_item != null)
+                        $list['list'][] = $processed_item;
+                }
+
+            } else if ($this->is_image($selected_obj_info)) {
+
+                $this->logger->debug("Image selected!!!");
+                $response = $this->omero->process_request(
+                    PathUtils::build_image_detail($selected_obj_info->id),
+                    $this->access_key, $this->access_secret);
+
             } else {
-                $list['path'][] = array('name'=>$path, 'path'=>$path);
+                $this->logger->debug("Unknown resource selected!!!");
             }
         }
 
-
-        if (!empty($result->error)) {
-            // reset access key
-            set_user_preference($this->setting.'_access_key', '');
-            set_user_preference($this->setting.'_access_secret', '');
-            throw new repository_exception('repositoryerror', 'repository', '', $result->error);
-        }
-        if (empty($result->contents) or !is_array($result->contents)) {
-            return $list;
-        }
-        $files = $result->contents;
-        $dirslist = array();
-        $fileslist = array();
-        foreach ($files as $file) {
-            if ($file->is_dir) {
-                $dirslist[] = array(
-                    'title' => substr($file->path, strpos($file->path, $current_path)+strlen($current_path)),
-                    'path' => file_correct_filepath($file->path),
-                    'date' => strtotime($file->modified),
-                    'thumbnail' => $OUTPUT->pix_url(file_folder_icon(64))->out(false),
-                    'thumbnail_height' => 64,
-                    'thumbnail_width' => 64,
-                    'children' => array(),
-                );
-            } else {
-                $thumbnail = null;
-                if ($file->thumb_exists) {
-                    $thumburl = new moodle_url('/repository/omero/thumbnail.php',
-                            array('repo_id' => $this->id,
-                                'ctx_id' => $this->context->id,
-                                'source' => $file->path,
-                                'rev' => $file->rev // include revision to avoid cache problems
-                            ));
-                    $thumbnail = $thumburl->out(false);
-                }
-                $fileslist[] = array(
-                    'title' => substr($file->path, strpos($file->path, $current_path)+strlen($current_path)),
-                    'source' => $file->path,
-                    'size' => $file->bytes,
-                    'date' => strtotime($file->modified),
-                    'thumbnail' => $OUTPUT->pix_url(file_extension_icon($file->path, 64))->out(false),
-                    'realthumbnail' => $thumbnail,
-                    'thumbnail_height' => 64,
-                    'thumbnail_width' => 64,
-                );
-            }
-        }
-        $fileslist = array_filter($fileslist, array($this, 'filter'));
-        $list['list'] = array_merge($dirslist, array_values($fileslist));
         return $list;
     }
+
+
+    /**
+     *
+     */
+    public function build_navigation_from_url($result, $path)
+    {
+        $items = split("/", $path);
+
+        $omero_project = $_SESSION['omero_project'];
+        $omero_dataset = $_SESSION['omero_dataset'];
+
+        if (count($items) == 0 || empty($items[1])) {
+            array_push($result, array('name' => "Projects", 'path' => "/"));
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+
+        } else if ($items[1] == "proj") {
+            array_push($result, array('name' => "Projects", 'path' => "/"));
+            array_push($result, array(
+                    'name' => "Project [" . get_omero_item_id_from_url($path) . "]",
+                    'path' => $path)
+            );
+            $_SESSION['omero_project'] = $path;
+
+        } else if ($items[1] == "dataset") {
+            array_push($result, array('name' => "Projects", 'path' => "/"));
+            array_push($result, array(
+                    'name' => "Project [" . get_omero_item_id_from_url($omero_project) . "]",
+                    'path' => $omero_project)
+            );
+            array_push($result, array(
+                    'name' => "DataSet [" . get_omero_item_id_from_url($path) . "]",
+                    'path' => $path)
+            );
+            $_SESSION['omero_dataset'] = $path;
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Fill data for a list item
+     *
+     * @param $type
+     * @param $item
+     * @param null $filter
+     * @return array|null
+     */
+    public function process_list_item($type, $item, $filter = null)
+    {
+        global $OUTPUT;
+
+        $path = "/";
+        $children = null;
+        $thumbnail = null;
+        $itemObj = null;
+
+        if ($filter == null || preg_match("/(Series\s1)/", $item->name)) {
+
+            if (strcmp($type, "Project") == 0) {
+                $path = PathUtils::build_project_detail_url($item->id);
+                $children = array();
+                $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+
+            } else if (strcmp($type, "Dataset") == 0) {
+                $path = PathUtils::build_dataset_detail_url($item->id);
+                $children = array();
+                $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+
+            } else if (strcmp($type, "Image") == 0) {
+                $path = PathUtils::build_image_detail_url($item->id) . ".jpeg";
+                $thumbnail = $this->omero->get_thumbnail_url($item->id);
+
+            } else
+                throw new RuntimeException("Unknown data type");
+
+            $itemObj = array(
+                'title' => get_omero_item_id_from_url($path),//str_replace("/(Series\s\d+)/", "", $item->name),
+                'path' => $path,
+                'source' => $path,
+                'date' => time(),
+                'thumbnail' => $thumbnail,
+                'thumbnail_height' => 128,
+                'thumbnail_width' => 128,
+                'children' => $children
+            );
+
+            $this->logger->debug("***");
+            $this->logger->debug("fields created ....");
+            foreach ($itemObj as $k => $v) {
+                if (!is_array($v))
+                    $this->logger->debug("$k = $v");
+            }
+            $this->logger->debug("***");
+        }
+
+        return $itemObj;
+    }
+
+
+    function get_type($item)
+    {
+        return $item->type;
+    }
+
+
+    function is_project($item)
+    {
+        return (strcmp($this->get_type($item), "Project") == 0);
+    }
+
+
+    function is_dataset($item)
+    {
+        return (strcmp($this->get_type($item), "Dataset") == 0);
+    }
+
+
+    function is_image($item)
+    {
+        return (strcmp($this->get_type($item), "Image") == 0);
+    }
+
 
     /**
      * Displays a thumbnail for current user's omero file
      *
      * @param string $string
      */
-    public function send_thumbnail($source) {
+    public function send_thumbnail($source)
+    {
+        $this->logger->debug("#### send_thumbnail");
+
         global $CFG;
         $saveas = $this->prepare_file('');
         try {
-            $access_key = get_user_preferences($this->setting.'_access_key', '');
-            $access_secret = get_user_preferences($this->setting.'_access_secret', '');
+            $access_key = get_user_preferences($this->setting . '_access_key', '');
+            $access_secret = get_user_preferences($this->setting . '_access_secret', '');
             $this->omero->set_access_token($access_key, $access_secret);
             $this->omero->get_thumbnail($source, $saveas, $CFG->repositorysyncimagetimeout);
             $content = file_get_contents($saveas);
@@ -282,18 +413,20 @@ class repository_omero extends repository {
             // set 30 days lifetime for the image. If the image is changed in omero it will have
             // different revision number and URL will be different. It is completely safe
             // to cache thumbnail in the browser for a long time
-            send_file($content, basename($source), 30*24*60*60, 0, true);
-        } catch (Exception $e) {}
+            send_file($content, basename($source), 30 * 24 * 60 * 60, 0, true);
+        } catch (Exception $e) {
+        }
     }
 
     /**
      * Logout from omero
      * @return array
      */
-    public function logout() {
-        set_user_preference($this->setting.'_access_key', '');
-        set_user_preference($this->setting.'_access_secret', '');
-        $this->access_key    = '';
+    public function logout()
+    {
+        set_user_preference($this->setting . '_access_key', '');
+        set_user_preference($this->setting . '_access_secret', '');
+        $this->access_key = '';
         $this->access_secret = '';
         return $this->print_login();
     }
@@ -303,7 +436,8 @@ class repository_omero extends repository {
      * @param array $options
      * @return mixed
      */
-    public function set_option($options = array()) {
+    public function set_option($options = array())
+    {
         if (!empty($options['omero_key'])) {
             set_config('omero_key', trim($options['omero_key']), 'omero');
         }
@@ -326,12 +460,13 @@ class repository_omero extends repository {
      * @param string $config
      * @return mixed
      */
-    public function get_option($config = '') {
-        if ($config==='omero_key') {
+    public function get_option($config = '')
+    {
+        if ($config === 'omero_key') {
             return trim(get_config('omero', 'omero_key'));
-        } elseif ($config==='omero_secret') {
+        } elseif ($config === 'omero_secret') {
             return trim(get_config('omero', 'omero_secret'));
-        } elseif ($config==='omero_cachelimit') {
+        } elseif ($config === 'omero_cachelimit') {
             return $this->max_cache_bytes();
         } else {
             $options = parent::get_option();
@@ -347,7 +482,8 @@ class repository_omero extends repository {
      *
      * @param string $reference contents of DB field files_reference.reference
      */
-    public function fix_old_style_reference($reference) {
+    public function fix_old_style_reference($reference)
+    {
         global $CFG;
         $ref = unserialize($reference);
         if (!isset($ref->url)) {
@@ -404,8 +540,9 @@ class repository_omero extends repository {
      * @param string $sharedurl
      * @return string
      */
-    private function get_file_download_link($sharedurl) {
-        return preg_replace('|^(\w*://)www(.omero.com)|','\1dl\2',$sharedurl);
+    private function get_file_download_link($sharedurl)
+    {
+        return preg_replace('|^(\w*://)www(.omero.com)|', '\1dl\2', $sharedurl);
     }
 
     /**
@@ -421,7 +558,11 @@ class repository_omero extends repository {
      *   path: internal location of the file
      *   url: URL to the source (from parameters)
      */
-    public function get_file($reference, $saveas = '') {
+    public function get_file($reference, $saveas = '')
+    {
+
+        $this->logger->debug("### get_file ###");
+
         global $CFG;
         $ref = unserialize($reference);
         $saveas = $this->prepare_file($saveas);
@@ -436,20 +577,22 @@ class repository_omero extends repository {
             if ($result !== true || !isset($info['http_code']) || $info['http_code'] != 200) {
                 throw new moodle_exception('errorwhiledownload', 'repository', '', $result);
             }
-            return array('path'=>$saveas, 'url'=>$url);
+            return array('path' => $saveas, 'url' => $url);
         }
         throw new moodle_exception('cannotdownload', 'repository');
     }
+
     /**
      * Add Plugin settings input to Moodle form
      *
      * @param moodleform $mform Moodle form (passed by reference)
      * @param string $classname repository class name
      */
-    public static function type_config_form($mform, $classname = 'repository') {
+    public static function type_config_form($mform, $classname = 'repository')
+    {
         global $CFG;
         parent::type_config_form($mform);
-        $key    = get_config('omero', 'omero_key');
+        $key = get_config('omero', 'omero_key');
         $secret = get_config('omero', 'omero_secret');
 
         if (empty($key)) {
@@ -461,20 +604,20 @@ class repository_omero extends repository {
 
         $strrequired = get_string('required');
 
-        $mform->addElement('text', 'omero_key', get_string('apikey', 'repository_omero'), array('value'=>$key,'size' => '40'));
+        $mform->addElement('text', 'omero_key', get_string('apikey', 'repository_omero'), array('value' => $key, 'size' => '40'));
         $mform->setType('omero_key', PARAM_RAW_TRIMMED);
-        $mform->addElement('text', 'omero_secret', get_string('secret', 'repository_omero'), array('value'=>$secret,'size' => '40'));
+        $mform->addElement('text', 'omero_secret', get_string('secret', 'repository_omero'), array('value' => $secret, 'size' => '40'));
 
         $mform->addRule('omero_key', $strrequired, 'required', null, 'client');
         $mform->addRule('omero_secret', $strrequired, 'required', null, 'client');
         $mform->setType('omero_secret', PARAM_RAW_TRIMMED);
         $str_getkey = get_string('instruction', 'repository_omero');
-        $mform->addElement('static', null, '',  $str_getkey);
+        $mform->addElement('static', null, '', $str_getkey);
 
         $mform->addElement('text', 'omero_cachelimit', get_string('cachelimit', 'repository_omero'), array('size' => '40'));
         $mform->addRule('omero_cachelimit', null, 'numeric', null, 'client');
         $mform->setType('omero_cachelimit', PARAM_INT);
-        $mform->addElement('static', 'omero_cachelimit_info', '',  get_string('cachelimit_info', 'repository_omero'));
+        $mform->addElement('static', 'omero_cachelimit_info', '', get_string('cachelimit_info', 'repository_omero'));
     }
 
     /**
@@ -482,7 +625,8 @@ class repository_omero extends repository {
      *
      * @return array
      */
-    public static function get_type_option_names() {
+    public static function get_type_option_names()
+    {
         return array('omero_key', 'omero_secret', 'pluginname', 'omero_cachelimit');
     }
 
@@ -491,10 +635,9 @@ class repository_omero extends repository {
      *
      * @return array
      */
-    public function supported_filetypes() {
-        //return '*';
-        //return array('image/gif', 'image/jpeg', 'image/png');
-        return array('web_image');
+    public function supported_filetypes()
+    {
+        return array('image/png');
     }
 
     /**
@@ -502,8 +645,11 @@ class repository_omero extends repository {
      *
      * @return int
      */
-    public function supported_returntypes() {
-        return /*FILE_INTERNAL |*/ FILE_REFERENCE | FILE_EXTERNAL;
+    public function supported_returntypes()
+    {
+        return /*FILE_INTERNAL |*/
+            //FILE_REFERENCE |
+            FILE_EXTERNAL;
     }
 
     /**
@@ -512,14 +658,23 @@ class repository_omero extends repository {
      * @param string $reference the result of get_file_reference()
      * @return string
      */
-    public function get_link($reference) {
+    public function get_link($reference)
+    {
         global $CFG;
+
+        $this->logger->debug("get_link called: : $reference !!!");
+
         $ref = unserialize($reference);
+        foreach ($ref as $k => $v)
+            $this->logger->debug("$k ---> $v");
+
         if (!isset($ref->url)) {
             $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
         }
-        return $this->get_file_download_link($ref->url);
+
+        // return $this->get_file_download_link($ref->url);
+        return "http://omero.crs4.it:8080/webgateway" . $this->omero->get_thumbnail_url(preg_replace("/imgData\/(\d+).jpeg/", "$1", $ref->path));
     }
 
     /**
@@ -528,14 +683,19 @@ class repository_omero extends repository {
      * @param string $source
      * @return string file referece
      */
-    public function get_file_reference($source) {
+    public function get_file_reference($source)
+    {
+        $this->logger->debug("---> Calling 'get_file_reference' <---");
+
+        $this->logger->debug("SOURCE: $source");
+
         global $USER, $CFG;
         $reference = new stdClass;
-        $reference->path = $source;
+        $reference->path = "http://omero.crs4.it:8080/webgateway/render_thumbnail/201";
         $reference->userid = $USER->id;
         $reference->username = fullname($USER);
-        $reference->access_key = get_user_preferences($this->setting.'_access_key', '');
-        $reference->access_secret = get_user_preferences($this->setting.'_access_secret', '');
+        $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
+        $reference->access_secret = get_user_preferences($this->setting . '_access_secret', '');
 
         // by API we don't know if we need this reference to just download a file from omero
         // into moodle filepool or create a reference. Since we need to create a shared link
@@ -547,13 +707,16 @@ class repository_omero extends repository {
             if ($url) {
                 unset($reference->access_key);
                 unset($reference->access_secret);
-                $reference->url = $url;
+                $reference->url = "http://omero.crs4.it:8080/webgateway/render_thumbnail/201";
             }
         }
         return serialize($reference);
     }
 
-    public function sync_reference(stored_file $file) {
+    public function sync_reference(stored_file $file)
+    {
+        $this->logger->debug("---> Calling 'sync_reference' <---");
+
         global $CFG;
 
         if ($file->get_referencelastsync() + DAYSECS > time()) {
@@ -573,7 +736,10 @@ class repository_omero extends repository {
         if (file_extension_in_typegroup($ref->path, 'web_image')) {
             $saveas = $this->prepare_file('');
             try {
-                $result = $c->download_one($url, array(), array('filepath' => $saveas, 'timeout' => $CFG->repositorysyncimagetimeout, 'followlocation' => true));
+                $result = $c->download_one($url, array(),
+                    array('filepath' => $saveas,
+                        'timeout' => $CFG->repositorysyncimagetimeout,
+                        'followlocation' => true));
                 $info = $c->get_info();
                 if ($result === true && isset($info['http_code']) && $info['http_code'] == 200) {
                     $fs = get_file_storage();
@@ -581,13 +747,15 @@ class repository_omero extends repository {
                     $file->set_synchronized($contenthash, $filesize);
                     return true;
                 }
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+            }
         }
         $c->get($url, null, array('timeout' => $CFG->repositorysyncimagetimeout, 'followlocation' => true, 'nobody' => true));
         $info = $c->get_info();
         if (isset($info['http_code']) && $info['http_code'] == 200 &&
-                array_key_exists('download_content_length', $info) &&
-                $info['download_content_length'] >= 0) {
+            array_key_exists('download_content_length', $info) &&
+            $info['download_content_length'] >= 0
+        ) {
             $filesize = (int)$info['download_content_length'];
             $file->set_synchronized(null, $filesize);
             return true;
@@ -606,10 +774,14 @@ class repository_omero extends repository {
      *                          repository::get_file_reference()
      * @param stored_file $storedfile created file reference
      */
-    public function cache_file_by_reference($reference, $storedfile) {
+    public function cache_file_by_reference($reference, $storedfile)
+    {
+        $this->logger->debug("---> Calling 'cache_file_by_reference' <---");
+
         try {
             $this->import_external_file_contents($storedfile, $this->max_cache_bytes());
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
     }
 
     /**
@@ -620,23 +792,26 @@ class repository_omero extends repository {
      * @param int $filestatus status of the file, 0 - ok, 666 - source missing
      * @return string
      */
-    public function get_reference_details($reference, $filestatus = 0) {
+    public function get_reference_details($reference, $filestatus = 0)
+    {
+        $this->logger->debug("---> Calling 'get_reference_details' <---");
+
         global $USER;
-        $ref  = unserialize($reference);
+        $ref = unserialize($reference);
         $detailsprefix = $this->get_name();
         if (isset($ref->userid) && $ref->userid != $USER->id && isset($ref->username)) {
-            $detailsprefix .= ' ('.$ref->username.')';
+            $detailsprefix .= ' (' . $ref->username . ')';
         }
         $details = $detailsprefix;
         if (isset($ref->path)) {
-            $details .= ': '. $ref->path;
+            $details .= ': ' . $ref->path;
         }
         if (isset($ref->path) && !$filestatus) {
             // Indicate this is from omero with path
             return $details;
         } else {
             if (isset($ref->url)) {
-                $details = $detailsprefix. ': '. $ref->url;
+                $details = $detailsprefix . ': ' . $ref->url;
             }
             return get_string('lostsource', 'repository', $details);
         }
@@ -648,9 +823,10 @@ class repository_omero extends repository {
      * @param string $source
      * @return string
      */
-    public function get_file_source_info($source) {
+    public function get_file_source_info($source)
+    {
         global $USER;
-        return 'omero ('.fullname($USER).'): ' . $source;
+        return 'omero (' . fullname($USER) . '): ' . $source;
     }
 
     /**
@@ -663,7 +839,8 @@ class repository_omero extends repository {
      *
      * @return int
      */
-    public function max_cache_bytes() {
+    public function max_cache_bytes()
+    {
         if ($this->cachelimit === null) {
             $this->cachelimit = (int)get_config('omero', 'omero_cachelimit');
         }
@@ -683,10 +860,13 @@ class repository_omero extends repository {
      * @param bool $forcedownload If true (default false), forces download of file rather than view in browser/plugin
      * @param array $options additional options affecting the file serving
      */
-    public function send_file($storedfile, $lifetime=null , $filter=0, $forcedownload=false, array $options = null) {
+    public function send_file($storedfile, $lifetime = null, $filter = 0, $forcedownload = false, array $options = null)
+    {
+        $this->logger->debug("---> Calling 'send_file' <---");
+
         $ref = unserialize($storedfile->get_reference());
         if ($storedfile->get_filesize() > $this->max_cache_bytes()) {
-            header('Location: '.$this->get_file_download_link($ref->url));
+            header('Location: ' . $this->get_file_download_link($ref->url));
             die;
         }
         try {
@@ -699,7 +879,7 @@ class repository_omero extends repository {
         } catch (moodle_exception $e) {
             // redirect to omero, it will show the error.
             // We redirect to omero shared link, not to download link here!
-            header('Location: '.$ref->url);
+            header('Location: ' . $ref->url);
             die;
         }
     }
@@ -711,7 +891,8 @@ class repository_omero extends repository {
      * {@link repository_omero::max_cache_bytes()} and only files which
      * synchronisation timeout have not expired are cached.
      */
-    public function cron() {
+    public function cron()
+    {
         $fs = get_file_storage();
         $files = $fs->get_external_files($this->id);
         foreach ($files as $file) {
@@ -719,17 +900,39 @@ class repository_omero extends repository {
                 // This call will cache all files that are smaller than max_cache_bytes()
                 // and synchronise file size of all others
                 $this->import_external_file_contents($file, $this->max_cache_bytes());
-            } catch (moodle_exception $e) {}
+            } catch (moodle_exception $e) {
+            }
         }
     }
+
+
 }
 
 /**
  * omero plugin cron task
  */
-function repository_omero_cron() {
-    $instances = repository::get_instances(array('type'=>'omero'));
+function repository_omero_cron()
+{
+    $instances = repository::get_instances(array('type' => 'omero'));
     foreach ($instances as $instance) {
         $instance->cron();
     }
+}
+
+
+function startsWith($haystack, $needle)
+{
+    // search backwards starting from haystack length characters from the end
+    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
+}
+
+
+function get_omero_item_id_from_url($url)
+{
+    $result = -1;
+    $parts = split("/", $url);
+    if (count($parts) > 2) {
+        return $parts[2];
+    }
+    return $result;
 }
