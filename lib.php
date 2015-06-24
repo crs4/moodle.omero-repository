@@ -75,7 +75,7 @@ class repository_omero extends repository
 
         if (isset($options['omero_restendpoint'])) {
             $this->omero_restendpoint = $options['omero_restendpoint'];
-        }else {
+        } else {
             $this->omero_restendpoint = get_user_preferences($this->setting . '_omero_restendpoint', '');
         }
         if (isset($options['access_key'])) {
@@ -99,7 +99,7 @@ class repository_omero extends repository
         ));
 
         $toprint = "";
-        foreach($options as $k=>$v){
+        foreach ($options as $k => $v) {
             $toprint .= $k;
         }
 
@@ -110,11 +110,10 @@ class repository_omero extends repository
             'oauth_consumer_key' => $this->omero_key,
             'oauth_consumer_secret' => $this->omero_secret,
             'oauth_callback' => $callbackurl->out(false),
-            'api_root' => 'https://api.omero.com/1/oauth',
+            'api_root' => $this->omero_restendpoint,
         );
 
         $this->logger = new Logger("omero-lib");
-
         $this->omero = new omero($args);
     }
 
@@ -200,7 +199,6 @@ class repository_omero extends repository
         // format the current selected URL
         if (empty($path) || $path == '/') {
             $path = '/';
-            $_SESSION['prova'] = "";
         } else {
             $path = file_correct_filepath($path);
         }
@@ -338,6 +336,9 @@ class repository_omero extends repository
         $children = null;
         $thumbnail = null;
         $itemObj = null;
+        $image_date = null;
+        $image_author = null;
+
 
         if ($filter == null || preg_match("/(Series\s1)/", $item->name)) {
 
@@ -352,18 +353,24 @@ class repository_omero extends repository
                 $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
             } else if (strcmp($type, "Image") == 0) {
-                $path = PathUtils::build_image_detail_url($item->id) . ".jpeg";
+                $path = PathUtils::build_image_detail_url($item->id);
                 $thumbnail = $this->omero->get_thumbnail_url($item->id);
-
+                $image_info = $this->omero->process_request(
+                    PathUtils::build_image_detail_url($item->id));
+                $image_date =  $image_info->meta->imageTimestamp;
+                $image_author = $image_info->meta->imageAuthor;
             } else
                 throw new RuntimeException("Unknown data type");
 
             $itemObj = array(
-                'title' => get_omero_item_id_from_url($path),//str_replace("/(Series\s\d+)/", "", $item->name),
+                'image_id' => $item->id,
+                'title' => $item->name . " [id:" . $item->id . "]",
+                'author' => $image_author,
                 'path' => $path,
-                'source' => $path,
-                'date' => time(),
+                'source' => $item->id,
+                'date' => $image_date,
                 'thumbnail' => $thumbnail,
+                'license' => "",
                 'thumbnail_height' => 128,
                 'thumbnail_width' => 128,
                 'children' => $children
@@ -699,7 +706,10 @@ class repository_omero extends repository
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
         }
 
-        return "$this->omero_restendpoint/" . $this->omero->get_thumbnail_url(preg_replace("/imgData\/(\d+).jpeg/", "$1", $ref->path));
+        $image_id = preg_replace("/\/render_thumbnail\/(\d+)/", "$1", $ref->path);
+        $res = $this->omero->get_thumbnail_url($image_id);
+        $this->logger->debug("RES: " . $res);
+        return $res;
     }
 
     /**
@@ -716,7 +726,7 @@ class repository_omero extends repository
 
         global $USER, $CFG;
         $reference = new stdClass;
-        $reference->path = "$this->omero_restendpoint/render_thumbnail/201"; // FIXME: static URL
+        $reference->path = "$this->omero_restendpoint/render_thumbnail/$source"; // FIXME: static URL
         $reference->userid = $USER->id;
         $reference->username = fullname($USER);
         $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
@@ -727,12 +737,14 @@ class repository_omero extends repository
         // only in case of reference we analyze the script parameter
         $usefilereference = optional_param('usefilereference', false, PARAM_BOOL);
         if ($usefilereference) {
+            $this->logger->debug("Computing reference: $usefilereference");
             $this->omero->set_access_token($reference->access_key, $reference->access_secret);
             $url = $this->omero->get_file_share_link($source, $CFG->repositorygetfiletimeout);
             if ($url) {
                 unset($reference->access_key);
                 unset($reference->access_secret);
-                $reference->url = "$this->omero_restendpoint/render_thumbnail/201"; // FIXME: static URL
+                $reference->url = "$this->omero_restendpoint/webclient/img_detail/$source"; // FIXME: static URL
+                $this->logger->debug("Computed reference: " . $reference->url);
             }
         }
         return serialize($reference);
@@ -820,7 +832,6 @@ class repository_omero extends repository
     public function get_reference_details($reference, $filestatus = 0)
     {
         $this->logger->debug("---> Calling 'get_reference_details' <---");
-
         global $USER;
         $ref = unserialize($reference);
         $detailsprefix = $this->get_name();
