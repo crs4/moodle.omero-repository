@@ -36,9 +36,9 @@ ctrl.init = function(omero_server, frame_id, image_id){
         me.viewport.bind('imageLoad', me._imageLoad);
         /* Bind zoomimg action to the ROIs */
         me.viewport.bind('instant_zoom', me.instant_zoom);
-        /* draw the image if provided */
+        /* load and render the image if provided */
         if(image_id!=undefined)
-            me.draw_image(image_id, true);
+            me.load_and_render_image(image_id, true);
 
         // notify viewport creation
         window.postMessage({type: "omero_viewport_created"}, "*");
@@ -217,9 +217,15 @@ ctrl.remove_external_shape = function (roi_id, shape_id) {
 };
 
 
-
-
-ctrl.draw_image = function(image_id, resize){
+/**
+ * Load and render the image identified by 'image_id',
+ * resizing the viewer container
+ *
+ * @param image_id the image to load
+ * @param resize <code>true</code> if the container has to be resized;
+ *               <code>false</code> otherwise
+ */
+ctrl.load_and_render_image = function(image_id, resize){
 
     var me = omero_viewer_controller;
 
@@ -236,7 +242,7 @@ ctrl.resize = function(){
     var me = omero_viewer_controller;
     var iframe = parent.parent.document.getElementById(me.frame_id);
     var omeroViewport = iframe.contentDocument.getElementById("viewport");
-    var roisTable = iframe.contentDocument.getElementById("roistable");
+    var roisTable = iframe.contentDocument.getElementById("rois-table");
 
     console.log("iframe", iframe);
     console.log("viewport", omeroViewport);
