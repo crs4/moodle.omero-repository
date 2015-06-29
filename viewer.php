@@ -104,7 +104,7 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
 <div id="viewport" class="viewport"></div>
 
 <!-- FIXME: Static table example: the table has to be dynamically generated -->
-<div id="rois-table-container" class="panel panel-default" style="margin-top: 20px;font-size: 12pt;">
+<div id="rois-table-container" class="panel panel-default" style="margin-top: 40px;font-size: 12pt;">
 
     <!-- Default panel contents -->
     <div class="panel-heading">ROI Inspector</div>
