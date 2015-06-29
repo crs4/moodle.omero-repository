@@ -82,7 +82,7 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
         // Get a reference to the actual omero_viewer_controller
         var viewer_ctrl = omero_viewer_controller;
         // Initialize the omero_viewer_controller
-        viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>", "<?= $imageId ?>");
+        viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>", "viewport", "rois-table", "<?= $imageId ?>");
 
     </script>
 

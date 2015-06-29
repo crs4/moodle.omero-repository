@@ -15,13 +15,15 @@ var ctrl = omero_viewer_controller;
  * @param frame_id the frame containing the viewer if it exists
  * @param image_id the image of the image to immediately view after the initialization
  */
-ctrl.init = function(omero_server, frame_id, image_id){
+ctrl.init = function(omero_server, frame_id, viewport_id, rois_table_id, image_id){
 
     var me = omero_viewer_controller;
 
     // register the actual initialization parameters
     me.omero_server = omero_server;
     me.frame_id = frame_id;
+    me.viewport_id = viewport_id;
+    me.rois_table_id = rois_table_id;
     me.image_id = image_id;
 
     // creates the viewport
@@ -241,8 +243,8 @@ ctrl.load_and_render_image = function(image_id, resize){
 ctrl.resize = function(){
     var me = omero_viewer_controller;
     var iframe = parent.parent.document.getElementById(me.frame_id);
-    var omeroViewport = iframe.contentDocument.getElementById("viewport");
-    var roisTable = iframe.contentDocument.getElementById("rois-table");
+    var omeroViewport = iframe.contentDocument.getElementById(me.viewport_id);
+    var roisTable = iframe.contentDocument.getElementById(me.rois_table_id);
 
     console.log("iframe", iframe);
     console.log("viewport", omeroViewport);
