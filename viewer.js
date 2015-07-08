@@ -336,6 +336,30 @@ ctrl._render_rois_table = function (image_id) {
 };
 
 
+ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
+    var me = omero_viewer_controller;
+
+    $.ajax({
+        url: me.omero_server + "/webgateway/get_rois_json/201/",
+
+        // The name of the callback parameter, as specified by the YQL service
+        jsonp: "callback",
+
+        // Tell jQuery we're expecting JSONP
+        dataType: "jsonp",
+
+        // Request parameters
+        data: {
+            q: "", //FIXME: not required
+            format: "json"
+        },
+
+        // Set callback methods
+        success: success_callback,
+        error: error_callback
+    });
+};
+
 ctrl.resize = function () {
     var me = omero_viewer_controller;
     var iframe = parent.parent.document.getElementById(me.frame_id);
