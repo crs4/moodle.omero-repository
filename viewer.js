@@ -15,7 +15,7 @@ var ctrl = omero_viewer_controller;
  * @param frame_id the frame containing the viewer if it exists
  * @param image_id the image of the image to immediately view after the initialization
  */
-ctrl.init = function(omero_server, frame_id, viewport_id, rois_table_id, image_id){
+ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, image_id) {
 
     var me = omero_viewer_controller;
 
@@ -39,7 +39,7 @@ ctrl.init = function(omero_server, frame_id, viewport_id, rois_table_id, image_i
         /* Bind zoomimg action to the ROIs */
         me.viewport.bind('instant_zoom', me.instant_zoom);
         /* load and render the image if provided */
-        if(image_id!=undefined)
+        if (image_id != undefined)
             me.load_and_render_image(image_id, true);
 
         // notify viewport creation
@@ -52,11 +52,12 @@ ctrl.init = function(omero_server, frame_id, viewport_id, rois_table_id, image_i
 
 ctrl.load_viewport = function () {
     var me = omero_viewer_controller;
+    var viewport = me.viewport;
     if (!viewport.viewportimg.get(0).refresh_rois) {
         var options = {
             'width': viewport.loadedImg.size.width,
             'height': viewport.loadedImg.size.height,
-            'json_url': '<?= $OMERO_SERVER ?>/webgateway/get_rois_json/' + viewport.loadedImg.id
+            'json_url': me.omero_server + '/webgateway/get_rois_json/' + viewport.loadedImg.id
         };
         if (me.viewport.loadedImg.tiles) {
             options['tiles'] = true;
@@ -76,7 +77,7 @@ ctrl.show_rois = function () {
     var theZ = viewport.getZPos();
 
     if (!viewport.viewportimg.get(0).show_rois) {
-        load_viewport();
+        me.load_viewport();
     }
 
     // loads ROIs (if needed) and shows.
@@ -155,26 +156,25 @@ ctrl._imageLoad = function (ev, viewport) {
      * Attach functions to the click event on specific buttons
      */
     $("#viewport-show-rois").click(function () {
-        show_rois();
+        me.show_rois();
     });
     $("#viewport-hide-rois").click(function () {
-        hide_rois();
+        me.hide_rois();
     });
     $("#viewport-add-shapes").click(function () {
-        add_external_shapes();
+        me.add_external_shapes();
     });
     $("#viewport-remove-shape-1").click(function () {
-        remove_external_shape("X1", 1);
+        me.remove_external_shape("X1", 1);
     });
     $("#viewport-remove-shape-2").click(function () {
-        remove_external_shape("X2", 1);
+        me.remove_external_shape("X2", 1);
     });
 
 
     /**
      * Attach functions to the click event on specific buttons
      */
-
         // 'Scalebar' checkbox to left of image
     $("#viewport-scalebar").change(function () {
         if (this.checked) {
@@ -227,7 +227,7 @@ ctrl.remove_external_shape = function (roi_id, shape_id) {
  * @param resize <code>true</code> if the container has to be resized;
  *               <code>false</code> otherwise
  */
-ctrl.load_and_render_image = function(image_id, resize){
+ctrl.load_and_render_image = function (image_id, resize) {
 
     var me = omero_viewer_controller;
 
@@ -235,12 +235,13 @@ ctrl.load_and_render_image = function(image_id, resize){
     me.viewport.load(image_id);
 
     /* Resize the current viewer */
-    me.resize();
+    if (resize || resize != false)
+        me.resize();
 };
 
 
 
-ctrl.resize = function(){
+ctrl.resize = function () {
     var me = omero_viewer_controller;
     var iframe = parent.parent.document.getElementById(me.frame_id);
     var omeroViewport = iframe.contentDocument.getElementById(me.viewport_id);
@@ -250,6 +251,6 @@ ctrl.resize = function(){
     console.log("viewport", omeroViewport);
     console.log("table", roisTable);
 
-    var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 200;
+    var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 300;
     iframe.style.height = height + "px";
 };
