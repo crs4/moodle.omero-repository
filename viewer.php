@@ -35,15 +35,17 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
     <title>OMERO.web-viewer</title>
 
     <!-- Third part CSS stylesheets *** -->
-
     <!-- OmeroWeb CSS -->
     <link rel="stylesheet" type="text/css" href="<?= $OMERO_SERVER ?>/static/omeroweb.viewer.min.css">
-
     <!-- Bootstrap CSS -->
     <link href="/moodle/repository/omero/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- JQuery/Bootstrap table CSS -->
+    <link href="https://cdn.datatables.net/1.10.7/css/jquery.dataTables.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.css" rel="stylesheet">
 
     <!-- overwrite default styles -->
     <style type="text/css">
+        /* Custom style of the viewport */
         .viewport {
             width: 100%;
             height: 600px;
@@ -53,11 +55,48 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
             overflow: visible;
             padding: 5px;
         }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button{
+            padding: 0;
+        }
+
+        /* Fixes position of the entry number selector */
+        .dataTables_length{
+            padding: 18px;
+        }
+
+        /* Fixes the search box position */
+        .dataTables_filter{
+            padding: 18px;
+        }
+
+        /* hide the default jquery icon of the sort controls */
+        table.dataTable thead .sorting_asc{
+            background-image: none;
+        }
+        table.dataTable thead .sorting_desc{
+            background-image: none;
+        }
+        table.dataTable thead .sorting{
+            background-image: none;
+        }
+
+        /* fixes position of the current entries caption */
+        .col-sm-5{
+            margin-left: 15px;
+            margin-bottom: 15px;
+            padding-top: 10px;
+            padding-bottom: 5px;
+            width: 37%;
+        }
+
+        /* fixes position of the pagination bar */
+        .col-sm-7{
+            padding: 5px;
+        }
     </style>
 
-
     <!-- Third part libraries *** -->
-
     <!-- JQuery -->
     <script type="text/javascript" src="/moodle/repository/omero/libs/jquery/jquery-2.1.4.min.js"></script>
     <!-- Bootstrap -->
@@ -66,6 +105,9 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
     <script type="text/javascript" src="<?= $OMERO_SERVER ?>/static/omeroweb.viewer.min.js"></script>
     <!-- OmeroViewerController -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer.js"></script>
+    <!-- JQuery/Bootstrap table integration -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.js"></script>
 
     <!--  Initialization script -->
     <script type="text/javascript">
@@ -84,11 +126,14 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
         // Initialize the omero_viewer_controller
         viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>", "viewport", "rois-table", "<?= $imageId ?>");
 
+        // Expose the refresh_rois method
+        refresh_rois = viewer_ctrl.refresh_rois;
+
     </script>
 
 </head>
 
-<body style="background: white; padding: 10px; border: none;">
+<body style="background: white; border: none; padding: 10px;">
 
 <label for="viewport-scalebar">Scalebar</label>
 <input id="viewport-scalebar" type="checkbox" disabled/>
@@ -109,39 +154,9 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
     <!-- Default panel contents -->
     <div class="panel-heading">ROI Inspector</div>
 
-    <!-- Table -->
-    <table id="rois-table" class="table" data-toggle="table">
-        <thead>
-        <tr>
-            <th>Id</th>
-            <th>Shape</th>
-            <th>Color</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td>1</td>
-            <td>1</td>
-            <td>1</td>
-        </tr>
-        <tr>
-            <td>1</td>
-            <td>1</td>
-            <td>1</td>
-        </tr>
-        <tr>
-            <td>1</td>
-            <td>1</td>
-            <td>1</td>
-        </tr>
-        <tr>
-            <td>1</td>
-            <td>1</td>
-            <td>1</td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-
+    <div style="margin-top: 10px;">
+        <table id="rois-table" class="display" cellspacing="0" width="100%"></table>
+    </div>
+    </div>
 </body>
 </html>
