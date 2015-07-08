@@ -234,11 +234,106 @@ ctrl.load_and_render_image = function (image_id, resize) {
     /* Load the selected image into the viewport */
     me.viewport.load(image_id);
 
+    /* Render the rois table */
+    me._render_rois_table(image_id);
+
     /* Resize the current viewer */
     if (resize || resize != false)
         me.resize();
 };
 
+
+ctrl._render_rois_table = function (image_id) {
+
+    console.log("Rendering table started .... ");
+
+    var dataSet = [
+        {
+            "id": 10,
+            "z": 1,
+            "y": 1,
+            "text": "Text",
+            "preview": "...",
+            "visibility": 1
+        },
+        {
+            "id": 12,
+            "z": 1,
+            "y": 1,
+            "text": "Pippo",
+            "preview": "...",
+            "visibility": 0
+        },
+        {
+            "id": 12,
+            "z": 1,
+            "y": 1,
+            "text": "Text X",
+            "preview": "...",
+            "visibility": 0
+        }
+    ];
+
+
+    $('#rois-table').dataTable({
+        "data": dataSet,
+        "columns": [
+            {"title": "ID", data: "id"},
+            {"title": "Z", data: "z"},
+            {"title": "Y", data: "y"},
+            {"title": "Text", data: "text", "class": "center"},
+            {"title": "Preview", data: "preview", "class": "center"},
+            {
+                "title": "Visibility",
+                "data": "Active",
+                "render": function (data, type, row) {
+                    if (type === 'display') {
+                        return '<input type="checkbox" class="editor-active">';
+                    }
+                    return data;
+                },
+                "className": "dt-body-center",
+                "class": "center"
+            }
+        ],
+
+        rowCallback: function (row, data) {
+            // Set the checked state of the checkbox in the table
+            console.log("DATA", row, data, data[4], data[5]);
+            $('input.editor-active', row).prop('checked', data.visibility);
+        }
+    });
+
+
+    omero_viewer_controller.resize();
+
+    // Handle the selection of a given row (image)
+    // FIXME: it is just an example of event notification
+    $('#rois-table').on('change', function (event) {
+        console.log($('td', this), event);
+        console.log("CHECKED: ", $('#' + id).is(":checked"));
+        var name = $('td', this).eq(0).text();
+        if (name) {
+            alert('click on ' + name + '\'s row');
+            window.postMessage({event: "row_clicked", image_id: name}, "*");
+        }
+    });
+
+    // Resize after pagination FIXME: is really needed?
+    $('#rois-table').on('page.dt', function () {
+        var info = $('#rois-table').DataTable().page.info();
+        $('#pageInfo').html('Showing page: ' + info.page + ' of ' + info.pages);
+        omero_viewer_controller.resize();
+    });
+
+    // Resize after every draw
+    $('#rois-table').on('draw.dt', function () {
+        console.log('Redraw occurred at: ' + new Date().getTime());
+        omero_viewer_controller.resize();
+    });
+
+    console.log("Rendering table stopped .... ");
+};
 
 
 ctrl.resize = function () {
