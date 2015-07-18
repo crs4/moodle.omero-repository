@@ -235,7 +235,14 @@ ctrl.load_and_render_image = function (image_id, resize) {
     me.viewport.load(image_id);
 
     /* Render the rois table */
-    me._render_rois_table(image_id);
+    me.get_rois_info(image_id, function (data) {
+        me._render_rois_table(image_id, data);
+
+    }, function (data) {
+        console.log("Error", data);
+        alert("Error during ROIs info loading..."); //FIXME: remove alert!!!
+    });
+
 
     /* Resize the current viewer */
     if (resize || resize != false)
@@ -243,52 +250,26 @@ ctrl.load_and_render_image = function (image_id, resize) {
 };
 
 
-ctrl._render_rois_table = function (image_id) {
+ctrl._render_rois_table = function (image_id, dataSet) {
+
+    var me = omero_viewer_controller;
 
     console.log("Rendering table started .... ");
-
-    var dataSet = [
-        {
-            "id": 10,
-            "z": 1,
-            "y": 1,
-            "text": "Text",
-            "preview": "...",
-            "visibility": 1
-        },
-        {
-            "id": 12,
-            "z": 1,
-            "y": 1,
-            "text": "Pippo",
-            "preview": "...",
-            "visibility": 0
-        },
-        {
-            "id": 12,
-            "z": 1,
-            "y": 1,
-            "text": "Text X",
-            "preview": "...",
-            "visibility": 0
-        }
-    ];
-
 
     $('#rois-table').dataTable({
         "data": dataSet,
         "columns": [
             {"title": "ID", data: "id"},
-            {"title": "Z", data: "z"},
-            {"title": "Y", data: "y"},
-            {"title": "Text", data: "text", "class": "center"},
-            {"title": "Preview", data: "preview", "class": "center"},
+            {"title": "Z", data: "shapes[0].theZ"},
+            {"title": "T", data: "shapes[0].theT"},
+            {"title": "Text", data: "shapes[0].type", "class": "center"},
+            {"title": "Preview", data: "shapes[0].type", "class": "center"},
             {
                 "title": "Visibility",
-                "data": "Active",
+                "data": "id",
                 "render": function (data, type, row) {
                     if (type === 'display') {
-                        return '<input type="checkbox" class="editor-active">';
+                        return '<input id="visibility_selector_' + data + '" type="checkbox" class="editor-active">';
                     }
                     return data;
                 },
@@ -302,20 +283,45 @@ ctrl._render_rois_table = function (image_id) {
             console.log("DATA", row, data, data[4], data[5]);
             $('input.editor-active', row).prop('checked', data.visibility);
         }
+
+        //"drawCallback": function ( settings ) {
+        //    var api = this.api();
+        //    var rows = api.rows( {page:'current'} ).nodes();
+        //    var last=null;
+        //
+        //    api.column(2, {page:'current'} ).data().each( function ( group, i ) {
+        //        if ( last !== group ) {
+        //            $(rows).eq( i ).before(
+        //                '<tr class="group"><td colspan="5">'+group+'</td></tr>'
+        //            );
+        //
+        //            last = group;
+        //        }
+        //    } );
+        //}
     });
 
 
     omero_viewer_controller.resize();
 
     // Handle the selection of a given row (image)
-    // FIXME: it is just an example of event notification
+
     $('#rois-table').on('change', function (event) {
-        console.log($('td', this), event);
-        console.log("CHECKED: ", $('#' + id).is(":checked"));
-        var name = $('td', this).eq(0).text();
-        if (name) {
-            alert('click on ' + name + '\'s row');
-            window.postMessage({event: "row_clicked", image_id: name}, "*");
+        var selectorId = event.srcElement.id;
+        if (selectorId) {
+            var roiId = selectorId.match(/[0-9]+/);
+            if (roiId) {
+
+                var checked = $("#" + selectorId).is(":checked");
+                console.log("Changed visibility of " + roiId + ": " + (checked ? "display" : "hidden"));
+
+                // FIXME: it is just an example of event notification
+                window.postMessage({
+                    roiId: roiId,
+                    event: "roi_visibility_changed",
+                    visibility: (checked ? "display" : "hidden")
+                }, "*");
+            }
         }
     });
 
