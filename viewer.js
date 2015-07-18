@@ -340,7 +340,7 @@ ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
     var me = omero_viewer_controller;
 
     $.ajax({
-        url: me.omero_server + "/webgateway/get_rois_json/201/",
+        url: me.omero_server + "/webgateway/get_rois_json/" + image_id,
 
         // The name of the callback parameter, as specified by the YQL service
         jsonp: "callback",
