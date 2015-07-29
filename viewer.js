@@ -54,6 +54,7 @@ ctrl.load_viewport = function () {
     var me = omero_viewer_controller;
     var viewport = me.viewport;
     if (!viewport.viewportimg.get(0).refresh_rois) {
+        console.log("Loading viewport....");
         var options = {
             'width': viewport.loadedImg.size.width,
             'height': viewport.loadedImg.size.height,
@@ -70,7 +71,7 @@ ctrl.load_viewport = function () {
         console.log("Viewport already loaded");
 };
 
-ctrl.show_rois = function () {
+ctrl.show_rois = function (roi_list) {
     var me = omero_viewer_controller;
     var viewport = me.viewport;
     var theT = viewport.getTPos();
@@ -80,11 +81,10 @@ ctrl.show_rois = function () {
         me.load_viewport();
     }
 
-    // loads ROIs (if needed) and shows.
-    me.viewport.viewportimg.get(0).show_rois(theZ, theT);
+    me.viewport.viewportimg.get(0).show_rois(theT, theZ, roi_list);
 };
 
-ctrl.refresh_rois = function () {
+ctrl.refresh_rois = function (roi_list) {
     var me = omero_viewer_controller;
     var viewport = me.viewport;
     console.log("embed_big_image_DEV refresh_rois method");
@@ -92,10 +92,10 @@ ctrl.refresh_rois = function () {
     if (me.viewport.viewportimg.get(0).refresh_rois) {
         var theT = viewport.getTPos();
         var theZ = viewport.getZPos();
-        var filter = viewport.viewportimg.get(0).get_current_rois_filter();
-        console.log("Current ROIs filter");
-        console.log(filter);
-        me.viewport.viewportimg.get(0).refresh_rois(theZ, theT, filter);
+        //var filter = roi_list ? roi_list : viewport.viewportimg.get(0).get_current_rois_filter();
+        console.log("Current ROIs filter", roi_list);
+        console.log(roi_list);
+        me.viewport.viewportimg.get(0).refresh_rois(theZ, theT, roi_list);
     }
 };
 
@@ -106,6 +106,7 @@ ctrl.hide_rois = function () {
         me.viewport.viewportimg.get(0).hide_rois();
     }
 };
+
 
 ctrl.show_scalebar = function () {
     var me = omero_viewer_controller;
@@ -236,8 +237,8 @@ ctrl.load_and_render_image = function (image_id, resize) {
 
     /* Render the rois table */
     me.get_rois_info(image_id, function (data) {
+        me._current_roi_list = data;
         me._render_rois_table(image_id, data);
-
     }, function (data) {
         console.log("Error", data);
         alert("Error during ROIs info loading..."); //FIXME: remove alert!!!
@@ -307,6 +308,7 @@ ctrl._render_rois_table = function (image_id, dataSet) {
     // Handle the selection of a given row (image)
 
     $('#rois-table').on('change', function (event) {
+        var me = omero_viewer_controller;
         var selectorId = event.srcElement.id;
         if (selectorId) {
             var roiId = selectorId.match(/[0-9]+/);
@@ -314,6 +316,15 @@ ctrl._render_rois_table = function (image_id, dataSet) {
 
                 var checked = $("#" + selectorId).is(":checked");
                 console.log("Changed visibility of " + roiId + ": " + (checked ? "display" : "hidden"));
+
+                var selected_roi_info = $.grep(me._current_roi_list, function (e) {
+                    return e.id == roiId;
+                });
+                if (selected_roi_info.length > 0) {
+                    var selected_shape_info = {};
+                    selected_shape_info[selected_roi_info[0].id] = [selected_roi_info[0].shapes[0]]; // FIXME: a better mechanism for shape selection
+                    checked ? me.show_rois(selected_shape_info) : me.hide_rois(selected_roi_info);
+                }
 
                 // FIXME: it is just an example of event notification
                 window.postMessage({
