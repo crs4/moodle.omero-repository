@@ -261,6 +261,8 @@ ctrl._render_rois_table = function (image_id, dataSet) {
     roi_table.dataTable({
         "data": dataSet,
         "cell-border": true,
+        "pageLength": 2,
+        "lengthMenu": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         "columns": [
             {"title": "ID", data: "id", "width": "20px", "className": "dt-head-center dt-body-center"},
             {"title": "Z", data: "shapes[0].theZ", "width": "20px", "className": "dt-head-center dt-body-center"},
