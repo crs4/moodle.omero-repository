@@ -264,7 +264,22 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             {"title": "Z", data: "shapes[0].theZ"},
             {"title": "T", data: "shapes[0].theT"},
             {"title": "Text", data: "shapes[0].type", "class": "center"},
-            {"title": "Preview", data: "shapes[0].type", "class": "center"},
+            {
+                "title": "Preview",
+                "data": "shapes[0].id",
+                "className": "dt-head-center dt-body-center",
+                "width": "100px",
+                "render": function (data, type, row) {
+                    if (type === 'display') {
+                        return '<img src=" ' + me.omero_server +
+                            '/webgateway/render_shape_thumbnail/0' + data + '/?color=f00" ' +
+                            'id="' + data + '_shape_thumb" ' +
+                            'class="roi_thumb shape_thumb" ' +
+                            'color="f00" width="100" height="100" style="display: inline;">';
+                    }
+                    return data;
+                }
+            },
             {
                 "title": "Visibility",
                 "data": "id",
@@ -273,9 +288,7 @@ ctrl._render_rois_table = function (image_id, dataSet) {
                         return '<input id="visibility_selector_' + data + '" type="checkbox" class="editor-active">';
                     }
                     return data;
-                },
-                "className": "dt-body-center",
-                "class": "center"
+                }
             }
         ],
 
