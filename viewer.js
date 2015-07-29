@@ -279,7 +279,8 @@ ctrl._render_rois_table = function (image_id, dataSet) {
                             '/webgateway/render_shape_thumbnail/0' + data + '/?color=f00" ' +
                             'id="' + data + '_shape_thumb" ' +
                             'class="roi_thumb shape_thumb" ' +
-                            'color="f00" width="100" height="100" style="display: inline;">';
+                            'style="vertical-align: top;"  ' +
+                            'color="f00" width="100%" height="90%" />';
                     }
                     return data;
                 }
@@ -323,11 +324,17 @@ ctrl._render_rois_table = function (image_id, dataSet) {
     });
 
 
+    // Handle row selection, i.e., selection of the corresponding ROI shape
     $('#rois-table tbody').on('click', 'tr', function () {
-        var selected_roi_shape = roi_table.DataTable().row(this).data();
-        if (selected_roi_shape) {
-            console.log("Selected ROI shape", selected_roi_shape);
-
+        var data_table = roi_table.DataTable();
+        var selected_roi_shape = data_table.row(this).data();
+        if ($(this).hasClass('selected')) {
+            $(this).removeClass('selected');
+            console.log("Deselected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
+        } else {
+            data_table.$('tr.selected').removeClass('selected');
+            $(this).addClass('selected');
+            console.log("Selected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
         }
     });
 
@@ -401,16 +408,16 @@ ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
         },
 
         // Set callback methods
-        success: function(data){
+        success: function (data) {
 
             // post process data
-            $.each(data, function(index){
+            $.each(data, function (index) {
                 var obj = $(this)[0]
                 console.log("current", index, obj);
                 obj.shapes[0].description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
             });
 
-            if(success_callback){
+            if (success_callback) {
                 success_callback(data);
             }
         },
