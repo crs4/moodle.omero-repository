@@ -41,7 +41,8 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
     <link href="/moodle/repository/omero/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <!-- JQuery/Bootstrap table CSS -->
     <link href="https://cdn.datatables.net/1.10.7/css/jquery.dataTables.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.css"
+          rel="stylesheet">
 
     <!-- overwrite default styles -->
     <style type="text/css">
@@ -56,35 +57,39 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
             padding: 5px;
         }
 
-        .dataTables_wrapper .dataTables_paginate .paginate_button{
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
             padding: 0;
         }
 
-
-
         /* Fixes position of the entry number selector */
-        .dataTables_length{
+        .dataTables_length {
             padding: 18px;
         }
 
         /* Fixes the search box position */
-        .dataTables_filter{
+        .dataTables_filter {
             padding: 18px;
         }
 
         /* hide the default jquery icon of the sort controls */
-        table.dataTable thead .sorting_asc{
-            background-image: none;
-        }
-        table.dataTable thead .sorting_desc{
-            background-image: none;
-        }
-        table.dataTable thead .sorting{
+        table.dataTable thead .sorting_asc {
             background-image: none;
         }
 
+        table.dataTable thead .sorting_desc {
+            background-image: none;
+        }
+
+        table.dataTable thead .sorting {
+            background-image: none;
+        }
+
+        table.dataTable tbody tr td.roi_thumb {
+            vertical-align: middle;
+        }
+
         /* fixes position of the current entries caption */
-        .col-sm-5{
+        .col-sm-5 {
             margin-left: 15px;
             margin-bottom: 15px;
             padding-top: 0px;
@@ -93,7 +98,7 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
         }
 
         /* fixes position of the pagination bar */
-        .col-sm-7{
+        .col-sm-7 {
             padding: 5px;
         }
 
@@ -111,7 +116,8 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
     <script type="text/javascript" src="/moodle/repository/omero/viewer.js"></script>
     <!-- JQuery/Bootstrap table integration -->
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.js"></script>
 
     <!--  Initialization script -->
     <script type="text/javascript">
@@ -128,7 +134,8 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
         // Get a reference to the actual omero_viewer_controller
         var viewer_ctrl = omero_viewer_controller;
         // Initialize the omero_viewer_controller
-        viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>", "viewport", "rois-table", "<?= $imageId ?>");
+        viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>",
+            "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>");
 
         // Expose the refresh_rois method
         refresh_rois = viewer_ctrl.refresh_rois;
@@ -153,6 +160,8 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
 <div id="viewport" class="viewport"></div>
 
 <!-- FIXME: Static table example: the table has to be dynamically generated -->
+<img id="roi_thumb_popup" style="border: 1px solid rgb(187, 187, 187); display: none; left: 202px; top: 78px;" src="">
+
 <div id="rois-table-container" class="panel panel-default" style="margin-top: 40px;font-size: 12pt;">
 
     <!-- Default panel contents -->
@@ -161,6 +170,6 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
     <div style="margin-top: 10px;">
         <table id="rois-table" class="display" cellspacing="0" width="100%"></table>
     </div>
-    </div>
+</div>
 </body>
 </html>
