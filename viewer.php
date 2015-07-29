@@ -60,6 +60,8 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
             padding: 0;
         }
 
+
+
         /* Fixes position of the entry number selector */
         .dataTables_length{
             padding: 18px;
@@ -85,7 +87,7 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
         .col-sm-5{
             margin-left: 15px;
             margin-bottom: 15px;
-            padding-top: 10px;
+            padding-top: 0px;
             padding-bottom: 5px;
             width: 37%;
         }
@@ -94,6 +96,7 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
         .col-sm-7{
             padding: 5px;
         }
+
     </style>
 
     <!-- Third part libraries *** -->
@@ -102,7 +105,8 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
     <!-- Bootstrap -->
     <script type="text/javascript" src="/moodle/repository/omero/libs/bootstrap/js/bootstrap.min.js"></script>
     <!-- OmeroViewer lib -->
-    <script type="text/javascript" src="<?= $OMERO_SERVER ?>/static/omeroweb.viewer.min.js"></script>
+    <!--<script type="text/javascript" src="<?= $OMERO_SERVER ?>/static/omeroweb.viewer.min.js"></script>-->
+    <script type="text/javascript" src="/moodle/repository/omero/omeroweb.viewer.min.js"></script>
     <!-- OmeroViewerController -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer.js"></script>
     <!-- JQuery/Bootstrap table integration -->
@@ -152,7 +156,7 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
 <div id="rois-table-container" class="panel panel-default" style="margin-top: 40px;font-size: 12pt;">
 
     <!-- Default panel contents -->
-    <div class="panel-heading">ROI Inspector</div>
+    <div class="panel-heading">ROI Shapes Inspector</div>
 
     <div style="margin-top: 10px;">
         <table id="rois-table" class="display" cellspacing="0" width="100%"></table>
