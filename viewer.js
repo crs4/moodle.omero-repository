@@ -328,7 +328,9 @@ ctrl._render_rois_table = function (image_id, dataSet) {
     $('#rois-table tbody').on('click', 'tr', function () {
         var data_table = roi_table.DataTable();
         var selected_roi_shape = data_table.row(this).data();
+        var selected = true;
         if ($(this).hasClass('selected')) {
+            selected = false;
             $(this).removeClass('selected');
             console.log("Deselected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
         } else {
@@ -336,6 +338,13 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             $(this).addClass('selected');
             console.log("Selected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
         }
+
+        // notifies the ROI shape selection
+        window.postMessage({
+            roiId: selected_roi_shape.id,
+            shapeId: selected_roi_shape.shapes[0].id,
+            event: "roiShape" + (selected ? "Selected" : "Deselected")
+        }, "*");
     });
 
 
