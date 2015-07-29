@@ -259,11 +259,12 @@ ctrl._render_rois_table = function (image_id, dataSet) {
 
     $('#rois-table').dataTable({
         "data": dataSet,
+        "cell-border": true,
         "columns": [
-            {"title": "ID", data: "id"},
-            {"title": "Z", data: "shapes[0].theZ"},
-            {"title": "T", data: "shapes[0].theT"},
-            {"title": "Text", data: "shapes[0].type", "class": "center"},
+            {"title": "ID", data: "id", "width": "20px", "className": "dt-head-center dt-body-center"},
+            {"title": "Z", data: "shapes[0].theZ", "width": "20px", "className": "dt-head-center dt-body-center"},
+            {"title": "T", data: "shapes[0].theT", "width": "20px", "className": "dt-head-center dt-body-center"},
+            {"title": "Text", data: "shapes[0].type", "className": "roi-description dt-head-center dt-body-left"},
             {
                 "title": "Preview",
                 "data": "shapes[0].id",
@@ -283,9 +284,12 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             {
                 "title": "Visibility",
                 "data": "id",
+                "className": "dt-head-center dt-body-center",
+                "width": "20px",
                 "render": function (data, type, row) {
                     if (type === 'display') {
-                        return '<input id="visibility_selector_' + data + '" type="checkbox" class="editor-active">';
+                        return '<input id="visibility_selector_'
+                            + data + '" type="checkbox" class="editor-active" style="width: 20px">';
                     }
                     return data;
                 }
@@ -315,11 +319,9 @@ ctrl._render_rois_table = function (image_id, dataSet) {
         //}
     });
 
-
     omero_viewer_controller.resize();
 
     // Handle the selection of a given row (image)
-
     $('#rois-table').on('change', function (event) {
         var me = omero_viewer_controller;
         var selectorId = event.srcElement.id;
