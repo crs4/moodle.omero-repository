@@ -257,7 +257,8 @@ ctrl._render_rois_table = function (image_id, dataSet) {
 
     console.log("Rendering table started .... ");
 
-    $('#rois-table').dataTable({
+    var roi_table = $('#rois-table');
+    roi_table.dataTable({
         "data": dataSet,
         "cell-border": true,
         "columns": [
@@ -319,10 +320,18 @@ ctrl._render_rois_table = function (image_id, dataSet) {
         //}
     });
 
-    omero_viewer_controller.resize();
+
+    $('#rois-table tbody').on('click', 'tr', function () {
+        var selected_roi_shape = roi_table.DataTable().row(this).data();
+        if (selected_roi_shape) {
+            console.log("Selected ROI shape", selected_roi_shape);
+
+        }
+    });
+
 
     // Handle the selection of a given row (image)
-    $('#rois-table').on('change', function (event) {
+    roi_table.on('change', function (event) {
         var me = omero_viewer_controller;
         var selectorId = event.srcElement.id;
         if (selectorId) {
@@ -352,18 +361,21 @@ ctrl._render_rois_table = function (image_id, dataSet) {
     });
 
     // Resize after pagination FIXME: is really needed?
-    $('#rois-table').on('page.dt', function () {
+    roi_table.on('page.dt', function () {
         var info = $('#rois-table').DataTable().page.info();
         $('#pageInfo').html('Showing page: ' + info.page + ' of ' + info.pages);
         omero_viewer_controller.resize();
     });
 
     // Resize after every draw
-    $('#rois-table').on('draw.dt', function () {
+    roi_table.on('draw.dt', function () {
         console.log('Redraw occurred at: ' + new Date().getTime());
         omero_viewer_controller.resize();
     });
 
+
+    // call resize
+    omero_viewer_controller.resize();
     console.log("Rendering table stopped .... ");
 };
 
