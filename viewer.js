@@ -15,7 +15,7 @@ var ctrl = omero_viewer_controller;
  * @param frame_id the frame containing the viewer if it exists
  * @param image_id the image of the image to immediately view after the initialization
  */
-ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, image_id) {
+ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_shape_thumb_popup_id, image_id) {
 
     var me = omero_viewer_controller;
 
@@ -25,6 +25,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, image_
     me.viewport_id = viewport_id;
     me.rois_table_id = rois_table_id;
     me.image_id = image_id;
+    me.roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
 
     // creates the viewport
     $(document).ready(function () {
@@ -275,12 +276,12 @@ ctrl._render_rois_table = function (image_id, dataSet) {
                 "width": "100px",
                 "render": function (data, type, row) {
                     if (type === 'display') {
-                        return '<img src=" ' + me.omero_server +
+                        return '<div class="shape-thumb-container" style=""><img src=" ' + me.omero_server +
                             '/webgateway/render_shape_thumbnail/0' + data + '/?color=f00" ' +
                             'id="' + data + '_shape_thumb" ' +
                             'class="roi_thumb shape_thumb" ' +
                             'style="vertical-align: top;"  ' +
-                            'color="f00" width="100%" height="90%" />';
+                            'color="f00" width="150px" height="150px" /></div>';
                     }
                     return data;
                 }
@@ -378,22 +379,39 @@ ctrl._render_rois_table = function (image_id, dataSet) {
         }
     });
 
+    // now bind mouseover: enable/disable shape thumbnail popup
+    var roi_thumb_popup = $("#" + me.roi_shape_thumb_popup_id);
+    roi_thumb_popup.updateShapeThumbnails = function() {
+        $('.roi_thumb').hover(function (e) {
+            roi_thumb_popup.attr('src', $(this).attr('src')).show();
+        }, function (e) {
+            roi_thumb_popup.hide();
+        });
+
+        $('.roi_thumb').mousemove(function (e) {
+            roi_thumb_popup.css({'left': e.pageX + 5, 'top': e.pageY + 5})
+        });
+    };
+
     // Resize after pagination FIXME: is really needed?
     roi_table.on('page.dt', function () {
         var info = $('#rois-table').DataTable().page.info();
         $('#pageInfo').html('Showing page: ' + info.page + ' of ' + info.pages);
         omero_viewer_controller.resize();
+        roi_thumb_popup.updateShapeThumbnails();
     });
 
     // Resize after every draw
     roi_table.on('draw.dt', function () {
         console.log('Redraw occurred at: ' + new Date().getTime());
         omero_viewer_controller.resize();
+        roi_thumb_popup.updateShapeThumbnails();
     });
-
 
     // call resize
     omero_viewer_controller.resize();
+    // first roi_thumb_popup initialization
+    roi_thumb_popup.updateShapeThumbnails();
     console.log("Rendering table stopped .... ");
 };
 
