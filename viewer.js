@@ -265,7 +265,7 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             {"title": "ID", data: "id", "width": "20px", "className": "dt-head-center dt-body-center"},
             {"title": "Z", data: "shapes[0].theZ", "width": "20px", "className": "dt-head-center dt-body-center"},
             {"title": "T", data: "shapes[0].theT", "width": "20px", "className": "dt-head-center dt-body-center"},
-            {"title": "Text", data: "shapes[0].type", "className": "roi-description dt-head-center dt-body-left"},
+            {"title": "Description", data: "shapes[0].description", "className": "roi-description dt-head-center dt-body-left"},
             {
                 "title": "Preview",
                 "data": "shapes[0].id",
@@ -399,7 +399,19 @@ ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
         },
 
         // Set callback methods
-        success: success_callback,
+        success: function(data){
+
+            // post process data
+            $.each(data, function(index){
+                var obj = $(this)[0]
+                console.log("current", index, obj);
+                obj.shapes[0].description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+            });
+
+            if(success_callback){
+                success_callback(data);
+            }
+        },
         error: error_callback
     });
 };
