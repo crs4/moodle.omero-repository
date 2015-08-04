@@ -367,6 +367,9 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             data_table.$('tr.selected').removeClass('selected');
             $(this).addClass('selected');
             console.log("Selected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
+            if (me.viewport.viewportimg.get(0).show_rois) {
+                me.handleShapeRowClick(selected_roi_shape.shapes[0]);
+            }
         }
 
         // notifies the ROI shape selection
@@ -493,4 +496,96 @@ ctrl.resize = function () {
 
     var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 300;
     iframe.style.height = height + "px";
+};
+
+ctrl.handleShapeRowClick = function (shape, z, t, cscale) {
+    //var shape_id = parseInt(shape_id.attr('id'));      // E.g. id='123_shape'
+    console.log("Handling ROI shape selection...");
+
+    var me = omero_viewer_controller;
+    var viewport = me.viewport;
+
+    //alert("Current zoom: " + viewport.getZoom());
+
+    //if(viewport.getZoom()!== 2.0)
+    //    viewport.setZoom(2.0);
+
+    var selected_xy = viewport.viewportimg.get(0).set_selected_shape(shape.id);//{'x': shape["rx"], 'y': shape["ry"]};
+    console.log("SELECTED_XY", selected_xy);
+
+    var vpb = viewport.viewportimg.get(0).getBigImageContainer();
+    console.log("VPB", vpb);
+
+    if (vpb != null && viewport.loadedImg.tiles) {
+        var scale = vpb.currentScale();
+        console.log("current scale:" + scale);
+        vpb.recenter({x: selected_xy['x'] * 0.02, y: selected_xy['y'] * 0.02}, true, true);
+    }
+    me.resize();
+
+    //var z = shape_id.find('td:nth-child(4)').text();
+    //if (z != NOZT) {
+    //    viewport.setZPos(parseInt(z));
+    //}
+    //var t = shape_id.find('td:nth-child(5)').text();
+    //if (t != NOZT) {
+    //    viewport.setTPos(parseInt(t));
+    //}
+};
+
+
+ctrl.drawShape = function (shape) {
+    var newShape = null;
+    if (shape['type'] == 'Ellipse') {
+        newShape = paper.ellipse(shape['cx'], shape['cy'], shape['rx'], shape['ry']);
+    }
+    else if (shape['type'] == 'Rectangle') {
+        newShape = paper.rect(shape['x'], shape['y'], shape['width'], shape['height']);
+    }
+    else if (shape['type'] == 'Point') {
+        newShape = paper.ellipse(shape['cx'], shape['cy'], 2, 2);
+    }
+    else if (shape['type'] == 'Line') {
+        // define line as 'path': Move then Line: E.g. "M10 10L90 90"
+        newShape = paper.path("M" + shape['x1'] + " " + shape['y1'] + "L" + shape['x2'] + " " + shape['y2']);
+    }
+    else if (shape['type'] == 'PolyLine') {
+        newShape = paper.path(shape['points']);
+    }
+    else if (shape['type'] == 'Polygon') {
+        newShape = paper.path(shape['points']);
+    }
+    else if (shape['type'] == 'Label') {
+        if (shape['textValue']) {
+            newShape = paper.text(shape['x'], shape['y'], shape['textValue'].escapeHTML()).attr({'text-anchor': 'start'});
+        }
+    }
+    // handle transforms. Insight supports: translate(354.05 83.01) and rotate(0 407.0 79.0)
+    if (shape['transform']) {
+        if (shape['transform'].substr(0, 'translate'.length) === 'translate') {
+            var tt = shape['transform'].replace('translate(', '').replace(')', '').split(" ");
+            var tx = parseInt(tt[0]);   // only int is supported by Raphael
+            var ty = parseInt(tt[1]);
+            newShape.translate(tx, ty);
+        }
+        else if (shape['transform'].substr(0, 'rotate'.length) === 'rotate') {
+            var tt = shape['transform'].replace('rotate(', '').replace(')', '').split(" ");
+            var deg = parseFloat(tt[0]);
+            var rotx = parseFloat(tt[1]);
+            var roty = parseFloat(tt[2]);
+            newShape.rotate(deg, rotx, roty);
+        }
+        else if (shape['transform'].substr(0, 'matrix'.length) === 'matrix') {
+            var tt = shape['transform'].replace('matrix(', '').replace(')', '').split(" ");
+            var a1 = parseFloat(tt[0]);
+            var a2 = parseFloat(tt[1]);
+            var b1 = parseFloat(tt[2]);
+            var b2 = parseFloat(tt[3]);
+            var c1 = parseFloat(tt[4]);
+            var c2 = parseFloat(tt[5]);
+            var tmatrix = "m" + a1 + "," + a2 + "," + b1 + "," + b2 + "," + c1 + "," + c2;
+            newShape.transform(tmatrix);
+        }
+    }
+    return newShape;
 };
