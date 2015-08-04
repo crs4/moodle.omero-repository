@@ -37,51 +37,40 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
 
         /* Async call needs loading */
         me.viewport.bind('imageLoad', me._imageLoad);
+
         /* Bind zoomimg action to the ROIs */
         me.viewport.bind('instant_zoom', me.instant_zoom);
-        /* load and render the image if provided */
-        if (image_id != undefined)
+
+        /* set event handlers and load and render the image if provided */
+        if (image_id != undefined) {
+
+            // Immediately load the viewport after the image is loaded
+            $(window).on('imageLoad', function () {
+                console.log("OMERO WebViewer loaded the image: " + me.image_id + "!!!");
+                me._load_viewport();
+            });
+
+            // Setting event handler
+            $(me).on("viewportLoaded", function () {
+                    alert("Viewport correctly loaded !!!");
+                    //$(me).trigger("imageLoadedAndRendered");
+                    console.log("Initialization Ok!!!!");
+                    window.postMessage({type: "omero_viewport_created"}, "*");
+                }
+            );
+
+            // load and render image
             me.load_and_render_image(image_id, true);
-
-        // notify viewport creation
-        window.postMessage({type: "omero_viewport_created"}, "*");
-    });
-
-    console.log("Initialization Ok!!!!");
-};
-
-
-ctrl.load_viewport = function () {
-    var me = omero_viewer_controller;
-    var viewport = me.viewport;
-    if (!viewport.viewportimg.get(0).refresh_rois) {
-        console.log("Loading viewport....");
-        var options = {
-            'width': viewport.loadedImg.size.width,
-            'height': viewport.loadedImg.size.height,
-            'json_url': me.omero_server + '/webgateway/get_rois_json/' + viewport.loadedImg.id
-        };
-        if (me.viewport.loadedImg.tiles) {
-            options['tiles'] = true;
         }
-
-        me.viewport.viewportimg.roi_display(options);
-        me.viewport.viewportimg.get(0).setRoiZoom(viewport.viewportimg.get(0).getZoom());
-    }
-    else
-        console.log("Viewport already loaded");
+    });
 };
+
 
 ctrl.show_rois = function (roi_list) {
     var me = omero_viewer_controller;
     var viewport = me.viewport;
     var theT = viewport.getTPos();
     var theZ = viewport.getZPos();
-
-    if (!viewport.viewportimg.get(0).show_rois) {
-        me.load_viewport();
-    }
-
     me.viewport.viewportimg.get(0).show_rois(theT, theZ, roi_list);
 };
 
@@ -199,9 +188,6 @@ ctrl.instant_zoom = function (e, percent) {
 
 ctrl.add_external_shapes = function () {
     var me = omero_viewer_controller;
-    if (!me.viewport.viewportimg.get(0).show_rois) {
-        me.load_viewport();
-    }
 
     var r1 = me.viewport.viewportimg.get_ome_rectangle(2000, 2000, 4000, 4000, 0, 0);
     var r2_shape = me.viewport.viewportimg.get_shape_config(undefined, undefined, undefined,
@@ -245,10 +231,51 @@ ctrl.load_and_render_image = function (image_id, resize) {
         alert("Error during ROIs info loading..."); //FIXME: remove alert!!!
     });
 
-
     /* Resize the current viewer */
     if (resize || resize != false)
         me.resize();
+};
+
+
+ctrl._load_viewport = function () {
+    var me = omero_viewer_controller;
+    var viewport = me.viewport;
+    if (!viewport.viewportimg.get(0).refresh_rois) {
+
+        console.log("Loading viewport....");
+
+        // Viewport initial settings
+        var options = {
+            'width': viewport.loadedImg.size.width,
+            'height': viewport.loadedImg.size.height,
+            'json_url': me.omero_server + '/webgateway/get_rois_json/' + viewport.loadedImg.id
+        };
+
+        if (me.viewport.loadedImg.tiles) {
+            options['tiles'] = true;
+        }
+
+        // applying initial settings
+        me.viewport.viewportimg.roi_display(options);
+        me.viewport.viewportimg.get(0).setRoiZoom(viewport.viewportimg.get(0).getZoom());
+
+        // FIXME: just to fix the 'all rois behaviour'
+        me.viewport.viewportimg.on("rois_loaded", function () {
+
+            // Hide all ROIs
+            me.hide_rois();
+
+            // Log and notify that viewport is completely loaded
+            console.log("Viewport loaded!!!");
+            $(me).trigger("viewportLoaded");
+        });
+
+        // actually this causes the viewport load
+        me.show_rois();
+
+    } else {
+        console.log("Viewport already loaded");
+    }
 };
 
 
@@ -268,7 +295,11 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             {"title": "ID", data: "id", "width": "20px", "className": "dt-head-center dt-body-center"},
             {"title": "Z", data: "shapes[0].theZ", "width": "20px", "className": "dt-head-center dt-body-center"},
             {"title": "T", data: "shapes[0].theT", "width": "20px", "className": "dt-head-center dt-body-center"},
-            {"title": "Description", data: "shapes[0].description", "className": "roi-description dt-head-center dt-body-left"},
+            {
+                "title": "Description",
+                data: "shapes[0].description",
+                "className": "roi-description dt-head-center dt-body-left"
+            },
             {
                 "title": "Preview",
                 "data": "shapes[0].id",
@@ -381,7 +412,7 @@ ctrl._render_rois_table = function (image_id, dataSet) {
 
     // now bind mouseover: enable/disable shape thumbnail popup
     var roi_thumb_popup = $("#" + me.roi_shape_thumb_popup_id);
-    roi_thumb_popup.updateShapeThumbnails = function() {
+    roi_thumb_popup.updateShapeThumbnails = function () {
         $('.roi_thumb').hover(function (e) {
             roi_thumb_popup.attr('src', $(this).attr('src')).show();
         }, function (e) {
