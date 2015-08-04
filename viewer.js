@@ -499,18 +499,13 @@ ctrl.resize = function () {
 };
 
 ctrl.handleShapeRowClick = function (shape, z, t, cscale) {
-    //var shape_id = parseInt(shape_id.attr('id'));      // E.g. id='123_shape'
+
     console.log("Handling ROI shape selection...");
 
     var me = omero_viewer_controller;
     var viewport = me.viewport;
 
-    //alert("Current zoom: " + viewport.getZoom());
-
-    //if(viewport.getZoom()!== 2.0)
-    //    viewport.setZoom(2.0);
-
-    var selected_xy = viewport.viewportimg.get(0).set_selected_shape(shape.id);//{'x': shape["rx"], 'y': shape["ry"]};
+    var selected_xy = viewport.viewportimg.get(0).set_selected_shape(shape.id);
     console.log("SELECTED_XY", selected_xy);
 
     var vpb = viewport.viewportimg.get(0).getBigImageContainer();
@@ -519,18 +514,10 @@ ctrl.handleShapeRowClick = function (shape, z, t, cscale) {
     if (vpb != null && viewport.loadedImg.tiles) {
         var scale = vpb.currentScale();
         console.log("current scale:" + scale);
-        vpb.recenter({x: selected_xy['x'] * 0.02, y: selected_xy['y'] * 0.02}, true, true);
+        vpb.recenter({x: selected_xy['x'] * scale, y: selected_xy['y'] * scale}, true, true);
     }
-    me.resize();
 
-    //var z = shape_id.find('td:nth-child(4)').text();
-    //if (z != NOZT) {
-    //    viewport.setZPos(parseInt(z));
-    //}
-    //var t = shape_id.find('td:nth-child(5)').text();
-    //if (t != NOZT) {
-    //    viewport.setTPos(parseInt(t));
-    //}
+    me.resize();
 };
 
 
