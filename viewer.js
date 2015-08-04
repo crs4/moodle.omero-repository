@@ -52,8 +52,6 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
 
             // Setting event handler
             $(me).on("viewportLoaded", function () {
-                    alert("Viewport correctly loaded !!!");
-                    //$(me).trigger("imageLoadedAndRendered");
                     console.log("Initialization Ok!!!!");
                     window.postMessage({type: "omero_viewport_created"}, "*");
                 }
