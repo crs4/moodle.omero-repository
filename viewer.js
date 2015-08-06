@@ -385,6 +385,7 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             "roiShape" + (selected ? "Selected" : "Deselected"),
             {
                 detail: {
+                    id: selected_roi_shape.id + "@" + selected_roi_shape.shapes[0].id,
                     roiId: selected_roi_shape.id,
                     shapeId: selected_roi_shape.shapes[0].id
                 },
