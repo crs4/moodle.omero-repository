@@ -126,11 +126,6 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
             $.ajaxSettings.cache = false;
         });
 
-        // FIXME: just for debug
-        window.addEventListener("message", function (event) {
-            console.log("Message", event);
-        }, false);
-
         // Get a reference to the actual omero_viewer_controller
         var viewer_ctrl = omero_viewer_controller;
         // Initialize the omero_viewer_controller
@@ -139,6 +134,11 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
 
         // Expose the refresh_rois method
         refresh_rois = viewer_ctrl.refresh_rois;
+
+//        // FIXME: just for debug
+//        window.addEventListener("message", function (event) {
+//            console.log("Message", event, window);
+//        }, false);
 
     </script>
 

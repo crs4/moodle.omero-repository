@@ -26,6 +26,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
     me.rois_table_id = rois_table_id;
     me.image_id = image_id;
     me.roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
+    me.window = window;
 
     // creates the viewport
     $(document).ready(function () {
@@ -53,7 +54,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
             // Setting event handler
             $(me).on("viewportLoaded", function () {
                     console.log("Initialization Ok!!!!");
-                    window.postMessage({type: "omero_viewport_created"}, "*");
+                    window.postMessage({type: "omeroViewerInitialized"}, "*");
                 }
             );
 
@@ -373,11 +374,23 @@ ctrl._render_rois_table = function (image_id, dataSet) {
         }
 
         // notifies the ROI shape selection
-        window.postMessage({
-            roiId: selected_roi_shape.id,
-            shapeId: selected_roi_shape.shapes[0].id,
-            event: "roiShape" + (selected ? "Selected" : "Deselected")
-        }, "*");
+        //window.postMessage({
+        //    roiId: selected_roi_shape.id,
+        //    shapeId: selected_roi_shape.shapes[0].id,
+        //    event: "roiShape" + (selected ? "Selected" : "Deselected")
+        //}, "*");
+
+
+        window.dispatchEvent(new CustomEvent(
+            "roiShape" + (selected ? "Selected" : "Deselected"),
+            {
+                detail: {
+                    roiId: selected_roi_shape.id,
+                    shapeId: selected_roi_shape.shapes[0].id
+                },
+                bubbles: true
+            })
+        );
     });
 
 
