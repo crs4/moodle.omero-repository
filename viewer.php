@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * To perform a test outside Moodle, use a link like this:
+ * http://<MOODLE_SERVER_URL>/repository/omero/viewer.php
+ *              ?id=<IMAGE_ID>
+ *              &frame=<FRAME_ID>
+ *              &width=92%25&height=100%25
+ */
+
 // Moodle ROOT directory
 $MOODLE_ROOT = dirname(__FILE__) . "/../../";
 // Include Moodle configuration
