@@ -356,15 +356,18 @@ ctrl._render_rois_table = function (image_id, dataSet) {
 
 
     // Handle row selection, i.e., selection of the corresponding ROI shape
-    $('#rois-table tbody').on('click', 'tr', function () {
+    $('#rois-table tbody').on('click', 'tr', function (event) {
         var data_table = roi_table.DataTable();
         var selected_roi_shape = data_table.row(this).data();
         var selected = true;
-        if ($(this).hasClass('selected')) {
+        if ($(this).hasClass('selected') && event.srcElement.type != "checkbox") {
+            // Deselects an already selected row:
+            // skips the deselection if the click has been triggered by a checkbox
             selected = false;
             $(this).removeClass('selected');
             console.log("Deselected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
         } else {
+            // Selected a table row
             data_table.$('tr.selected').removeClass('selected');
             $(this).addClass('selected');
             console.log("Selected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
@@ -380,17 +383,16 @@ ctrl._render_rois_table = function (image_id, dataSet) {
         //    event: "roiShape" + (selected ? "Selected" : "Deselected")
         //}, "*");
 
-
         window.dispatchEvent(new CustomEvent(
-            "roiShape" + (selected ? "Selected" : "Deselected"),
-            {
-                detail: {
-                    id: selected_roi_shape.id + "@" + selected_roi_shape.shapes[0].id,
-                    roiId: selected_roi_shape.id,
-                    shapeId: selected_roi_shape.shapes[0].id
-                },
-                bubbles: true
-            })
+                "roiShape" + (selected ? "Selected" : "Deselected"),
+                {
+                    detail: {
+                        id: selected_roi_shape.id + "@" + selected_roi_shape.shapes[0].id,
+                        roiId: selected_roi_shape.id,
+                        shapeId: selected_roi_shape.shapes[0].id
+                    },
+                    bubbles: true
+                })
         );
     });
 
@@ -501,7 +503,7 @@ ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
 ctrl.resize = function () {
     var me = omero_viewer_controller;
     var iframe = parent.parent.document.getElementById(me.frame_id);
-    if(iframe) {
+    if (iframe) {
         var omeroViewport = iframe.contentDocument.getElementById(me.viewport_id);
         var roisTable = iframe.contentDocument.getElementById(me.rois_table_id);
 
