@@ -514,6 +514,14 @@ ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
             if (success_callback) {
                 success_callback(data);
             }
+
+            window.dispatchEvent(new CustomEvent(
+                    "roiInfoLoaded",
+                    {
+                        detail: data,
+                        bubbles: true
+                    })
+            );
         },
         error: error_callback
     });
