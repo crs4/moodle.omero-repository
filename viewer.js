@@ -54,7 +54,20 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
             // Setting event handler
             $(me).on("viewportLoaded", function () {
                     console.log("Initialization Ok!!!!");
-                    window.postMessage({type: "omeroViewerInitialized"}, "*");
+                    window.dispatchEvent(new CustomEvent(
+                            "omeroViewerInitialized",
+                            {
+                                detail: {
+                                    omero_server: me.omero_server,
+                                    frame_id: me.frame_id,
+                                    viewport_id: me.viewport_id,
+                                    rois_table_id: me.rois_table_id,
+                                    image_id: me.image_id,
+                                    roi_shape_thumb_popup_id: me.roi_shape_thumb_popup_id
+                                },
+                                bubbles: true
+                            })
+                    );
                 }
             );
 
