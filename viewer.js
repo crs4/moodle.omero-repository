@@ -501,15 +501,17 @@ ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
 ctrl.resize = function () {
     var me = omero_viewer_controller;
     var iframe = parent.parent.document.getElementById(me.frame_id);
-    var omeroViewport = iframe.contentDocument.getElementById(me.viewport_id);
-    var roisTable = iframe.contentDocument.getElementById(me.rois_table_id);
+    if(iframe) {
+        var omeroViewport = iframe.contentDocument.getElementById(me.viewport_id);
+        var roisTable = iframe.contentDocument.getElementById(me.rois_table_id);
 
-    console.log("iframe", iframe);
-    console.log("viewport", omeroViewport);
-    console.log("table", roisTable);
+        console.log("iframe", iframe);
+        console.log("viewport", omeroViewport);
+        console.log("table", roisTable);
 
-    var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 300;
-    iframe.style.height = height + "px";
+        var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 300;
+        iframe.style.height = height + "px";
+    }
 };
 
 ctrl.handleShapeRowClick = function (shape, z, t, cscale) {
