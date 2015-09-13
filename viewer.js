@@ -407,7 +407,8 @@ ctrl._render_rois_table = function (image_id, dataSet) {
                     detail: {
                         id: selected_roi_shape.id + "@" + selected_roi_shape.shapes[0].id,
                         roiId: selected_roi_shape.id,
-                        shapeId: selected_roi_shape.shapes[0].id
+                        shapeId: selected_roi_shape.shapes[0].id,
+                        detail: selected_roi_shape
                     },
                     bubbles: true
                 })
