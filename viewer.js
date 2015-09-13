@@ -78,6 +78,11 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
 };
 
 
+ctrl.getCurrentROIsInfo = function(){
+    return ctrl._current_roi_list;
+}
+
+
 ctrl.show_rois = function (roi_list) {
     var me = omero_viewer_controller;
     var viewport = me.viewport;
