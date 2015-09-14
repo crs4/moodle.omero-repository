@@ -78,7 +78,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
 };
 
 
-ctrl.getCurrentROIsInfo = function(){
+ctrl.getCurrentROIsInfo = function () {
     return ctrl._current_roi_list;
 }
 
@@ -314,7 +314,7 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             {"title": "T", data: "shapes[0].theT", "width": "20px", "className": "dt-head-center dt-body-center"},
             {
                 "title": "Description",
-                data: "shapes[0].description",
+                "data": "shapes[0].textValue",
                 "className": "roi-description dt-head-center dt-body-left"
             },
             {
@@ -508,7 +508,6 @@ ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
             $.each(data, function (index) {
                 var obj = $(this)[0]
                 console.log("current", index, obj);
-                obj.shapes[0].description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
             });
 
             if (success_callback) {
