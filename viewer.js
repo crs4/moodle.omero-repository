@@ -15,7 +15,7 @@ var ctrl = omero_viewer_controller;
  * @param frame_id the frame containing the viewer if it exists
  * @param image_id the image of the image to immediately view after the initialization
  */
-ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_shape_thumb_popup_id, image_id) {
+ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_shape_thumb_popup_id, image_id, show_roi_table) {
 
     var me = omero_viewer_controller;
 
@@ -26,6 +26,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
     me.rois_table_id = rois_table_id;
     me.image_id = image_id;
     me.roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
+    me._show_roi_table = show_roi_table;
     me.window = window;
 
     // creates the viewport
@@ -242,7 +243,9 @@ ctrl.load_and_render_image = function (image_id, resize) {
     /* Render the rois table */
     me.get_rois_info(image_id, function (data) {
         me._current_roi_list = data;
-        me._render_rois_table(image_id, data);
+        if(me._show_roi_table=="true") {
+            me._render_rois_table(image_id, data);
+        }
     }, function (data) {
         console.log("Error", data);
         alert("Error during ROIs info loading..."); //FIXME: remove alert!!!

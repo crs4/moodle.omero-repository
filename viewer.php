@@ -33,6 +33,7 @@ $imageId = $_GET['id'];
 $frameId = $_GET['frame'];
 $width = $_GET['width'] ? !empty($_GET['width']) : "80%";
 $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
+$showRoiTable = $_GET['showRoiTable'];
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -43,6 +44,7 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
     <title>OMERO.web-viewer</title>
 
     <!-- Third part CSS stylesheets *** -->
+
     <!-- OmeroWeb CSS -->
     <link rel="stylesheet" type="text/css" href="<?= $OMERO_SERVER ?>/static/omeroweb.viewer.min.css">
     <!-- Bootstrap CSS -->
@@ -56,8 +58,8 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
     <style type="text/css">
         /* Custom style of the viewport */
         .viewport {
-            width: 100%;
-            height: 600px;
+            width: <?= $width ?>;
+            height: <?= $height ?>;
             margin-top: auto;
             margin-bottom: auto;
             margin-right: 15px;
@@ -112,6 +114,7 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
 
     </style>
 
+
     <!-- Third part libraries *** -->
     <!-- JQuery -->
     <script type="text/javascript" src="/moodle/repository/omero/libs/jquery/jquery-2.1.4.min.js"></script>
@@ -138,15 +141,15 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
         var viewer_ctrl = omero_viewer_controller;
         // Initialize the omero_viewer_controller
         viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>",
-            "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>");
+            "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>", "<?= $showRoiTable ?>");
 
         // Expose the refresh_rois method
         refresh_rois = viewer_ctrl.refresh_rois;
 
-//        // FIXME: just for debug
-//        window.addEventListener("message", function (event) {
-//            console.log("Message", event, window);
-//        }, false);
+        //        // FIXME: just for debug
+        //        window.addEventListener("message", function (event) {
+        //            console.log("Message", event, window);
+        //        }, false);
 
     </script>
 
@@ -170,14 +173,18 @@ $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
 <!-- FIXME: Static table example: the table has to be dynamically generated -->
 <img id="roi_thumb_popup" style="border: 1px solid rgb(187, 187, 187); display: none; left: 202px; top: 78px;" src="">
 
-<div id="rois-table-container" class="panel panel-default" style="margin-top: 40px;font-size: 12pt;">
+<?php if ($showRoiTable == "true") { ?>
 
-    <!-- Default panel contents -->
-    <div class="panel-heading">ROI Shapes Inspector</div>
+    <div id="rois-table-container" class="panel panel-default"
+         style="margin-top: 40px;font-size: 12pt;">
 
-    <div style="margin-top: 10px;">
-        <table id="rois-table" class="display" cellspacing="0" width="100%"></table>
+        <!-- Default panel contents -->
+        <div class="panel-heading">ROI Shapes Inspector</div>
+
+        <div style="margin-top: 10px;">
+            <table id="rois-table" class="display" cellspacing="0" width="100%"></table>
+        </div>
     </div>
-</div>
+<?php } ?>
 </body>
 </html>
