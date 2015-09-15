@@ -163,9 +163,9 @@ $showRoiTable = $_GET['showRoiTable'];
 <!-- FIXME: the following are example controls; the real controls have to be defined -->
 <button id="viewport-show-rois" title="Show ROIs">Show ROIs</button>
 <button id="viewport-hide-rois" title="Hide ROIs">Hide ROIs</button>
-<button id="viewport-add-shapes" title="Add shapes">Add External Shapes</button>
-<button id="viewport-remove-shape-1" title="Remove shape 1">Remove External Shape #1</button>
-<button id="viewport-remove-shape-2" title="Remove shape 2">Remove External Shape #2</button>
+<!--<button id="viewport-add-shapes" title="Add shapes">Add External Shapes</button>-->
+<!--<button id="viewport-remove-shape-1" title="Remove shape 1">Remove External Shape #1</button>-->
+<!--<button id="viewport-remove-shape-2" title="Remove shape 2">Remove External Shape #2</button>-->
 
 <!-- container for the omero-viewer viewpoer -->
 <div id="viewport" class="viewport"></div>
