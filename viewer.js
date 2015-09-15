@@ -54,6 +54,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
 
             // Setting event handler
             $(me).on("viewportLoaded", function () {
+                    me.maximize();
                     console.log("Initialization Ok!!!!");
                     window.dispatchEvent(new CustomEvent(
                             "omeroViewerInitialized",
@@ -77,6 +78,28 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
         }
     });
 };
+
+ctrl.getViewerBean = function () {
+    return omero_viewer_controller
+        .viewport.viewportimg.get(0).getBigImageContainer()
+}
+
+
+ctrl.isMaximized = function () {
+    return omero_viewer_controller.getViewerBean().maximized;
+}
+
+ctrl.maximize = function () {
+    var me = omero_viewer_controller;
+    if (!me.isMaximized())
+        me.getViewerBean().toggleMaximize();
+}
+
+ctrl.minimize = function () {
+    var me = omero_viewer_controller;
+    if (me.isMaximized())
+        me.getViewerBean().toggleMaximize();
+}
 
 
 ctrl.getCurrentROIsInfo = function () {
@@ -243,7 +266,7 @@ ctrl.load_and_render_image = function (image_id, resize) {
     /* Render the rois table */
     me.get_rois_info(image_id, function (data) {
         me._current_roi_list = data;
-        if(me._show_roi_table=="true") {
+        if (me._show_roi_table == "true") {
             me._render_rois_table(image_id, data);
         }
     }, function (data) {
