@@ -29,6 +29,9 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
     me._show_roi_table = show_roi_table;
     me.window = window;
 
+    // set frame reference
+    me._frame = window.parent.document.getElementById(me.frame_id);
+
     // creates the viewport
     $(document).ready(function () {
 
