@@ -152,7 +152,7 @@ $showRoiTable = $_GET['showRoiTable'];
             "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>", "<?= $showRoiTable ?>");
 
         // Expose the refresh_rois method
-        refresh_rois = viewer_ctrl.refresh_rois;
+        refresh_rois = viewer_ctrl._refresh_rois;
 
         //        // FIXME: just for debug
         //        window.addEventListener("message", function (event) {

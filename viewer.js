@@ -81,35 +81,62 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
     });
 };
 
-ctrl.getViewerBean = function () {
+/**
+ * Get the main PanoJS
+ *
+ * @private
+ */
+ctrl._getViewerBean = function () {
     return omero_viewer_controller
         .viewport.viewportimg.get(0).getBigImageContainer()
-}
+};
 
 
+/**
+ * Returns true whether the OmeroImageViewer is maximized
+ *
+ * @returns {boolean|*}
+ */
 ctrl.isMaximized = function () {
-    return omero_viewer_controller.getViewerBean().maximized;
-}
+    return omero_viewer_controller._getViewerBean().maximized;
+};
 
+
+/**
+ *  Maximize the OmeroImageViewer
+ */
 ctrl.maximize = function () {
     var me = omero_viewer_controller;
     if (!me.isMaximized())
-        me.getViewerBean().toggleMaximize();
-}
+        me._getViewerBean().toggleMaximize();
+};
 
+/**
+ * Minimize the OmeroImageViewer
+ */
 ctrl.minimize = function () {
     var me = omero_viewer_controller;
     if (me.isMaximized())
-        me.getViewerBean().toggleMaximize();
-}
+        me._getViewerBean().toggleMaximize();
+};
 
 
+/**
+ * Returns the current loaded ROI infos
+ *
+ * @returns {*}
+ */
 ctrl.getCurrentROIsInfo = function () {
     return ctrl._current_roi_list;
-}
+};
 
 
-ctrl.enableScrollbars = function(enable){
+/**
+ * Enable/Disable OmeroViewerImage scrollbars
+ *
+ * @param enable
+ */
+ctrl.enableScrollbars = function (enable) {
     var me = omero_viewer_controller;
     var visibility = enable ? "visible" : "hidden";
     me._frame.contentDocument.getElementById("viewport-zsl").style.visibility = visibility;
@@ -227,6 +254,16 @@ ctrl.hide_rois = function () {
 };
 
 
+/**
+ * Focus on the ROI with 'roi_id'
+ *
+ * @param roi_id
+ */
+ctrl.moveToRoiShape = function(roi_id){
+    ctrl._handleShapeRowClick({id: roi_id});
+}
+
+
 ctrl.show_scalebar = function () {
     var me = omero_viewer_controller;
     var viewport = me.viewport;
@@ -276,7 +313,7 @@ ctrl._imageLoad = function (ev, viewport) {
      * Attach functions to the click event on specific buttons
      */
     $("#viewport-show-rois").click(function () {
-        me.show_rois();
+        me._show_rois();
     });
     $("#viewport-hide-rois").click(function () {
         me.hide_rois();
@@ -352,7 +389,7 @@ ctrl.load_and_render_image = function (image_id, resize) {
     me.viewport.load(image_id);
 
     /* Render the rois table */
-    me.get_rois_info(image_id, function (data) {
+    me._load_rois_info(image_id, function (data) {
         me._current_roi_list = data;
         if (me._show_roi_table == "true") {
             me._render_rois_table(image_id, data);
@@ -364,10 +401,14 @@ ctrl.load_and_render_image = function (image_id, resize) {
 
     /* Resize the current viewer */
     if (resize || resize != false)
-        me.resize();
+        me._resize();
 };
 
-
+/**
+ * Load the viewport
+ *
+ * @private
+ */
 ctrl._load_viewport = function () {
     var me = omero_viewer_controller;
     var viewport = me.viewport;
@@ -402,7 +443,7 @@ ctrl._load_viewport = function () {
         });
 
         // actually this causes the viewport load
-        me.show_rois();
+        me._show_rois();
 
     } else {
         console.log("Viewport already loaded");
@@ -410,6 +451,13 @@ ctrl._load_viewport = function () {
 };
 
 
+/**
+ * Render the ROI table
+ *
+ * @param image_id
+ * @param dataSet
+ * @private
+ */
 ctrl._render_rois_table = function (image_id, dataSet) {
 
     var me = omero_viewer_controller;
@@ -503,17 +551,10 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             data_table.$('tr.selected').removeClass('selected');
             $(this).addClass('selected');
             console.log("Selected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
-            if (me.viewport.viewportimg.get(0).show_rois) {
-                me.handleShapeRowClick(selected_roi_shape.shapes[0]);
+            if (me.viewport.viewportimg.get(0)._show_rois) {
+                me._handleShapeRowClick(selected_roi_shape.shapes[0]);
             }
         }
-
-        // notifies the ROI shape selection
-        //window.postMessage({
-        //    roiId: selected_roi_shape.id,
-        //    shapeId: selected_roi_shape.shapes[0].id,
-        //    event: "roiShape" + (selected ? "Selected" : "Deselected")
-        //}, "*");
 
         window.dispatchEvent(new CustomEvent(
                 "roiShape" + (selected ? "Selected" : "Deselected"),
@@ -547,7 +588,7 @@ ctrl._render_rois_table = function (image_id, dataSet) {
                 if (selected_roi_info.length > 0) {
                     var selected_shape_info = {};
                     selected_shape_info[selected_roi_info[0].id] = [selected_roi_info[0].shapes[0]]; // FIXME: a better mechanism for shape selection
-                    checked ? me.show_rois(selected_shape_info) : me.hide_rois(selected_roi_info);
+                    checked ? me._show_rois(selected_shape_info) : me.hide_rois(selected_roi_info);
                 }
 
                 // FIXME: it is just an example of event notification
@@ -578,26 +619,34 @@ ctrl._render_rois_table = function (image_id, dataSet) {
     roi_table.on('page.dt', function () {
         var info = $('#rois-table').DataTable().page.info();
         $('#pageInfo').html('Showing page: ' + info.page + ' of ' + info.pages);
-        omero_viewer_controller.resize();
+        omero_viewer_controller._resize();
         roi_thumb_popup.updateShapeThumbnails();
     });
 
     // Resize after every draw
     roi_table.on('draw.dt', function () {
         console.log('Redraw occurred at: ' + new Date().getTime());
-        omero_viewer_controller.resize();
+        omero_viewer_controller._resize();
         roi_thumb_popup.updateShapeThumbnails();
     });
 
     // call resize
-    omero_viewer_controller.resize();
+    omero_viewer_controller._resize();
     // first roi_thumb_popup initialization
     roi_thumb_popup.updateShapeThumbnails();
     console.log("Rendering table stopped .... ");
 };
 
 
-ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
+/**
+ * Load info of ROIs related to the current image
+ *
+ * @param image_id
+ * @param success_callback
+ * @param error_callback
+ * @private
+ */
+ctrl._load_rois_info = function (image_id, success_callback, error_callback) {
     var me = omero_viewer_controller;
 
     $.ajax({
@@ -640,7 +689,12 @@ ctrl.get_rois_info = function (image_id, success_callback, error_callback) {
     });
 };
 
-ctrl.resize = function () {
+/**
+ * Resize the viewer
+ *
+ * @private
+ */
+ctrl._resize = function () {
     var me = omero_viewer_controller;
     var iframe = parent.parent.document.getElementById(me.frame_id);
     if (iframe) {
@@ -650,14 +704,23 @@ ctrl.resize = function () {
         console.log("iframe", iframe);
         console.log("viewport", omeroViewport);
         console.log("table", roisTable);
-        if(roisTable) {
+        if (roisTable) {
             var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 300;
             iframe.style.height = height + "px";
         }
     }
 };
 
-ctrl.handleShapeRowClick = function (shape, z, t, cscale) {
+/**
+ * Handle the click on a given ROI of the ROI table
+ *
+ * @param shape
+ * @param z
+ * @param t
+ * @param cscale
+ * @private
+ */
+ctrl._handleShapeRowClick = function (shape, z, t, cscale) {
 
     console.log("Handling ROI shape selection...");
 
@@ -676,10 +739,15 @@ ctrl.handleShapeRowClick = function (shape, z, t, cscale) {
         vpb.recenter({x: selected_xy['x'] * scale, y: selected_xy['y'] * scale}, true, true);
     }
 
-    me.resize();
+    me._resize();
 };
 
 
+/**
+ *
+ * @param shape
+ * @returns {*}
+ */
 ctrl.drawShape = function (shape) {
     var newShape = null;
     if (shape['type'] == 'Ellipse') {
