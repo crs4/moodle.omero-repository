@@ -57,7 +57,6 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
 
             // Setting event handler
             $(me).on("viewportLoaded", function () {
-                    me.maximize();
                     console.log("Initialization Ok!!!!");
                     window.dispatchEvent(new CustomEvent(
                             "omeroViewerInitialized",
@@ -107,6 +106,15 @@ ctrl.minimize = function () {
 
 ctrl.getCurrentROIsInfo = function () {
     return ctrl._current_roi_list;
+}
+
+
+ctrl.enableScrollbars = function(enable){
+    var me = omero_viewer_controller;
+    var visibility = enable ? "visible" : "hidden";
+    me._frame.contentDocument.getElementById("viewport-zsl").style.visibility = visibility;
+    me._frame.contentDocument.getElementById("viewport-bot").style.visibility = visibility;
+    console.log("Changed scrollbars visibility: " + enable);
 }
 
 
@@ -565,9 +573,10 @@ ctrl.resize = function () {
         console.log("iframe", iframe);
         console.log("viewport", omeroViewport);
         console.log("table", roisTable);
-
-        var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 300;
-        iframe.style.height = height + "px";
+        if(roisTable) {
+            var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 300;
+            iframe.style.height = height + "px";
+        }
     }
 };
 
