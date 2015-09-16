@@ -112,6 +112,14 @@ $showRoiTable = $_GET['showRoiTable'];
             padding: 5px;
         }
 
+        #viewport-zsl {
+            visibility: hidden;
+        }
+
+        #viewport-bot {
+            visibility: hidden;
+        }
+
     </style>
 
 
