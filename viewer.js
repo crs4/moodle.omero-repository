@@ -118,15 +118,92 @@ ctrl.enableScrollbars = function(enable){
 }
 
 
-ctrl.show_rois = function (roi_list) {
+/**
+ * Show the ROI shape with ID roi_id
+ *
+ * @param roi_id
+ */
+ctrl.showRoi = function (roi_id) {
+    ctrl._setVisibleRoi(roi_id, true);
+}
+
+
+/**
+ * Hide the ROI shape with ID roi_id
+ *
+ * @param roi_id
+ */
+ctrl.hideRoi = function (roi_id) {
+    ctrl._setVisibleRoi(roi_id, false);
+}
+
+
+/**
+ * Show a ROI list
+ *
+ * @param roi_id_list
+ */
+ctrl.showRois = function (roi_id_list) {
+    if (roi_id_list) {
+        for (var i in roi_id_list) {
+            ctrl._setVisibleRoi(roi_id_list[i], true);
+        }
+    }
+}
+
+
+/**
+ * Hide a ROI list
+ *
+ * @param roi_id_list
+ */
+ctrl.hideRois = function (roi_id_list) {
+    if (roi_id_list) {
+        for (var i in roi_id_list) {
+            ctrl._setVisibleRoi(roi_id_list[i], false);
+        }
+    }
+}
+
+
+/**
+ * Set visibility of a given ROI
+ *
+ * @param roi_id
+ * @param visible
+ * @private
+ */
+ctrl._setVisibleRoi = function (roi_id, visible) {
+    var me = omero_viewer_controller;
+    var selected_roi_info = $.grep(me._current_roi_list, function (e) {
+        return e.id == roi_id;
+    });
+    if (selected_roi_info.length > 0) {
+        var selected_shape_info = {};
+        selected_shape_info[selected_roi_info[0].id] = [selected_roi_info[0].shapes[0]]; // FIXME: a better mechanism for shape selection
+        visible ? me._show_rois(selected_shape_info) : me.hide_rois(selected_roi_info);
+    }
+}
+
+
+/**
+ *
+ * @param roi_list
+ * @private
+ */
+ctrl._show_rois = function (roi_list) {
     var me = omero_viewer_controller;
     var viewport = me.viewport;
     var theT = viewport.getTPos();
     var theZ = viewport.getZPos();
-    me.viewport.viewportimg.get(0).show_rois(theT, theZ, roi_list);
+    me.viewport.viewportimg.get(0)._show_rois(theT, theZ, roi_list);
 };
 
-ctrl.refresh_rois = function (roi_list) {
+/**
+ * Refresh
+ * @param roi_list
+ */
+ctrl._refresh_rois = function (roi_list) {
     var me = omero_viewer_controller;
     var viewport = me.viewport;
     console.log("embed_big_image_DEV refresh_rois method");
