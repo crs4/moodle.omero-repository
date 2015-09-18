@@ -223,7 +223,7 @@ ctrl._show_rois = function (roi_list) {
     var viewport = me.viewport;
     var theT = viewport.getTPos();
     var theZ = viewport.getZPos();
-    me.viewport.viewportimg.get(0)._show_rois(theT, theZ, roi_list);
+    me.viewport.viewportimg.get(0).show_rois(theT, theZ, roi_list);
 };
 
 /**
