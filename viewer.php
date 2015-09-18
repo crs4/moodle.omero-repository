@@ -129,8 +129,8 @@ $showRoiTable = $_GET['showRoiTable'];
     <!-- Bootstrap -->
     <script type="text/javascript" src="/moodle/repository/omero/libs/bootstrap/js/bootstrap.min.js"></script>
     <!-- OmeroViewer lib -->
-    <!--<script type="text/javascript" src="<?= $OMERO_SERVER ?>/static/omeroweb.viewer.min.js"></script>-->
-    <script type="text/javascript" src="/moodle/repository/omero/omeroweb.viewer.min.js"></script>
+    <script type="text/javascript" src="<?= $OMERO_SERVER ?>/static/omeroweb.viewer.min.js"></script>
+    <!--<script type="text/javascript" src="/moodle/repository/omero/omeroweb.viewer.min.js"></script>-->
     <!-- OmeroViewerController -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer.js"></script>
     <!-- JQuery/Bootstrap table integration -->
