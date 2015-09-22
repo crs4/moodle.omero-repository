@@ -34,6 +34,17 @@ $frameId = $_GET['frame'];
 $width = $_GET['width'] ? !empty($_GET['width']) : "80%";
 $height = $_GET['height']; //? !empty($_GET['height']) : "100%";
 $showRoiTable = $_GET['showRoiTable'];
+
+
+$imageParamKeys = ["m", "p", "ia", "q", "t", "z", "zm", "x", "y"];
+$imageParams = array();
+foreach ($imageParamKeys as $paramName) {
+    if (isset($_REQUEST[$paramName]))
+        $imageParams[$paramName] = $_REQUEST[$paramName];
+}
+$imageParamsJs = "?" .implode('&',
+    array_map(function ($v, $k) { return $k . '=' . $v; }, $imageParams, array_keys($imageParams)));
+
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -149,7 +160,8 @@ $showRoiTable = $_GET['showRoiTable'];
         var viewer_ctrl = omero_viewer_controller;
         // Initialize the omero_viewer_controller
         viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>",
-            "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>", "<?= $showRoiTable ?>");
+            "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
+            "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>");
 
         // Expose the refresh_rois method
         refresh_rois = viewer_ctrl._refresh_rois;
