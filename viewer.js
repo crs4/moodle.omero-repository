@@ -15,7 +15,8 @@ var ctrl = omero_viewer_controller;
  * @param frame_id the frame containing the viewer if it exists
  * @param image_id the image of the image to immediately view after the initialization
  */
-ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_shape_thumb_popup_id, image_id, show_roi_table) {
+ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_shape_thumb_popup_id,
+                      image_id, show_roi_table, image_params) {
 
     var me = omero_viewer_controller;
 
@@ -25,6 +26,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
     me.viewport_id = viewport_id;
     me.rois_table_id = rois_table_id;
     me.image_id = image_id;
+    me.image_params = image_params;
     me.roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
     me._show_roi_table = show_roi_table;
     me.window = window;
@@ -76,7 +78,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
             );
 
             // load and render image
-            me.load_and_render_image(image_id, true);
+            me.load_and_render_image(image_id, image_params, false);
         }
     });
 };
@@ -381,12 +383,13 @@ ctrl.remove_external_shape = function (roi_id, shape_id) {
  * @param resize <code>true</code> if the container has to be resized;
  *               <code>false</code> otherwise
  */
-ctrl.load_and_render_image = function (image_id, resize) {
+ctrl.load_and_render_image = function (image_id, image_params, resize) {
 
     var me = omero_viewer_controller;
 
     /* Load the selected image into the viewport */
-    me.viewport.load(image_id);
+    var did = '';
+    me.viewport.load(image_id, did.length ? parseInt(did) : null, image_params);
 
     /* Render the rois table */
     me._load_rois_info(image_id, function (data) {
