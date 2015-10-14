@@ -27,7 +27,8 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
     me.rois_table_id = rois_table_id;
     me.image_id = image_id;
     me.image_params = image_params;
-    me.visible_rois = visible_rois && visible_rois.length > 0 ? visible_rois.split(",") : [];
+    me.visible_rois = visible_rois; // && visible_rois.length > 0 ? visible_rois.split(",") : [];
+    me._visible_roi_shape_list = [];
     me.roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
     me._show_roi_table = show_roi_table;
     me.window = window;
@@ -149,6 +150,39 @@ ctrl.enableScrollbars = function (enable) {
 }
 
 
+ctrl._addVisibleRoiShapes = function (roi_ids) {
+    if (!roi_ids.split) roi_ids = "" + [roi_ids];
+    if (roi_ids != undefined && roi_ids.length > 0) {
+        var roi_id_list = roi_ids.split(",");
+        for (var i in roi_id_list) {
+            var roi_id = roi_id_list[i];
+            for (var j in ctrl._current_roi_list) {
+                var e = ctrl._current_roi_list[j];
+                if (e.id == roi_id) {
+                    // FIXME: a better mechanism for selecting a shape
+                    ctrl._visible_roi_shape_list[e.id] = [e.shapes[0]];
+                    break;
+                }
+            }
+        }
+    }
+}
+
+ctrl._removeVisibleRoiShapes = function (roi_ids) {
+    if (!roi_ids.split)
+        delete ctrl._visible_roi_shape_list[roi_ids];
+    else if (roi_ids != undefined && roi_ids.length > 0) {
+        var roi_id_list = roi_ids.split(",");
+        for (var i in roi_id_list) {
+            var roi_id = roi_id_list[i];
+            console.log("ARRAY: ", ctrl._visible_roi_shape_list);
+            var index = ctrl._visible_roi_shape_list.indexOf(roi_id);
+            delete ctrl._visible_roi_shape_list[roi_id];
+            console.log("Removed visible roi element: ", ctrl._visible_roi_shape_list);
+        }
+    }
+}
+
 /**
  * Show the ROI shape with ID roi_id
  *
@@ -175,11 +209,7 @@ ctrl.hideRoi = function (roi_id) {
  * @param roi_id_list
  */
 ctrl.showRois = function (roi_id_list) {
-    if (roi_id_list) {
-        for (var i in roi_id_list) {
-            ctrl._setVisibleRoi(roi_id_list[i], true);
-        }
-    }
+    ctrl._setVisibleRoi(roi_id_list, true);
 }
 
 
@@ -189,11 +219,7 @@ ctrl.showRois = function (roi_id_list) {
  * @param roi_id_list
  */
 ctrl.hideRois = function (roi_id_list) {
-    if (roi_id_list) {
-        for (var i in roi_id_list) {
-            ctrl._setVisibleRoi(roi_id_list[i], false);
-        }
-    }
+    ctrl._setVisibleRoi(roi_id_list, false);
 }
 
 
@@ -206,14 +232,15 @@ ctrl.hideRois = function (roi_id_list) {
  */
 ctrl._setVisibleRoi = function (roi_id, visible) {
     var me = omero_viewer_controller;
-    var selected_roi_info = $.grep(me._current_roi_list, function (e) {
-        return e.id == roi_id;
-    });
-    if (selected_roi_info.length > 0) {
-        var selected_shape_info = {};
-        selected_shape_info[selected_roi_info[0].id] = [selected_roi_info[0].shapes[0]]; // FIXME: a better mechanism for shape selection
-        visible ? me._show_rois(selected_shape_info) : me.hide_rois(selected_roi_info);
+
+    if (visible) {
+        me._addVisibleRoiShapes(roi_id);
+    } else {
+        me._removeVisibleRoiShapes(roi_id);
     }
+
+    me.hide_rois(); // NOTE: the current show_rois doesn't work properly
+    me._show_rois(me._visible_roi_shape_list);
 }
 
 
@@ -398,7 +425,7 @@ ctrl.load_and_render_image = function (image_id, image_params, resize) {
         me._current_roi_list = data;
         if (me._show_roi_table == "true") {
             me._render_rois_table(image_id, data);
-
+            me._addVisibleRoiShapes(me.visible_rois)
         }
     }, function (data) {
         console.log("Error", data);
@@ -443,7 +470,7 @@ ctrl._load_viewport = function () {
             // FIXME: the viewport would not immediately load all ROIs
             // Hide all ROIs
             me.hide_rois();
-            me.showRois(me.visible_rois);
+            me._show_rois(me._visible_roi_shape_list);
 
             // Log and notify that viewport is completely loaded
             console.log("Viewport loaded!!!");
@@ -565,7 +592,8 @@ ctrl._render_rois_table = function (image_id, dataSet) {
                 // FIXME: visible_rois is only used at initialization time (after rois loading)
                 // We update the visible roi such that after the 'roi_json' initialization
                 // the visible_roi will be displayed
-                me.visible_rois = [selected_roi_shape.id];
+                //me.visible_rois = [selected_roi_shape.id];
+                me._addVisibleRoiShapes(selected_roi_shape.id);
                 me._handleShapeRowClick(selected_roi_shape.shapes[0]);
             }
         }
@@ -605,7 +633,10 @@ ctrl._render_rois_table = function (image_id, dataSet) {
                     // prepare ROI shape info
                     var selected_shape_info = {};
                     selected_shape_info[selected_roi_info.id] = [selected_roi_info.shapes[0]]; // FIXME: a better mechanism for shape selection
-                    checked ? me._show_rois(selected_shape_info) : me.hide_rois(selected_roi_info);
+                    //checked ? me._show_rois(selected_shape_info) : me.hide_rois(selected_roi_info);
+
+                    checked ? me.showRoi(selected_roi_info.id) : me.hideRoi(selected_roi_info.id);
+
 
                     // Notifies the event
                     window.dispatchEvent(new CustomEvent(
