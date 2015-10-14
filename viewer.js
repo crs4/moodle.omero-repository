@@ -16,7 +16,7 @@ var ctrl = omero_viewer_controller;
  * @param image_id the image of the image to immediately view after the initialization
  */
 ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_shape_thumb_popup_id,
-                      image_id, show_roi_table, image_params) {
+                      image_id, show_roi_table, image_params, visible_rois) {
 
     var me = omero_viewer_controller;
 
@@ -27,6 +27,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
     me.rois_table_id = rois_table_id;
     me.image_id = image_id;
     me.image_params = image_params;
+    me.visible_rois = visible_rois && visible_rois.length > 0 ? visible_rois.split(",") : [];
     me.roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
     me._show_roi_table = show_roi_table;
     me.window = window;
@@ -60,6 +61,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
             // Setting event handler
             $(me).on("viewportLoaded", function () {
                     console.log("Initialization Ok!!!!");
+
                     window.dispatchEvent(new CustomEvent(
                             "omeroViewerInitialized",
                             {
@@ -261,7 +263,7 @@ ctrl.hide_rois = function () {
  *
  * @param roi_id
  */
-ctrl.moveToRoiShape = function(roi_id){
+ctrl.moveToRoiShape = function (roi_id) {
     ctrl._handleShapeRowClick({id: roi_id});
 }
 
@@ -396,6 +398,7 @@ ctrl.load_and_render_image = function (image_id, image_params, resize) {
         me._current_roi_list = data;
         if (me._show_roi_table == "true") {
             me._render_rois_table(image_id, data);
+
         }
     }, function (data) {
         console.log("Error", data);
@@ -437,16 +440,19 @@ ctrl._load_viewport = function () {
         // FIXME: just to fix the 'all rois behaviour'
         me.viewport.viewportimg.on("rois_loaded", function () {
 
+            // FIXME: the viewport would not immediately load all ROIs
             // Hide all ROIs
             me.hide_rois();
+            me.showRois(me.visible_rois);
 
             // Log and notify that viewport is completely loaded
             console.log("Viewport loaded!!!");
             $(me).trigger("viewportLoaded");
         });
 
-        // actually this causes the viewport load
+        // FIXME: actually this causes the viewport load
         me._show_rois();
+        //me.showRois(me.visible_rois); // FIXME: this doesn't work: it doesn'load the private roi_json var
 
     } else {
         console.log("Viewport already loaded");
@@ -506,8 +512,9 @@ ctrl._render_rois_table = function (image_id, dataSet) {
                 "width": "20px",
                 "render": function (data, type, row) {
                     if (type === 'display') {
-                        return '<input id="visibility_selector_'
-                            + data + '" type="checkbox" class="editor-active" style="width: 20px">';
+                        return '<input id="visibility_selector_' + data + '" ' +
+                            (me.visible_rois.indexOf(data.toString()) != -1 ? " checked " : "") +
+                            ' type="checkbox" class="editor-active"  style="width: 20px">';
                     }
                     return data;
                 }
@@ -554,7 +561,11 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             data_table.$('tr.selected').removeClass('selected');
             $(this).addClass('selected');
             console.log("Selected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
-            if (me.viewport.viewportimg.get(0)._show_rois) {
+            if (me.viewport.viewportimg.get(0).show_rois) {
+                // FIXME: visible_rois is only used at initialization time (after rois loading)
+                // We update the visible roi such that after the 'roi_json' initialization
+                // the visible_roi will be displayed
+                me.visible_rois = [selected_roi_shape.id];
                 me._handleShapeRowClick(selected_roi_shape.shapes[0]);
             }
         }
@@ -589,17 +600,34 @@ ctrl._render_rois_table = function (image_id, dataSet) {
                     return e.id == roiId;
                 });
                 if (selected_roi_info.length > 0) {
+                    // update var to point to the selected ROI
+                    selected_roi_info = selected_roi_info[0];
+                    // prepare ROI shape info
                     var selected_shape_info = {};
-                    selected_shape_info[selected_roi_info[0].id] = [selected_roi_info[0].shapes[0]]; // FIXME: a better mechanism for shape selection
+                    selected_shape_info[selected_roi_info.id] = [selected_roi_info.shapes[0]]; // FIXME: a better mechanism for shape selection
                     checked ? me._show_rois(selected_shape_info) : me.hide_rois(selected_roi_info);
-                }
 
+                    // Notifies the event
+                    window.dispatchEvent(new CustomEvent(
+                            "roiVisibilityChanged",
+                            {
+                                detail: {
+                                    id: selected_roi_info.id + "@" + selected_roi_info.shapes[0].id,
+                                    roiId: selected_roi_info.id,
+                                    shapeId: selected_roi_info.shapes[0].id,
+                                    detail: selected_roi_info,
+                                    visible: checked
+                                },
+                                bubbles: true
+                            })
+                    );
+                }
                 // FIXME: it is just an example of event notification
-                window.postMessage({
-                    roiId: roiId,
-                    event: "roi_visibility_changed",
-                    visibility: (checked ? "display" : "hidden")
-                }, "*");
+                //window.postMessage({
+                //    roiId: roiId,
+                //    event: "roi_visibility_changed",
+                //    visibility: (checked ? "display" : "hidden")
+                //}, "*");
             }
         }
     });
