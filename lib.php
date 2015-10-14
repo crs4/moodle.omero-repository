@@ -51,6 +51,9 @@ class repository_omero extends repository
     /** @var Logger */
     private $logger = null;
 
+    /** item blacklist */
+    private $item_black_list = array("Atlante");
+
     /**
      * Constructor of omero plugin
      *
@@ -236,7 +239,8 @@ class repository_omero extends repository
 
             foreach ($response as $item) {
                 $obj = $this->process_list_item("Project", $item);
-                $list['list'][] = $obj;
+                if($obj!=null)
+                    $list['list'][] = $obj;
             }
 
         } else {
@@ -249,7 +253,9 @@ class repository_omero extends repository
                     PathUtils::build_dataset_list_url($selected_obj_info->id),
                     $this->access_key, $this->access_secret);
                 foreach ($response as $item) {
-                    $list['list'][] = $this->process_list_item("Dataset", $item);
+                    $obj = $this->process_list_item("Dataset", $item);
+                    if($obj!=null)
+                        $list['list'][] = $obj;
                 }
 
             } else if ($this->is_dataset($selected_obj_info)) {
@@ -339,6 +345,13 @@ class repository_omero extends repository
         $image_date = null;
         $image_author = null;
 
+        // Hardwired filter to force only a subset ot datasets
+        foreach ($this->item_black_list as $pattern)
+        {
+            if (preg_match("/$pattern/", $item->name)){
+                return null;
+            }
+        }
 
         if ($filter == null || preg_match("/(Series\s1)/", $item->name)) {
 
