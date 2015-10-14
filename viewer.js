@@ -61,6 +61,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
             // Setting event handler
             $(me).on("viewportLoaded", function () {
                     console.log("Initialization Ok!!!!");
+
                     window.dispatchEvent(new CustomEvent(
                             "omeroViewerInitialized",
                             {
@@ -397,6 +398,7 @@ ctrl.load_and_render_image = function (image_id, image_params, resize) {
         me._current_roi_list = data;
         if (me._show_roi_table == "true") {
             me._render_rois_table(image_id, data);
+
         }
     }, function (data) {
         console.log("Error", data);
@@ -448,9 +450,9 @@ ctrl._load_viewport = function () {
             $(me).trigger("viewportLoaded");
         });
 
-        // actually this causes the viewport load
-        // FIXME: this causes
-        me.showRois(me.visible_rois);
+        // FIXME: actually this causes the viewport load
+        me._show_rois();
+        //me.showRois(me.visible_rois); // FIXME: this doesn't work: it doesn'load the private roi_json var
 
     } else {
         console.log("Viewport already loaded");
@@ -559,7 +561,11 @@ ctrl._render_rois_table = function (image_id, dataSet) {
             data_table.$('tr.selected').removeClass('selected');
             $(this).addClass('selected');
             console.log("Selected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
-            if (me.viewport.viewportimg.get(0)._show_rois) {
+            if (me.viewport.viewportimg.get(0).show_rois) {
+                // FIXME: visible_rois is only used at initialization time (after rois loading)
+                // We update the visible roi such that after the 'roi_json' initialization
+                // the visible_roi will be displayed
+                me.visible_rois = [selected_roi_shape.id];
                 me._handleShapeRowClick(selected_roi_shape.shapes[0]);
             }
         }
