@@ -52,7 +52,10 @@ class repository_omero extends repository
     private $logger = null;
 
     /** item blacklist */
-    private $item_black_list = array("Atlante");
+    private $item_black_list = array(
+        "Atlante", "Melanomi e nevi", "slide_seminar_CAAP2015",
+        "2015-08-11", "TEST"
+    );
 
     /**
      * Constructor of omero plugin
