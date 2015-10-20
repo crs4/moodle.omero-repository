@@ -1033,5 +1033,44 @@ class repository_omero extends repository
             }
         }
     }
+
+
+    /**
+     * Return the relative icon path for a folder image
+     *
+     * Usage:
+     * <code>
+     * $icon = $OUTPUT->pix_url(file_folder_icon())->out();
+     * echo html_writer::empty_tag('img', array('src' => $icon));
+     * </code>
+     * or
+     * <code>
+     * echo $OUTPUT->pix_icon(file_folder_icon(32));
+     * </code>
+     *
+     * @param int $iconsize The size of the icon. Defaults to 16 can also be 24, 32, 48, 64, 72, 80, 96, 128, 256
+     * @return string
+     */
+    function file_tag_icon($iconsize = null)
+    {
+        global $CFG;
+
+        static $iconpostfixes = array(256 => '-256', 128 => '-128', 96 => '-96', 80 => '-80', 72 => '-72', 64 => '-64', 48 => '-48', 32 => '-32', 24 => '-24', 16 => '');
+        static $cached = array();
+        $iconsize = max(array(16, (int)$iconsize));
+        if (!array_key_exists($iconsize, $cached)) {
+            foreach ($iconpostfixes as $size => $postfix) {
+                $fullname = $CFG->wwwroot . "/repository/omero/pix/tag/$iconsize.png";
+                return $fullname;
+                if($iconsize >= $size && (file_exists($fullname)))
+                    return $fullname;
+//                if ($iconsize >= $size && (file_exists($fullname.'.png') || file_exists($fullname.'.gif'))) {
+//                    $cached[$iconsize] = 'f/tag'.$postfix;
+//                    break;
+//                }
+            }
+        }
+        return $cached[$iconsize];
+    }
 }
 
