@@ -88,6 +88,21 @@ class omero extends oauth_helper
         return $data;
     }
 
+
+    public function process_search($search_text, $token = '', $secret = '' ){
+        $result = array();
+        //$search_text = preg_replace('/\s+/', '\s', $search_text);
+        $data = json_decode(file_get_contents("http://10.211.55.7:4789/moodle/repository/omero/tests/tags.json"));
+        foreach($data->tags as $tag){
+            if (preg_match("/$search_text/", $tag->value) ||
+                preg_match("/$search_text/", $tag->description)) {
+                array_push($result, $tag);
+            }
+        }
+
+        return $result;
+    }
+
     /**
      * Prepares the filename to pass to omero API as part of URL
      *
