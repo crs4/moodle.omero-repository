@@ -1093,7 +1093,7 @@ class repository_omero extends repository
             foreach ($iconpostfixes as $size => $postfix) {
                 $fullname = $CFG->wwwroot . "/repository/omero/pix/tag/$iconsize.png";
                 return $fullname;
-                if($iconsize >= $size && (file_exists($fullname)))
+                if ($iconsize >= $size && (file_exists($fullname)))
                     return $fullname;
 //                if ($iconsize >= $size && (file_exists($fullname.'.png') || file_exists($fullname.'.gif'))) {
 //                    $cached[$iconsize] = 'f/tag'.$postfix;
