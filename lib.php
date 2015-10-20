@@ -57,6 +57,18 @@ class repository_omero extends repository
         "2015-08-11", "TEST"
     );
 
+    private $PROJECTS_ROOT_ITEM = array(
+        "name" => "projects",
+        "type" => "projects",
+        "path" => "/projects"
+    );
+
+    private $TAGS_ROOT_ITEM = array(
+        "name" => "tags",
+        "type" => "tags",
+        "path" => "/tags"
+    );
+
     /**
      * Constructor of omero plugin
      *
