@@ -450,22 +450,22 @@ class repository_omero extends repository
                 $thumbnail = $this->omero->get_thumbnail_url($item->id);
                 $image_info = $this->omero->process_request(
                     PathUtils::build_image_detail_url($item->id));
-                $image_date =  $image_info->meta->imageTimestamp;
+                $image_date = $image_info->meta->imageTimestamp;
                 $image_author = $image_info->meta->imageAuthor;
             } else
                 throw new RuntimeException("Unknown data type");
 
             $itemObj = array(
                 'image_id' => $item->id,
-                'title' => $item->name . " [id:" . $item->id . "]",
+                'title' => $title,
                 'author' => $image_author,
                 'path' => $path,
                 'source' => $item->id,
                 'date' => $image_date,
                 'thumbnail' => $thumbnail,
                 'license' => "",
-                'thumbnail_height' => 128,
-                'thumbnail_width' => 128,
+                'thumbnail_height' => 120,
+                'thumbnail_width' => 120,
                 'children' => $children
             );
 
