@@ -97,6 +97,8 @@ class omero extends oauth_helper
     }
 
 
+
+
     public function process_search($search_text, $token = '', $secret = '' ){
         $result = array();
         //$search_text = preg_replace('/\s+/', '\s', $search_text);
@@ -244,6 +246,10 @@ class PathUtils
         return !strcmp($path, "/tags/");
     }
 
+    public static function is_tag($path){
+        return preg_match("/tag\/(\d+)\//", $path);
+    }
+
     public static function is_project($path)
     {
         return preg_match("/proj\/(\d+)\/detail/", $path);
@@ -267,6 +273,11 @@ class PathUtils
     public static function build_tag_list_url()
     {
         return "/tag/list/";
+    }
+
+    public static function build_tag_detail_url($tag_id)
+    {
+        return "/tag/$tag_id";
     }
 
     public static function build_project_detail_url($project_id)
