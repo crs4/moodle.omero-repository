@@ -350,35 +350,53 @@ class repository_omero extends repository
     /**
      *
      */
-    public function build_navigation_from_url($result, $path)
+    public function build_navigation_from_url($result, $path, $search_text=false)
     {
         $items = split("/", $path);
 
+        $omero_tag = $_SESSION['omero_tag'];
+        $omero_search_text = $_SESSION['$omero_search_text'];
         $omero_project = $_SESSION['omero_project'];
         $omero_dataset = $_SESSION['omero_dataset'];
 
         if (count($items) == 0 || empty($items[1])) {
             array_push($result, array('name' => "/", 'path' => "/"));
+            $_SESSION['omero_tag'] = "";
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
+            $_SESSION['$omero_search_text'] = "";
 
         } else if ($items[1] == "projects") {
             array_push($result, array('name' => "/", 'path' => "/"));
             array_push($result, array('name' => "Projects", 'path' => "/projects"));
+            $_SESSION['omero_tag'] = "";
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
+            $_SESSION['$omero_search_text'] = "";
 
         } else if ($items[1] == "tags") {
             array_push($result, array('name' => "/", 'path' => "/"));
             array_push($result, array('name' => "Tags", 'path' => "/tags"));
+            if($search_text) {
+                array_push($result, array('name' => $search_text, 'path' => "/tag/$search_text"));
+                $_SESSION['$omero_search_text'] = $search_text;
+            }
+            $_SESSION['omero_tag'] = "";
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
+            $_SESSION['$omero_search_text'] = "";
 
         } else if ($items[1] == "tag") {
             array_push($result, array('name' => "/", 'path' => "/"));
             array_push($result, array('name' => "Tags", 'path' => "/tags"));
+            //FIXME: $omero_search_text seems to be always empty!!!
+            if(isset($omero_search_text) && ! empty($omero_search_text)){
+                array_push($result, array('name' => $omero_search_text, 'path' => "/tag/$omero_search_text"));
+            }
+            array_push($result, array('name' => $items[2], 'path' => $path));
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tag'] = $path;
 
         } else if ($items[1] == "proj") {
             array_push($result, array('name' => "/", 'path' => "/"));
