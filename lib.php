@@ -482,6 +482,19 @@ class repository_omero extends repository
     }
 
 
+    public function print_search()
+    {
+        // The default implementation in class 'repository'
+        global $PAGE;
+        $renderer = $PAGE->get_renderer('core', 'files');
+        return $renderer->repository_default_searchform();
+    }
+
+    public function search($search_text, $page = 0)
+    {
+        return $this->get_listing('', 1, $search_text);
+    }
+
     function get_type($item)
     {
         return $item->type;
