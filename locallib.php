@@ -211,6 +211,16 @@ class PathUtils
         return !strcmp($path, "/");
     }
 
+    public static function is_projects_root($path)
+    {
+        return !strcmp($path, "/projects/");
+    }
+
+    public static function is_tags_root($path)
+    {
+        return !strcmp($path, "/tags/");
+    }
+
     public static function is_project($path)
     {
         return preg_match("/proj\/(\d+)\/detail/", $path);
@@ -229,6 +239,11 @@ class PathUtils
     public static function build_project_list_url()
     {
         return "/proj/list/";
+    }
+
+    public static function build_tag_list_url()
+    {
+        return "/tag/list/";
     }
 
     public static function build_project_detail_url($project_id)
