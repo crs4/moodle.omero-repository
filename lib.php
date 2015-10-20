@@ -312,12 +312,31 @@ class repository_omero extends repository
         $omero_dataset = $_SESSION['omero_dataset'];
 
         if (count($items) == 0 || empty($items[1])) {
-            array_push($result, array('name' => "Projects", 'path' => "/"));
+            array_push($result, array('name' => "/", 'path' => "/"));
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+
+        } else if ($items[1] == "projects") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Projects", 'path' => "/projects"));
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+
+        } else if ($items[1] == "tags") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Tags", 'path' => "/tags"));
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+
+        } else if ($items[1] == "tag") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Tags", 'path' => "/tags"));
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
 
         } else if ($items[1] == "proj") {
-            array_push($result, array('name' => "Projects", 'path' => "/"));
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Projects", 'path' => "/projects"));
             array_push($result, array(
                     'name' => "Project [" . get_omero_item_id_from_url($path) . "]",
                     'path' => $path)
