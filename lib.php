@@ -390,7 +390,8 @@ class repository_omero extends repository
             $_SESSION['omero_project'] = $path;
 
         } else if ($items[1] == "dataset") {
-            array_push($result, array('name' => "Projects", 'path' => "/"));
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Projects", 'path' => "/projects"));
             array_push($result, array(
                     'name' => "Project [" . get_omero_item_id_from_url($omero_project) . "]",
                     'path' => $omero_project)
