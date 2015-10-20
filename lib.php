@@ -210,9 +210,9 @@ class repository_omero extends repository
      * @param int $page
      * @return array
      */
-    public function get_listing($path = '', $page = '1')
+    public function get_listing($path = '', $page = '1', $search_text = null)
     {
-        global $OUTPUT;
+        global $CFG, $OUTPUT;
 
         // format the current selected URL
         if (empty($path) || $path == '/') {
@@ -224,76 +224,122 @@ class repository_omero extends repository
 
         $this->logger->debug("Current path: " . $encoded_path . " --- " . $path);
 
-
         // Initializes the data structures needed to build the response
         $list = array();
         $list['list'] = array();
         $list['manage'] = 'https://www.omero.com/home';
         $list['dynload'] = true;
         $list['nologin'] = true;
+        $list['search_query'] = $search_text;
+        $list['tags-set'] = json_decode(file_get_contents("http://10.211.55.7:4789/moodle/repository/omero/tests/tags.json"));
         #$list['logouturl'] = 'https://www.omero.com/logout';
         #$list['message'] = get_string('logoutdesc', 'repository_omero');
 
 
-        // Build the navigation bar
+        // Host the navigation links
         $navigation_list = array();
-        $list['path'] = $this->build_navigation_from_url($navigation_list, $path);
+
 
         // Enable/Disable the search field
-        $list['nosearch'] = true;
+        $list['nosearch'] = false;
 
-        // true if the list is a search result
-        $list['issearchresult'] = false;
+        // process search request
+        if (isset($search_text)) {
+            $this->logger->debug("Searching by TAG !!!");
 
-
-        if (PathUtils::is_root_path($path)) {
-            $this->logger->debug("The root path has been selected !!!");
-
-            $response = $this->omero->process_request(PathUtils::build_project_list_url(),
+            $response = $this->omero->process_search($search_text,
                 $this->access_key, $this->access_secret);
 
             foreach ($response as $item) {
-                $obj = $this->process_list_item("Project", $item);
-                if($obj!=null)
+                $obj = $this->process_list_item("Tag", $item);
+                if ($obj != null)
                     $list['list'][] = $obj;
             }
 
+            // Set this result as a search result
+            $list['issearchresult'] = true;
+
+            // Build the navigation bar
+            $list['path'] = $this->build_navigation_from_url($navigation_list, "/tags");
+
         } else {
 
-            $selected_obj_info = $this->omero->process_request($path, $this->access_key, $this->access_secret);
-            if ($this->is_project($selected_obj_info)) {
+            // true if the list is a search result
+            $list['issearchresult'] = false;
 
-                $this->logger->debug("Project selected!!!");
-                $response = $this->omero->process_request(
-                    PathUtils::build_dataset_list_url($selected_obj_info->id),
+            // Build the navigation bar
+            $list['path'] = $this->build_navigation_from_url($navigation_list, $path);
+
+            if (PathUtils::is_root_path($path)) {
+                $this->logger->debug("The root path has been selected !!!");
+
+                $list['list'][] = $this->process_list_item("ProjectRoot", (object)$this->PROJECTS_ROOT_ITEM);
+                $list['list'][] = $this->process_list_item("TagRoot", (object)$this->TAGS_ROOT_ITEM);
+
+            } else if (PathUtils::is_projects_root($path)) {
+                $this->logger->debug("The root project path has been selected !!!");
+
+                $response = $this->omero->process_request(PathUtils::build_project_list_url(),
                     $this->access_key, $this->access_secret);
+
                 foreach ($response as $item) {
-                    $obj = $this->process_list_item("Dataset", $item);
-                    if($obj!=null)
+                    $obj = $this->process_list_item("Project", $item);
+                    if ($obj != null)
                         $list['list'][] = $obj;
                 }
 
-            } else if ($this->is_dataset($selected_obj_info)) {
+            } else if (PathUtils::is_tags_root($path)) {
+                $this->logger->debug("The root tag path has been selected !!!");
 
-                $this->logger->debug("Dataset selected!!!");
-                $response = $this->omero->process_request(
-                    PathUtils::build_image_list_url($selected_obj_info->id),
-                    $this->access_key, $this->access_secret);
-                foreach ($response as $item) {
-                    $processed_item = $this->process_list_item("Image", $item, "Series 1");
-                    if ($processed_item != null)
-                        $list['list'][] = $processed_item;
+                // TODO: replace the real call
+//                $response = $this->omero->process_request(PathUtils::build_tag_list_url(),
+//                    $this->access_key, $this->access_secret);
+                // TODO: remove mockup call
+                $response = json_decode(file_get_contents("http://10.211.55.7:4789/moodle/repository/omero/tests/tags.json"));
+                foreach ($response->tags as $item) {
+                    $obj = $this->process_list_item("Tag", $item);
+                    if ($obj != null)
+                        $list['list'][] = $obj;
                 }
 
-            } else if ($this->is_image($selected_obj_info)) {
-
-                $this->logger->debug("Image selected!!!");
-                $response = $this->omero->process_request(
-                    PathUtils::build_image_detail($selected_obj_info->id),
-                    $this->access_key, $this->access_secret);
-
             } else {
-                $this->logger->debug("Unknown resource selected!!!");
+
+                $selected_obj_info = $this->omero->process_request($path, $this->access_key, $this->access_secret);
+
+                if ($this->is_project($selected_obj_info)) {
+
+                    $this->logger->debug("Project selected!!!");
+                    $response = $this->omero->process_request(
+                        PathUtils::build_dataset_list_url($selected_obj_info->id),
+                        $this->access_key, $this->access_secret);
+                    foreach ($response as $item) {
+                        $obj = $this->process_list_item("Dataset", $item);
+                        if ($obj != null)
+                            $list['list'][] = $obj;
+                    }
+
+                } else if ($this->is_dataset($selected_obj_info)) {
+
+                    $this->logger->debug("Dataset selected!!!");
+                    $response = $this->omero->process_request(
+                        PathUtils::build_image_list_url($selected_obj_info->id),
+                        $this->access_key, $this->access_secret);
+                    foreach ($response as $item) {
+                        $processed_item = $this->process_list_item("Image", $item, "Series 1");
+                        if ($processed_item != null)
+                            $list['list'][] = $processed_item;
+                    }
+
+                } else if ($this->is_image($selected_obj_info)) {
+
+                    $this->logger->debug("Image selected!!!");
+                    $response = $this->omero->process_request(
+                        PathUtils::build_image_detail($selected_obj_info->id),
+                        $this->access_key, $this->access_secret);
+
+                } else {
+                    $this->logger->debug("Unknown resource selected: $path !!!");
+                }
             }
         }
 
