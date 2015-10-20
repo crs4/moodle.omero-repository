@@ -298,15 +298,25 @@ class repository_omero extends repository
                 $response = json_decode(file_get_contents("http://10.211.55.7:4789/moodle/repository/omero/tests/tags.json"));
                 foreach ($response->tags as $item) {
                     $obj = $this->process_list_item("Tag", $item);
-                    if ($obj != null)
+                    if ($obj != null) {
                         $list['list'][] = $obj;
+                    }
                 }
 
             } else {
 
                 $selected_obj_info = $this->omero->process_request($path, $this->access_key, $this->access_secret);
 
-                if ($this->is_project($selected_obj_info)) {
+                if (PathUtils::is_tag($path)) {
+                    $this->logger->debug("Tag selected!!!");
+                    $response = $selected_obj_info;
+                    foreach ($response as $item) {
+                        $obj = $this->process_list_item("Image", $item);
+                        if ($obj != null)
+                            $list['list'][] = $obj;
+                    }
+
+                }else if ($this->is_project($selected_obj_info)) {
 
                     $this->logger->debug("Project selected!!!");
                     $response = $this->omero->process_request(
@@ -338,7 +348,7 @@ class repository_omero extends repository
                         $this->access_key, $this->access_secret);
 
                 } else {
-                    $this->logger->debug("Unknown resource selected: $path !!!");
+                    $this->logger->debug("Unknown resource selected: $path !!!: ". PathUtils::is_tag($path));
                 }
             }
         }
@@ -456,17 +466,19 @@ class repository_omero extends repository
             $title = $item->name . " [id:" . $item->id . "]";
 
             if (strcmp($type, "ProjectRoot") == 0) {
+                $title = "Projects";
                 $path = "/projects";
                 $children = array();
                 $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
             } else if (strcmp($type, "TagRoot") == 0) {
+                $title = "Tags";
                 $path = "/tags";
                 $children = array();
                 $thumbnail = ($this->file_tag_icon(64));
 
-            }else if (strcmp($type, "Tag") == 0) {
-                $path = PathUtils::build_project_detail_url($item->id);
+            } else if (strcmp($type, "Tag") == 0) {
+                $path = PathUtils::build_tag_detail_url($item->id);
                 $children = array();
                 $thumbnail = ($this->file_tag_icon(64));
                 $title = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
