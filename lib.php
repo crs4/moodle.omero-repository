@@ -426,16 +426,33 @@ class repository_omero extends repository
         $image_author = null;
 
         // Hardwired filter to force only a subset ot datasets
-        foreach ($this->item_black_list as $pattern)
-        {
-            if (preg_match("/$pattern/", $item->name)){
+        foreach ($this->item_black_list as $pattern) {
+            if (preg_match("/$pattern/", $item->name)) {
                 return null;
             }
         }
 
         if ($filter == null || preg_match("/(Series\s1)/", $item->name)) {
 
-            if (strcmp($type, "Project") == 0) {
+            $title = $item->name . " [id:" . $item->id . "]";
+
+            if (strcmp($type, "ProjectRoot") == 0) {
+                $path = "/projects";
+                $children = array();
+                $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+
+            } else if (strcmp($type, "TagRoot") == 0) {
+                $path = "/tags";
+                $children = array();
+                $thumbnail = ($this->file_tag_icon(64));
+
+            }else if (strcmp($type, "Tag") == 0) {
+                $path = PathUtils::build_project_detail_url($item->id);
+                $children = array();
+                $thumbnail = ($this->file_tag_icon(64));
+                $title = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
+
+            } else if (strcmp($type, "Project") == 0) {
                 $path = PathUtils::build_project_detail_url($item->id);
                 $children = array();
                 $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
