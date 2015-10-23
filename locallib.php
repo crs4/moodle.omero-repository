@@ -82,35 +82,26 @@ class omero extends oauth_helper
      */
     public function process_request($path = '/', $token = '', $secret = '')
     {
-        // FIXME: replace with the proper logic and server endpoint
-        if(strrpos($path, "/tag", -strlen($path)) !== FALSE){
-            $tag_id = str_replace($path, "/tags/", "");
-            $data = json_decode(file_get_contents("http://10.211.55.7:4789/moodle/repository/omero/tests/tag_images.json"));
-            return $data->images;
-        }
-
-        // TODO: use a single API endpoint for all requests
         $url = $this->omero_api . $path;
+        // TODO: use a single API endpoint for all requests
+        if (strrpos($path, "tag") !== FALSE) {
+            $url = str_replace("webgateway", "ome_seadragon", $url);
+        }
         $content = $this->get($url, array(), $token, $secret);
         $data = json_decode($content);
         return $data;
     }
 
 
-
-
-    public function process_search($search_text, $token = '', $secret = '' ){
-        $result = array();
-        //$search_text = preg_replace('/\s+/', '\s', $search_text);
-        $data = json_decode(file_get_contents("http://10.211.55.7:4789/moodle/repository/omero/tests/tags.json"));
-        foreach($data->tags as $tag){
-            if (preg_match("/$search_text/", $tag->value) ||
-                preg_match("/$search_text/", $tag->description)) {
-                array_push($result, $tag);
-            }
-        }
-
-        return $result;
+    public function process_search($search_text, $token = '', $secret = '')
+    {
+        // FIXME: replace the explicit URL with a factory method
+        $url = $this->omero_api . "/find/tags?query=$search_text";
+        // TODO: use a single API endpoint for all requests
+        $url = str_replace("webgateway", "ome_seadragon", $url);
+        $content = $this->get($url, array(), $token, $secret);
+        $data = json_decode($content);
+        return $data;
     }
 
     /**
