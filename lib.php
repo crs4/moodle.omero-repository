@@ -259,7 +259,7 @@ class repository_omero extends repository
             $list['issearchresult'] = true;
 
             // Build the navigation bar
-            $list['path'] = $this->build_navigation_from_url($navigation_list, "/tags", $search_text);
+            $list['path'] = $this->build_navigation_from_url($navigation_list, "/find/tags", $search_text);
 
         } else {
 
