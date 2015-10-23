@@ -456,7 +456,7 @@ class repository_omero extends repository
 
         // Hardwired filter to force only a subset ot datasets
         foreach ($this->item_black_list as $pattern) {
-            if (preg_match("/$pattern/", $item->name)) {
+            if (preg_match("/^$pattern$/", $item->name)) {
                 return null;
             }
         }
