@@ -291,11 +291,9 @@ class repository_omero extends repository
                 $this->logger->debug("The root tag path has been selected !!!");
 
                 // TODO: replace the real call
-//                $response = $this->omero->process_request(PathUtils::build_tag_list_url(),
-//                    $this->access_key, $this->access_secret);
-                // TODO: remove mockup call
-                $response = json_decode(file_get_contents("http://10.211.55.7:4789/moodle/repository/omero/tests/tags.json"));
-                foreach ($response->tags as $item) {
+                $response = $this->omero->process_request(PathUtils::build_tag_list_url(),
+                    $this->access_key, $this->access_secret);
+                foreach ($response as $item) {
                     $obj = $this->process_list_item("Tag", $item);
                     if ($obj != null) {
                         $list['list'][] = $obj;
