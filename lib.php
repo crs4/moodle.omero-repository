@@ -381,9 +381,9 @@ class repository_omero extends repository
             $_SESSION['omero_dataset'] = "";
             $_SESSION['$omero_search_text'] = "";
 
-        } else if ($items[1] == "tags") {
+        } else if ($items[1] == "get" && $items[2] == "tags") {
             array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Tags", 'path' => "/tags"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/tags"));
             if($search_text) {
                 array_push($result, array('name' => $search_text, 'path' => "/tag/$search_text"));
                 $_SESSION['$omero_search_text'] = $search_text;
@@ -393,14 +393,25 @@ class repository_omero extends repository
             $_SESSION['omero_dataset'] = "";
             $_SESSION['$omero_search_text'] = "";
 
-        } else if ($items[1] == "tag") {
+        } else if ($items[1] == "find" && $items[2] == "tags") {
             array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Tags", 'path' => "/tags"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/tags"));
             //FIXME: $omero_search_text seems to be always empty!!!
             if(isset($omero_search_text) && ! empty($omero_search_text)){
-                array_push($result, array('name' => $omero_search_text, 'path' => "/tag/$omero_search_text"));
+                array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
             }
-            array_push($result, array('name' => $items[2], 'path' => $path));
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tag'] = $path;
+
+        } else if ($items[1] == "get" && $items[2] == "imgs_by_tag") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/tags"));
+            //FIXME: $omero_search_text seems to be always empty!!!
+            if(isset($omero_search_text) && ! empty($omero_search_text)){
+                array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
+            }
+            array_push($result, array('name' => $items[3], 'path' => $path));
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
             $_SESSION['omero_tag'] = $path;
@@ -470,7 +481,7 @@ class repository_omero extends repository
 
             } else if (strcmp($type, "TagRoot") == 0) {
                 $title = "Tags";
-                $path = "/tags";
+                $path = PathUtils::build_tag_list_url();
                 $children = array();
                 $thumbnail = ($this->file_tag_icon(64));
 
