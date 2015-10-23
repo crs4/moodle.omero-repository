@@ -231,7 +231,6 @@ class repository_omero extends repository
         $list['dynload'] = true;
         $list['nologin'] = true;
         $list['search_query'] = $search_text;
-        $list['tags-set'] = json_decode(file_get_contents("http://10.211.55.7:4789/moodle/repository/omero/tests/tags.json"));
         #$list['logouturl'] = 'https://www.omero.com/logout';
         #$list['message'] = get_string('logoutdesc', 'repository_omero');
 
