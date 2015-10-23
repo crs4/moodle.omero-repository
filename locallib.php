@@ -243,11 +243,12 @@ class PathUtils
 
     public static function is_tags_root($path)
     {
-        return !strcmp($path, "/tags/");
+        return !strcmp($path, "/get/tags/");
     }
 
-    public static function is_tag($path){
-        return preg_match("/tag\/(\d+)\//", $path);
+    public static function is_tag($path)
+    {
+        return preg_match("/get\/imgs_by_tag\/(\d+)\//", $path);
     }
 
     public static function is_project($path)
@@ -272,12 +273,12 @@ class PathUtils
 
     public static function build_tag_list_url()
     {
-        return "/tag/list/";
+        return "/get/tags/";
     }
 
     public static function build_tag_detail_url($tag_id)
     {
-        return "/tag/$tag_id";
+        return "/get/imgs_by_tag/$tag_id";
     }
 
     public static function build_project_detail_url($project_id)
