@@ -348,11 +348,12 @@ class repository_omero extends repository
         $image_date = null;
         $image_author = null;
 
-        // Hardwired filter to force only a subset ot datasets
-        foreach ($this->item_black_list as $pattern)
-        {
-            if (preg_match("/$pattern/", $item->name)){
-                return null;
+        // Hardwired filter to force only a subset of projects and datasets
+        if (strcmp($type, "Project") == 0 || strcmp($type, "Dataset") == 0) {
+            foreach ($this->item_black_list as $pattern) {
+                if (preg_match("/^$pattern$/", $item->name)) {
+                    return null;
+                }
             }
         }
 
