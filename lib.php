@@ -263,14 +263,37 @@ class repository_omero extends repository
 
             } else if ($this->is_dataset($selected_obj_info)) {
 
+                if (empty($page))
+                    $page = 1;
+                else $page = ((int)$page);
+
                 $this->logger->debug("Dataset selected!!!");
                 $response = $this->omero->process_request(
                     PathUtils::build_image_list_url($selected_obj_info->id),
                     $this->access_key, $this->access_secret);
+
+                $num_images_per_page = 4;
+                $list['page'] = $page;
+                $list['pages'] = 1;
+                if (count($response) > 12)
+                    $list['pages'] = 1 + ceil((count($response) - 12) / $num_images_per_page);
+
+                $last = $page == 1 ? 12 : $page * $num_images_per_page;
+                $first = $last - ($page==1 ? 12 : $num_images_per_page);
+
+                $counter = 0;
                 foreach ($response as $item) {
-                    $processed_item = $this->process_list_item("Image", $item);
-                    if ($processed_item != null)
-                        $list['list'][] = $processed_item;
+                    if ($counter == $last) break;
+                    if ($counter < $first) {
+                        $counter++;
+                        continue;
+                    } else {
+                        $processed_item = $this->process_list_item("Image", $item);
+                        if ($processed_item != null) {
+                            $list['list'][] = $processed_item;
+                        }
+                        $counter++;
+                    }
                 }
 
             } else if ($this->is_image($selected_obj_info)) {
@@ -386,6 +409,7 @@ class repository_omero extends repository
             'source' => $item->id,
             'date' => $image_date,
             'thumbnail' => $thumbnail,
+            'icon' => $thumbnail,
             'license' => "",
             'thumbnail_height' => 128,
             'thumbnail_width' => 128,
