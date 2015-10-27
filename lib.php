@@ -313,7 +313,7 @@ class repository_omero extends repository
                             $list['list'][] = $obj;
                     }
 
-                }else if ($this->is_project($selected_obj_info)) {
+                } else if ($this->is_project($selected_obj_info)) {
 
                     $this->logger->debug("Project selected!!!");
                     $response = $this->omero->process_request(
@@ -345,7 +345,7 @@ class repository_omero extends repository
                         $this->access_key, $this->access_secret);
 
                 } else {
-                    $this->logger->debug("Unknown resource selected: $path !!!: ". PathUtils::is_tag($path));
+                    $this->logger->debug("Unknown resource selected: $path !!!: " . PathUtils::is_tag($path));
                 }
             }
         }
@@ -357,7 +357,7 @@ class repository_omero extends repository
     /**
      *
      */
-    public function build_navigation_from_url($result, $path, $search_text=false)
+    public function build_navigation_from_url($result, $path, $search_text = false)
     {
         $items = split("/", $path);
 
@@ -384,7 +384,7 @@ class repository_omero extends repository
         } else if ($items[1] == "get" && $items[2] == "tags") {
             array_push($result, array('name' => "/", 'path' => "/"));
             array_push($result, array('name' => "Tags", 'path' => "/get/tags"));
-            if($search_text) {
+            if ($search_text) {
                 array_push($result, array('name' => $search_text, 'path' => "/tag/$search_text"));
                 $_SESSION['$omero_search_text'] = $search_text;
             }
@@ -397,7 +397,7 @@ class repository_omero extends repository
             array_push($result, array('name' => "/", 'path' => "/"));
             array_push($result, array('name' => "Tags", 'path' => "/get/tags"));
             //FIXME: $omero_search_text seems to be always empty!!!
-            if(isset($omero_search_text) && ! empty($omero_search_text)){
+            if (isset($omero_search_text) && !empty($omero_search_text)) {
                 array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
             }
             $_SESSION['omero_project'] = "";
@@ -408,7 +408,7 @@ class repository_omero extends repository
             array_push($result, array('name' => "/", 'path' => "/"));
             array_push($result, array('name' => "Tags", 'path' => "/get/tags"));
             //FIXME: $omero_search_text seems to be always empty!!!
-            if(isset($omero_search_text) && ! empty($omero_search_text)){
+            if (isset($omero_search_text) && !empty($omero_search_text)) {
                 array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
             }
             array_push($result, array('name' => $items[3], 'path' => $path));
@@ -462,77 +462,67 @@ class repository_omero extends repository
         $image_date = null;
         $image_author = null;
 
-        // Hardwired filter to force only a subset ot datasets
-        foreach ($this->item_black_list as $pattern) {
-            if (preg_match("/^$pattern$/", $item->name)) {
-                return null;
+        // Hardwired filter to force only a subset of projects and datasets
+        if (strcmp($type, "Project") == 0 || strcmp($type, "Dataset") == 0) {
+            foreach ($this->item_black_list as $pattern) {
+                if (preg_match("/^$pattern$/", $item->name)) {
+                    return null;
+                }
             }
         }
 
-        if ($filter == null || preg_match("/(Series\s1)/", $item->name)) {
+        $title = $item->name . " [id:" . $item->id . "]";
+        if (strcmp($type, "ProjectRoot") == 0) {
+            $title = "Projects";
+            $path = "/projects";
+            $children = array();
+            $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
-            $title = $item->name . " [id:" . $item->id . "]";
+        } else if (strcmp($type, "TagRoot") == 0) {
+            $title = "Tags";
+            $path = PathUtils::build_tag_list_url();
+            $children = array();
+            $thumbnail = ($this->file_tag_icon(64));
 
-            if (strcmp($type, "ProjectRoot") == 0) {
-                $title = "Projects";
-                $path = "/projects";
-                $children = array();
-                $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+        } else if (strcmp($type, "Tag") == 0) {
+            $path = PathUtils::build_tag_detail_url($item->id);
+            $children = array();
+            $thumbnail = ($this->file_tag_icon(64));
+            $title = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
 
-            } else if (strcmp($type, "TagRoot") == 0) {
-                $title = "Tags";
-                $path = PathUtils::build_tag_list_url();
-                $children = array();
-                $thumbnail = ($this->file_tag_icon(64));
+        } else if (strcmp($type, "Project") == 0) {
+            $path = PathUtils::build_project_detail_url($item->id);
+            $children = array();
+            $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
-            } else if (strcmp($type, "Tag") == 0) {
-                $path = PathUtils::build_tag_detail_url($item->id);
-                $children = array();
-                $thumbnail = ($this->file_tag_icon(64));
-                $title = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
+        } else if (strcmp($type, "Dataset") == 0) {
+            $path = PathUtils::build_dataset_detail_url($item->id);
+            $children = array();
+            $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
-            } else if (strcmp($type, "Project") == 0) {
-                $path = PathUtils::build_project_detail_url($item->id);
-                $children = array();
-                $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+        } else if (strcmp($type, "Image") == 0) {
+            $path = PathUtils::build_image_detail_url($item->id);
+            $thumbnail = $this->omero->get_thumbnail_url($item->id);
+            $image_info = $this->omero->process_request(
+                PathUtils::build_image_detail_url($item->id));
+            $image_date = $image_info->meta->imageTimestamp;
+            $image_author = $image_info->meta->imageAuthor;
+        } else
+            throw new RuntimeException("Unknown data type");
 
-            } else if (strcmp($type, "Dataset") == 0) {
-                $path = PathUtils::build_dataset_detail_url($item->id);
-                $children = array();
-                $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
-
-            } else if (strcmp($type, "Image") == 0) {
-                $path = PathUtils::build_image_detail_url($item->id);
-                $thumbnail = $this->omero->get_thumbnail_url($item->id);
-                $image_info = $this->omero->process_request(
-                    PathUtils::build_image_detail_url($item->id));
-                $image_date = $image_info->meta->imageTimestamp;
-                $image_author = $image_info->meta->imageAuthor;
-            } else
-                throw new RuntimeException("Unknown data type");
-
-            $itemObj = array(
-                'image_id' => $item->id,
-                'title' => $title,
-                'author' => $image_author,
-                'path' => $path,
-                'source' => $item->id,
-                'date' => $image_date,
-                'thumbnail' => $thumbnail,
-                'license' => "",
-                'thumbnail_height' => 128,
-                'thumbnail_width' => 128,
-                'children' => $children
-            );
-
-            $this->logger->debug("***");
-            $this->logger->debug("fields created ....");
-            foreach ($itemObj as $k => $v) {
-                if (!is_array($v))
-                    $this->logger->debug("$k = $v");
-            }
-            $this->logger->debug("***");
-        }
+        $itemObj = array(
+            'image_id' => $item->id,
+            'title' => $title,
+            'author' => $image_author,
+            'path' => $path,
+            'source' => $item->id,
+            'date' => $image_date,
+            'thumbnail' => $thumbnail,
+            'license' => "",
+            'thumbnail_height' => 128,
+            'thumbnail_width' => 128,
+            'children' => $children
+        );
 
         return $itemObj;
     }
