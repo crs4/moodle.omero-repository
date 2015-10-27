@@ -242,7 +242,7 @@ class repository_omero extends repository
 
             foreach ($response as $item) {
                 $obj = $this->process_list_item("Project", $item);
-                if($obj!=null)
+                if ($obj != null)
                     $list['list'][] = $obj;
             }
 
@@ -257,7 +257,7 @@ class repository_omero extends repository
                     $this->access_key, $this->access_secret);
                 foreach ($response as $item) {
                     $obj = $this->process_list_item("Dataset", $item);
-                    if($obj!=null)
+                    if ($obj != null)
                         $list['list'][] = $obj;
                 }
 
@@ -268,7 +268,7 @@ class repository_omero extends repository
                     PathUtils::build_image_list_url($selected_obj_info->id),
                     $this->access_key, $this->access_secret);
                 foreach ($response as $item) {
-                    $processed_item = $this->process_list_item("Image", $item, "Series 1");
+                    $processed_item = $this->process_list_item("Image", $item);
                     if ($processed_item != null)
                         $list['list'][] = $processed_item;
                 }
@@ -348,59 +348,57 @@ class repository_omero extends repository
         $image_date = null;
         $image_author = null;
 
-        // Hardwired filter to force only a subset ot datasets
-        foreach ($this->item_black_list as $pattern)
-        {
-            if (preg_match("/$pattern/", $item->name)){
-                return null;
+        // Hardwired filter to force only a subset of projects and datasets
+        if (strcmp($type, "Project") == 0 || strcmp($type, "Dataset") == 0) {
+            foreach ($this->item_black_list as $pattern) {
+                if (preg_match("/^$pattern$/", $item->name)) {
+                    return null;
+                }
             }
         }
 
-        if ($filter == null || preg_match("/(Series\s1)/", $item->name)) {
 
-            if (strcmp($type, "Project") == 0) {
-                $path = PathUtils::build_project_detail_url($item->id);
-                $children = array();
-                $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+        if (strcmp($type, "Project") == 0) {
+            $path = PathUtils::build_project_detail_url($item->id);
+            $children = array();
+            $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
-            } else if (strcmp($type, "Dataset") == 0) {
-                $path = PathUtils::build_dataset_detail_url($item->id);
-                $children = array();
-                $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+        } else if (strcmp($type, "Dataset") == 0) {
+            $path = PathUtils::build_dataset_detail_url($item->id);
+            $children = array();
+            $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
-            } else if (strcmp($type, "Image") == 0) {
-                $path = PathUtils::build_image_detail_url($item->id);
-                $thumbnail = $this->omero->get_thumbnail_url($item->id);
-                $image_info = $this->omero->process_request(
-                    PathUtils::build_image_detail_url($item->id));
-                $image_date =  $image_info->meta->imageTimestamp;
-                $image_author = $image_info->meta->imageAuthor;
-            } else
-                throw new RuntimeException("Unknown data type");
+        } else if (strcmp($type, "Image") == 0) {
+            $path = PathUtils::build_image_detail_url($item->id);
+            $thumbnail = $this->omero->get_thumbnail_url($item->id);
+            $image_info = $this->omero->process_request(
+                PathUtils::build_image_detail_url($item->id));
+            $image_date = $image_info->meta->imageTimestamp;
+            $image_author = $image_info->meta->imageAuthor;
+        } else
+            throw new RuntimeException("Unknown data type");
 
-            $itemObj = array(
-                'image_id' => $item->id,
-                'title' => $item->name . " [id:" . $item->id . "]",
-                'author' => $image_author,
-                'path' => $path,
-                'source' => $item->id,
-                'date' => $image_date,
-                'thumbnail' => $thumbnail,
-                'license' => "",
-                'thumbnail_height' => 128,
-                'thumbnail_width' => 128,
-                'children' => $children
-            );
+        $itemObj = array(
+            'image_id' => $item->id,
+            'title' => $item->name . " [id:" . $item->id . "]",
+            'author' => $image_author,
+            'path' => $path,
+            'source' => $item->id,
+            'date' => $image_date,
+            'thumbnail' => $thumbnail,
+            'license' => "",
+            'thumbnail_height' => 128,
+            'thumbnail_width' => 128,
+            'children' => $children
+        );
 
-            $this->logger->debug("***");
-            $this->logger->debug("fields created ....");
-            foreach ($itemObj as $k => $v) {
-                if (!is_array($v))
-                    $this->logger->debug("$k = $v");
-            }
-            $this->logger->debug("***");
+        $this->logger->debug("***");
+        $this->logger->debug("fields created ....");
+        foreach ($itemObj as $k => $v) {
+            if (!is_array($v))
+                $this->logger->debug("$k = $v");
         }
-
+        $this->logger->debug("***");
         return $itemObj;
     }
 
