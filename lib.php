@@ -242,7 +242,7 @@ class repository_omero extends repository
 
             foreach ($response as $item) {
                 $obj = $this->process_list_item("Project", $item);
-                if($obj!=null)
+                if ($obj != null)
                     $list['list'][] = $obj;
             }
 
@@ -257,7 +257,7 @@ class repository_omero extends repository
                     $this->access_key, $this->access_secret);
                 foreach ($response as $item) {
                     $obj = $this->process_list_item("Dataset", $item);
-                    if($obj!=null)
+                    if ($obj != null)
                         $list['list'][] = $obj;
                 }
 
