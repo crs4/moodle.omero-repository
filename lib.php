@@ -263,36 +263,36 @@ class repository_omero extends repository
 
             } else if ($this->is_dataset($selected_obj_info)) {
 
-                if (empty($page))
+                if (empty($page)) {
                     $page = 1;
-                else $page = ((int)$page);
+                    $response = $this->omero->process_request(
+                        PathUtils::build_image_list_url($selected_obj_info->id),
+                        $this->access_key, $this->access_secret);
+                    $_SESSION['omero_dataset_info'] = $response;
+                } else {
+                    $page = ((int)$page);
+                    $response = $_SESSION['omero_dataset_info'];
+                }
 
                 $this->logger->debug("Dataset selected!!!");
-                $response = $this->omero->process_request(
-                    PathUtils::build_image_list_url($selected_obj_info->id),
-                    $this->access_key, $this->access_secret);
 
+                $num_images_first_page = 12;
                 $num_images_per_page = 4;
                 $list['page'] = $page;
                 $list['pages'] = 1;
-                if (count($response) > 12)
-                    $list['pages'] = 1 + ceil((count($response) - 12) / $num_images_per_page);
+                if (count($response) > $num_images_first_page)
+                    $list['pages'] = 1 + ceil((count($response) - $num_images_first_page) / $num_images_per_page);
 
-                $last = $page == 1 ? 12 : $page * $num_images_per_page;
-                $first = $last - ($page==1 ? 12 : $num_images_per_page);
+                $last = ($page == 1) ?
+                    $num_images_first_page :
+                    ($num_images_first_page + $page == 1 ? $num_images_per_page : $page * $num_images_per_page);
+                $first = $last - ($page == 1 ? $num_images_first_page : $num_images_per_page);
 
-                $counter = 0;
-                foreach ($response as $item) {
-                    if ($counter == $last) break;
-                    if ($counter < $first) {
-                        $counter++;
-                        continue;
-                    } else {
-                        $processed_item = $this->process_list_item("Image", $item);
-                        if ($processed_item != null) {
-                            $list['list'][] = $processed_item;
-                        }
-                        $counter++;
+                for ($counter = $first; $counter < $last; $counter++) {
+                    $item = $response[$counter];
+                    $processed_item = $this->process_list_item("Image", $item);
+                    if ($processed_item != null) {
+                        $list['list'][] = $processed_item;
                     }
                 }
 
