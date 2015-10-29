@@ -518,6 +518,7 @@ class repository_omero extends repository
             'source' => $item->id,
             'date' => $image_date,
             'thumbnail' => $thumbnail,
+            'icon' => $thumbnail,
             'license' => "",
             'thumbnail_height' => 128,
             'thumbnail_width' => 128,
