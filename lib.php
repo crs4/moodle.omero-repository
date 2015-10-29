@@ -263,14 +263,37 @@ class repository_omero extends repository
 
             } else if ($this->is_dataset($selected_obj_info)) {
 
+                if (empty($page)) {
+                    $page = 1;
+                    $response = $this->omero->process_request(
+                        PathUtils::build_image_list_url($selected_obj_info->id),
+                        $this->access_key, $this->access_secret);
+                    $_SESSION['omero_dataset_info'] = $response;
+                } else {
+                    $page = ((int)$page);
+                    $response = $_SESSION['omero_dataset_info'];
+                }
+
                 $this->logger->debug("Dataset selected!!!");
-                $response = $this->omero->process_request(
-                    PathUtils::build_image_list_url($selected_obj_info->id),
-                    $this->access_key, $this->access_secret);
-                foreach ($response as $item) {
+
+                $num_images_first_page = 12;
+                $num_images_per_page = 4;
+                $list['page'] = $page;
+                $list['pages'] = 1;
+                if (count($response) > $num_images_first_page)
+                    $list['pages'] = 1 + ceil((count($response) - $num_images_first_page) / $num_images_per_page);
+
+                $last = ($page == 1) ?
+                    $num_images_first_page :
+                    ($num_images_first_page + $page == 1 ? $num_images_per_page : $page * $num_images_per_page);
+                $first = $last - ($page == 1 ? $num_images_first_page : $num_images_per_page);
+
+                for ($counter = $first; $counter < $last; $counter++) {
+                    $item = $response[$counter];
                     $processed_item = $this->process_list_item("Image", $item);
-                    if ($processed_item != null)
+                    if ($processed_item != null) {
                         $list['list'][] = $processed_item;
+                    }
                 }
 
             } else if ($this->is_image($selected_obj_info)) {
@@ -386,6 +409,7 @@ class repository_omero extends repository
             'source' => $item->id,
             'date' => $image_date,
             'thumbnail' => $thumbnail,
+            'icon' => $thumbnail,
             'license' => "",
             'thumbnail_height' => 128,
             'thumbnail_width' => 128,
