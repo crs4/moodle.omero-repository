@@ -577,7 +577,8 @@ ctrl._render_rois_table = function (image_id, dataSet) {
         var data_table = roi_table.DataTable();
         var selected_roi_shape = data_table.row(this).data();
         var selected = true;
-        if ($(this).hasClass('selected') && event.srcElement.type != "checkbox") {
+        var target = (event.target || event.srcElement);
+        if ($(this).hasClass('selected') && target.type != "checkbox") {
             // Deselects an already selected row:
             // skips the deselection if the click has been triggered by a checkbox
             selected = false;
@@ -616,7 +617,8 @@ ctrl._render_rois_table = function (image_id, dataSet) {
     // Handle the selection of a given row (image)
     roi_table.on('change', function (event) {
         var me = omero_viewer_controller;
-        var selectorId = event.srcElement.id;
+        var target = (event.target || event.srcElement);
+        var selectorId = target.id;
         if (selectorId) {
             var roiId = selectorId.match(/[0-9]+/);
             if (roiId) {
