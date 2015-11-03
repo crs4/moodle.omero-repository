@@ -84,7 +84,7 @@ class omero extends oauth_helper
     {
         $url = $this->omero_api . $path;
         // TODO: use a single API endpoint for all requests
-        if (strrpos($path, "tag") !== FALSE) {
+        if (strrpos($path, "tag") !== FALSE || strrpos($path, "annotation") !== FALSE) {
             $url = str_replace("webgateway", "ome_seadragon", $url);
         }
         $content = $this->get($url, array(), $token, $secret);
