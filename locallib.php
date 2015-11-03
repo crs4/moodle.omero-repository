@@ -234,7 +234,13 @@ class PathUtils
 
     public static function is_tags_root($path)
     {
-        return !strcmp($path, "/get/tags/");
+        return !strcmp($path, "/get/annotations/");
+    }
+
+    public static function is_tagset_root($path)
+    {
+        //return !strcmp($path, "/get/tags/");
+        return preg_match("/get\/tags\/(\d+)\//", $path);
     }
 
     public static function is_tag($path)
