@@ -1143,7 +1143,7 @@ class repository_omero extends repository
      * @param int $iconsize The size of the icon. Defaults to 16 can also be 24, 32, 48, 64, 72, 80, 96, 128, 256
      * @return string
      */
-    function file_tag_icon($iconsize = null)
+    function file_icon($iconname, $iconsize = null)
     {
         global $CFG;
 
@@ -1152,7 +1152,7 @@ class repository_omero extends repository
         $iconsize = max(array(16, (int)$iconsize));
         if (!array_key_exists($iconsize, $cached)) {
             foreach ($iconpostfixes as $size => $postfix) {
-                $fullname = $CFG->wwwroot . "/repository/omero/pix/tag/$iconsize.png";
+                $fullname = $CFG->wwwroot . "/repository/omero/pix/$iconname/$iconsize.png";
                 return $fullname;
                 if ($iconsize >= $size && (file_exists($fullname)))
                     return $fullname;
