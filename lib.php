@@ -296,6 +296,24 @@ class repository_omero extends repository
                 // TODO: replace the real call
                 $response = $this->omero->process_request(PathUtils::build_tag_list_url(),
                     $this->access_key, $this->access_secret);
+
+                foreach ($response as $item) {
+                    $itype = "Tag";
+                    if (strcmp($item->type, "tagset") == 0)
+                        $itype = "TagSet";
+                    $obj = $this->process_list_item($itype, $item);
+                    if ($obj != null) {
+                        $list['list'][] = $obj;
+                    }
+                }
+
+            } else if (PathUtils::is_tagset_root($path)) {
+                $this->logger->debug("The tagset root path has been selected !!!");
+
+                // TODO: replace the real call
+                $response = $this->omero->process_request($path,
+                    $this->access_key, $this->access_secret);
+
                 foreach ($response as $item) {
                     $obj = $this->process_list_item("Tag", $item);
                     if ($obj != null) {
