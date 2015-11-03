@@ -250,7 +250,10 @@ class repository_omero extends repository
                 $this->access_key, $this->access_secret);
 
             foreach ($response as $item) {
-                $obj = $this->process_list_item("Tag", $item);
+                $itype = "Tag";
+                if (strcmp($item->type, "tagset") == 0)
+                    $itype = "TagSet";
+                $obj = $this->process_list_item($itype, $item);
                 if ($obj != null)
                     $list['list'][] = $obj;
             }
