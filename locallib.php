@@ -96,7 +96,7 @@ class omero extends oauth_helper
     public function process_search($search_text, $token = '', $secret = '')
     {
         // FIXME: replace the explicit URL with a factory method
-        $url = $this->omero_api . "/find/tags?query=$search_text";
+        $url = $this->omero_api . "/find/annotations?query=$search_text";
         // TODO: use a single API endpoint for all requests
         $url = str_replace("webgateway", "ome_seadragon", $url);
         $content = $this->get($url, array(), $token, $secret);
