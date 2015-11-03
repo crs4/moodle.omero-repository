@@ -250,7 +250,10 @@ class repository_omero extends repository
                 $this->access_key, $this->access_secret);
 
             foreach ($response as $item) {
-                $obj = $this->process_list_item("Tag", $item);
+                $itype = "Tag";
+                if (strcmp($item->type, "tagset") == 0)
+                    $itype = "TagSet";
+                $obj = $this->process_list_item($itype, $item);
                 if ($obj != null)
                     $list['list'][] = $obj;
             }
@@ -259,7 +262,7 @@ class repository_omero extends repository
             $list['issearchresult'] = true;
 
             // Build the navigation bar
-            $list['path'] = $this->build_navigation_from_url($navigation_list, "/find/tags", $search_text);
+            $list['path'] = $this->build_navigation_from_url($navigation_list, "/find/annotations", $search_text);
 
         } else {
 
@@ -293,6 +296,24 @@ class repository_omero extends repository
                 // TODO: replace the real call
                 $response = $this->omero->process_request(PathUtils::build_tag_list_url(),
                     $this->access_key, $this->access_secret);
+
+                foreach ($response as $item) {
+                    $itype = "Tag";
+                    if (strcmp($item->type, "tagset") == 0)
+                        $itype = "TagSet";
+                    $obj = $this->process_list_item($itype, $item);
+                    if ($obj != null) {
+                        $list['list'][] = $obj;
+                    }
+                }
+
+            } else if (PathUtils::is_tagset_root($path)) {
+                $this->logger->debug("The tagset root path has been selected !!!");
+
+                // TODO: replace the real call
+                $response = $this->omero->process_request($path,
+                    $this->access_key, $this->access_secret);
+
                 foreach ($response as $item) {
                     $obj = $this->process_list_item("Tag", $item);
                     if ($obj != null) {
@@ -363,6 +384,7 @@ class repository_omero extends repository
 
         $omero_tag = $_SESSION['omero_tag'];
         $omero_search_text = $_SESSION['$omero_search_text'];
+        $omero_tagset = $_SESSION['omero_tagset'];
         $omero_project = $_SESSION['omero_project'];
         $omero_dataset = $_SESSION['omero_dataset'];
 
@@ -371,6 +393,7 @@ class repository_omero extends repository
             $_SESSION['omero_tag'] = "";
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tagset'] = "";
             $_SESSION['$omero_search_text'] = "";
 
         } else if ($items[1] == "projects") {
@@ -379,23 +402,40 @@ class repository_omero extends repository
             $_SESSION['omero_tag'] = "";
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tagset'] = "";
             $_SESSION['$omero_search_text'] = "";
 
-        } else if ($items[1] == "get" && $items[2] == "tags") {
+        } else if ($items[1] == "get" && $items[2] == "annotations") {
             array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Tags", 'path' => "/get/tags"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/annotations/"));
             if ($search_text) {
                 array_push($result, array('name' => $search_text, 'path' => "/tag/$search_text"));
                 $_SESSION['$omero_search_text'] = $search_text;
             }
+
+            $_SESSION['omero_tag'] = "";
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tagset'] = "";
+            $_SESSION['$omero_search_text'] = "";
+
+        } else if ($items[1] == "get" && $items[2] == "tags") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/annotations"));
+            array_push($result, array('name' => "TagSet: " . $items[3], 'path' => "/get/tags/$items[3]"));
+            if ($search_text) {
+                array_push($result, array('name' => $search_text, 'path' => "/tag/$search_text"));
+                $_SESSION['$omero_search_text'] = $search_text;
+            }
+            $_SESSION['omero_tagset'] = $items[3];
             $_SESSION['omero_tag'] = "";
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
             $_SESSION['$omero_search_text'] = "";
 
-        } else if ($items[1] == "find" && $items[2] == "tags") {
+        } else if ($items[1] == "find" && $items[2] == "annotations") {
             array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Tags", 'path' => "/get/tags"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/annotations"));
             //FIXME: $omero_search_text seems to be always empty!!!
             if (isset($omero_search_text) && !empty($omero_search_text)) {
                 array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
@@ -406,12 +446,16 @@ class repository_omero extends repository
 
         } else if ($items[1] == "get" && $items[2] == "imgs_by_tag") {
             array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Tags", 'path' => "/get/tags"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/annotations"));
+            if (isset($omero_tagset) && !empty($omero_tagset)) {
+                array_push($result, array('name' => "TagSet: " . $omero_tagset,
+                    'path' => "/get/tags/$omero_tagset"));
+            }
             //FIXME: $omero_search_text seems to be always empty!!!
             if (isset($omero_search_text) && !empty($omero_search_text)) {
                 array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
             }
-            array_push($result, array('name' => $items[3], 'path' => $path));
+            array_push($result, array('name' => "Tag: " . $items[3], 'path' => $path));
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
             $_SESSION['omero_tag'] = $path;
@@ -482,12 +526,18 @@ class repository_omero extends repository
             $title = "Tags";
             $path = PathUtils::build_tag_list_url();
             $children = array();
-            $thumbnail = ($this->file_tag_icon(64));
+            $thumbnail = ($this->file_icon("tagset", 64));
+
+        } else if (strcmp($type, "TagSet") == 0) {
+            $title = "TagSet " . $item->value;
+            $path = PathUtils::build_tagset_tag_list_url($item->id);
+            $children = array();
+            $thumbnail = ($this->file_icon("tagset", 64));
 
         } else if (strcmp($type, "Tag") == 0) {
             $path = PathUtils::build_tag_detail_url($item->id);
             $children = array();
-            $thumbnail = ($this->file_tag_icon(64));
+            $thumbnail = ($this->file_icon("tag", 64));
             $title = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
 
         } else if (strcmp($type, "Project") == 0) {
@@ -1111,7 +1161,7 @@ class repository_omero extends repository
      * @param int $iconsize The size of the icon. Defaults to 16 can also be 24, 32, 48, 64, 72, 80, 96, 128, 256
      * @return string
      */
-    function file_tag_icon($iconsize = null)
+    function file_icon($iconname, $iconsize = null)
     {
         global $CFG;
 
@@ -1120,7 +1170,7 @@ class repository_omero extends repository
         $iconsize = max(array(16, (int)$iconsize));
         if (!array_key_exists($iconsize, $cached)) {
             foreach ($iconpostfixes as $size => $postfix) {
-                $fullname = $CFG->wwwroot . "/repository/omero/pix/tag/$iconsize.png";
+                $fullname = $CFG->wwwroot . "/repository/omero/pix/$iconname/$iconsize.png";
                 return $fullname;
                 if ($iconsize >= $size && (file_exists($fullname)))
                     return $fullname;

@@ -84,7 +84,7 @@ class omero extends oauth_helper
     {
         $url = $this->omero_api . $path;
         // TODO: use a single API endpoint for all requests
-        if (strrpos($path, "tag") !== FALSE) {
+        if (strrpos($path, "tag") !== FALSE || strrpos($path, "annotation") !== FALSE) {
             $url = str_replace("webgateway", "ome_seadragon", $url);
         }
         $content = $this->get($url, array(), $token, $secret);
@@ -96,7 +96,7 @@ class omero extends oauth_helper
     public function process_search($search_text, $token = '', $secret = '')
     {
         // FIXME: replace the explicit URL with a factory method
-        $url = $this->omero_api . "/find/tags?query=$search_text";
+        $url = $this->omero_api . "/find/annotations?query=$search_text";
         // TODO: use a single API endpoint for all requests
         $url = str_replace("webgateway", "ome_seadragon", $url);
         $content = $this->get($url, array(), $token, $secret);
@@ -234,7 +234,13 @@ class PathUtils
 
     public static function is_tags_root($path)
     {
-        return !strcmp($path, "/get/tags/");
+        return !strcmp($path, "/get/annotations/");
+    }
+
+    public static function is_tagset_root($path)
+    {
+        //return !strcmp($path, "/get/tags/");
+        return preg_match("/get\/tags\/(\d+)\//", $path);
     }
 
     public static function is_tag($path)
@@ -264,7 +270,12 @@ class PathUtils
 
     public static function build_tag_list_url()
     {
-        return "/get/tags/";
+        return "/get/annotations/";
+    }
+
+    public static function build_tagset_tag_list_url($tagset_id)
+    {
+        return "/get/tags/$tagset_id/";
     }
 
     public static function build_tag_detail_url($tag_id)
