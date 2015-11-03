@@ -270,7 +270,12 @@ class PathUtils
 
     public static function build_tag_list_url()
     {
-        return "/get/tags/";
+        return "/get/annotations/";
+    }
+
+    public static function build_tagset_tag_list_url($tagset_id)
+    {
+        return "/get/tags/$tagset_id/";
     }
 
     public static function build_tag_detail_url($tag_id)
