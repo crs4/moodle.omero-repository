@@ -576,10 +576,10 @@ class repository_omero extends repository
         } else if (strcmp($type, "Image") == 0) {
             $path = PathUtils::build_image_detail_url($item->id);
             $thumbnail = $this->omero->get_thumbnail_url($item->id);
-            $image_info = $this->omero->process_request(
-                PathUtils::build_image_detail_url($item->id));
-            $image_date = $image_info->meta->imageTimestamp;
-            $image_author = $image_info->meta->imageAuthor;
+//            $image_info = $this->omero->process_request(
+//                PathUtils::build_image_detail_url($item->id));
+            //$image_date = $image_info->meta->imageTimestamp;
+            //$image_author = $image_info->meta->imageAuthor;
         } else
             throw new RuntimeException("Unknown data type");
 
