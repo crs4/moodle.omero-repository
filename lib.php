@@ -222,8 +222,6 @@ class repository_omero extends repository
         }
         $encoded_path = str_replace("%2F", "/", rawurlencode($path));
 
-        $this->logger->debug("Current path: " . $encoded_path . " --- " . $path);
-
         // Initializes the data structures needed to build the response
         $list = array();
         $list['list'] = array();
@@ -244,8 +242,6 @@ class repository_omero extends repository
 
         // process search request
         if (isset($search_text)) {
-            $this->logger->debug("Searching by TAG !!!");
-
             $response = $this->omero->process_search($search_text,
                 $this->access_key, $this->access_secret);
 
@@ -273,8 +269,6 @@ class repository_omero extends repository
             $list['path'] = $this->build_navigation_from_url($navigation_list, $path);
 
             if (PathUtils::is_root_path($path)) {
-                $this->logger->debug("The root path has been selected !!!");
-
                 $list['list'][] = $this->process_list_item("ProjectRoot", (object)$this->PROJECTS_ROOT_ITEM);
                 $list['list'][] = $this->process_list_item("TagRoot", (object)$this->TAGS_ROOT_ITEM);
 
@@ -348,14 +342,37 @@ class repository_omero extends repository
 
                 } else if ($this->is_dataset($selected_obj_info)) {
 
+                    if (empty($page))
+                        $page = 1;
+                    else $page = ((int)$page);
+
                     $this->logger->debug("Dataset selected!!!");
                     $response = $this->omero->process_request(
                         PathUtils::build_image_list_url($selected_obj_info->id),
                         $this->access_key, $this->access_secret);
+
+                    $num_images_per_page = 12;
+                    $list['page'] = $page;
+                    $list['pages'] = 1;
+                    if (count($response) > 12)
+                        $list['pages'] = 1 + ceil((count($response) - 12) / $num_images_per_page);
+
+                    $last = $page == 1 ? 12 : $page * $num_images_per_page;
+                    $first = $last - ($page == 1 ? 12 : $num_images_per_page);
+
+                    $counter = 0;
                     foreach ($response as $item) {
-                        $processed_item = $this->process_list_item("Image", $item, "Series 1");
-                        if ($processed_item != null)
-                            $list['list'][] = $processed_item;
+                        if ($counter == $last) break;
+                        if ($counter < $first) {
+                            $counter++;
+                            continue;
+                        } else {
+                            $processed_item = $this->process_list_item("Image", $item);
+                            if ($processed_item != null) {
+                                $list['list'][] = $processed_item;
+                            }
+                            $counter++;
+                        }
                     }
 
                 } else if ($this->is_image($selected_obj_info)) {
@@ -366,7 +383,7 @@ class repository_omero extends repository
                         $this->access_key, $this->access_secret);
 
                 } else {
-                    $this->logger->debug("Unknown resource selected: $path !!!: " . PathUtils::is_tag($path));
+                    $this->logger->debug("Unknown resource selected: $path !!!: ");
                 }
             }
         }
@@ -553,10 +570,10 @@ class repository_omero extends repository
         } else if (strcmp($type, "Image") == 0) {
             $path = PathUtils::build_image_detail_url($item->id);
             $thumbnail = $this->omero->get_thumbnail_url($item->id);
-            $image_info = $this->omero->process_request(
-                PathUtils::build_image_detail_url($item->id));
-            $image_date = $image_info->meta->imageTimestamp;
-            $image_author = $image_info->meta->imageAuthor;
+//            $image_info = $this->omero->process_request(
+//                PathUtils::build_image_detail_url($item->id));
+            //$image_date = $image_info->meta->imageTimestamp;
+            //$image_author = $image_info->meta->imageAuthor;
         } else
             throw new RuntimeException("Unknown data type");
 
@@ -901,9 +918,6 @@ class repository_omero extends repository
         $this->logger->debug("get_link called: : $reference !!!");
 
         $ref = unserialize($reference);
-        foreach ($ref as $k => $v)
-            $this->logger->debug("$k ---> $v");
-
         if (!isset($ref->url)) {
             $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);

@@ -25,16 +25,16 @@ class Logger
 
     public function debug($message)
     {
-        error_log("$this->name: $message");
+        //error_log("$this->name: $message");
     }
 
     public function info($message)
     {
-        error_log("$this->name: $message");
+        //error_log("$this->name: $message");
     }
 
     public function error($message)
     {
-        error_log("$this->name: $message");
+        //error_log("$this->name: $message");
     }
 }
