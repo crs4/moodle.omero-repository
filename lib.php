@@ -57,6 +57,18 @@ class repository_omero extends repository
         "2015-08-11", "TEST"
     );
 
+    private $PROJECTS_ROOT_ITEM = array(
+        "name" => "projects",
+        "type" => "projects",
+        "path" => "/projects"
+    );
+
+    private $TAGS_ROOT_ITEM = array(
+        "name" => "tags",
+        "type" => "tags",
+        "path" => "/tags"
+    );
+
     /**
      * Constructor of omero plugin
      *
@@ -198,9 +210,9 @@ class repository_omero extends repository
      * @param int $page
      * @return array
      */
-    public function get_listing($path = '', $page = '1')
+    public function get_listing($path = '', $page = '1', $search_text = null)
     {
-        global $OUTPUT;
+        global $CFG, $OUTPUT;
 
         // format the current selected URL
         if (empty($path) || $path == '/') {
@@ -210,101 +222,169 @@ class repository_omero extends repository
         }
         $encoded_path = str_replace("%2F", "/", rawurlencode($path));
 
-        $this->logger->debug("Current path: " . $encoded_path . " --- " . $path);
-
-
         // Initializes the data structures needed to build the response
         $list = array();
         $list['list'] = array();
         $list['manage'] = 'https://www.omero.com/home';
         $list['dynload'] = true;
         $list['nologin'] = true;
+        $list['search_query'] = $search_text;
         #$list['logouturl'] = 'https://www.omero.com/logout';
         #$list['message'] = get_string('logoutdesc', 'repository_omero');
 
 
-        // Build the navigation bar
+        // Host the navigation links
         $navigation_list = array();
-        $list['path'] = $this->build_navigation_from_url($navigation_list, $path);
+
 
         // Enable/Disable the search field
-        $list['nosearch'] = true;
+        $list['nosearch'] = false;
 
-        // true if the list is a search result
-        $list['issearchresult'] = false;
-
-
-        if (PathUtils::is_root_path($path)) {
-            $this->logger->debug("The root path has been selected !!!");
-
-            $response = $this->omero->process_request(PathUtils::build_project_list_url(),
+        // process search request
+        if (isset($search_text)) {
+            $response = $this->omero->process_search($search_text,
                 $this->access_key, $this->access_secret);
 
             foreach ($response as $item) {
-                $obj = $this->process_list_item("Project", $item);
+                $itype = "Tag";
+                if (strcmp($item->type, "tagset") == 0)
+                    $itype = "TagSet";
+                $obj = $this->process_list_item($itype, $item);
                 if ($obj != null)
                     $list['list'][] = $obj;
             }
 
+            // Set this result as a search result
+            $list['issearchresult'] = true;
+
+            // Build the navigation bar
+            $list['path'] = $this->build_navigation_from_url($navigation_list, "/find/annotations", $search_text);
+
         } else {
 
-            $selected_obj_info = $this->omero->process_request($path, $this->access_key, $this->access_secret);
-            if ($this->is_project($selected_obj_info)) {
+            // true if the list is a search result
+            $list['issearchresult'] = false;
 
-                $this->logger->debug("Project selected!!!");
-                $response = $this->omero->process_request(
-                    PathUtils::build_dataset_list_url($selected_obj_info->id),
+            // Build the navigation bar
+            $list['path'] = $this->build_navigation_from_url($navigation_list, $path);
+
+            if (PathUtils::is_root_path($path)) {
+                $list['list'][] = $this->process_list_item("ProjectRoot", (object)$this->PROJECTS_ROOT_ITEM);
+                $list['list'][] = $this->process_list_item("TagRoot", (object)$this->TAGS_ROOT_ITEM);
+
+            } else if (PathUtils::is_projects_root($path)) {
+                $this->logger->debug("The root project path has been selected !!!");
+
+                $response = $this->omero->process_request(PathUtils::build_project_list_url(),
                     $this->access_key, $this->access_secret);
+
                 foreach ($response as $item) {
-                    $obj = $this->process_list_item("Dataset", $item);
+                    $obj = $this->process_list_item("Project", $item);
                     if ($obj != null)
                         $list['list'][] = $obj;
                 }
 
-            } else if ($this->is_dataset($selected_obj_info)) {
+            } else if (PathUtils::is_tags_root($path)) {
+                $this->logger->debug("The root tag path has been selected !!!");
 
-                if (empty($page)) {
-                    $page = 1;
-                    $response = $this->omero->process_request(
-                        PathUtils::build_image_list_url($selected_obj_info->id),
-                        $this->access_key, $this->access_secret);
-                    $_SESSION['omero_dataset_info'] = $response;
-                } else {
-                    $page = ((int)$page);
-                    $response = $_SESSION['omero_dataset_info'];
-                }
+                // TODO: replace the real call
+                $response = $this->omero->process_request(PathUtils::build_tag_list_url(),
+                    $this->access_key, $this->access_secret);
 
-                $this->logger->debug("Dataset selected!!!");
-
-                $num_images_first_page = 12;
-                $num_images_per_page = 4;
-                $list['page'] = $page;
-                $list['pages'] = 1;
-                if (count($response) > $num_images_first_page)
-                    $list['pages'] = 1 + ceil((count($response) - $num_images_first_page) / $num_images_per_page);
-
-                $last = ($page == 1) ?
-                    $num_images_first_page :
-                    ($num_images_first_page + $page == 1 ? $num_images_per_page : $page * $num_images_per_page);
-                $first = $last - ($page == 1 ? $num_images_first_page : $num_images_per_page);
-
-                for ($counter = $first; $counter < $last; $counter++) {
-                    $item = $response[$counter];
-                    $processed_item = $this->process_list_item("Image", $item);
-                    if ($processed_item != null) {
-                        $list['list'][] = $processed_item;
+                foreach ($response as $item) {
+                    $itype = "Tag";
+                    if (strcmp($item->type, "tagset") == 0)
+                        $itype = "TagSet";
+                    $obj = $this->process_list_item($itype, $item);
+                    if ($obj != null) {
+                        $list['list'][] = $obj;
                     }
                 }
 
-            } else if ($this->is_image($selected_obj_info)) {
+            } else if (PathUtils::is_tagset_root($path)) {
+                $this->logger->debug("The tagset root path has been selected !!!");
 
-                $this->logger->debug("Image selected!!!");
-                $response = $this->omero->process_request(
-                    PathUtils::build_image_detail($selected_obj_info->id),
+                // TODO: replace the real call
+                $response = $this->omero->process_request($path,
                     $this->access_key, $this->access_secret);
 
+                foreach ($response as $item) {
+                    $obj = $this->process_list_item("Tag", $item);
+                    if ($obj != null) {
+                        $list['list'][] = $obj;
+                    }
+                }
+
             } else {
-                $this->logger->debug("Unknown resource selected!!!");
+
+                $selected_obj_info = $this->omero->process_request($path, $this->access_key, $this->access_secret);
+
+                if (PathUtils::is_tag($path)) {
+                    $this->logger->debug("Tag selected!!!");
+                    $response = $selected_obj_info;
+                    foreach ($response as $item) {
+                        $obj = $this->process_list_item("Image", $item);
+                        if ($obj != null)
+                            $list['list'][] = $obj;
+                    }
+
+                } else if ($this->is_project($selected_obj_info)) {
+
+                    $this->logger->debug("Project selected!!!");
+                    $response = $this->omero->process_request(
+                        PathUtils::build_dataset_list_url($selected_obj_info->id),
+                        $this->access_key, $this->access_secret);
+                    foreach ($response as $item) {
+                        $obj = $this->process_list_item("Dataset", $item);
+                        if ($obj != null)
+                            $list['list'][] = $obj;
+                    }
+
+                } else if ($this->is_dataset($selected_obj_info)) {
+
+                    if (empty($page))
+                        $page = 1;
+                    else $page = ((int)$page);
+
+                    $this->logger->debug("Dataset selected!!!");
+                    $response = $this->omero->process_request(
+                        PathUtils::build_image_list_url($selected_obj_info->id),
+                        $this->access_key, $this->access_secret);
+
+                    $num_images_per_page = 12;
+                    $list['page'] = $page;
+                    $list['pages'] = 1;
+                    if (count($response) > 12)
+                        $list['pages'] = 1 + ceil((count($response) - 12) / $num_images_per_page);
+
+                    $last = $page == 1 ? 12 : $page * $num_images_per_page;
+                    $first = $last - ($page == 1 ? 12 : $num_images_per_page);
+
+                    $counter = 0;
+                    foreach ($response as $item) {
+                        if ($counter == $last) break;
+                        if ($counter < $first) {
+                            $counter++;
+                            continue;
+                        } else {
+                            $processed_item = $this->process_list_item("Image", $item);
+                            if ($processed_item != null) {
+                                $list['list'][] = $processed_item;
+                            }
+                            $counter++;
+                        }
+                    }
+
+                } else if ($this->is_image($selected_obj_info)) {
+
+                    $this->logger->debug("Image selected!!!");
+                    $response = $this->omero->process_request(
+                        PathUtils::build_image_detail($selected_obj_info->id),
+                        $this->access_key, $this->access_secret);
+
+                } else {
+                    $this->logger->debug("Unknown resource selected: $path !!!: ");
+                }
             }
         }
 
@@ -315,20 +395,91 @@ class repository_omero extends repository
     /**
      *
      */
-    public function build_navigation_from_url($result, $path)
+    public function build_navigation_from_url($result, $path, $search_text = false)
     {
         $items = split("/", $path);
 
+        $omero_tag = $_SESSION['omero_tag'];
+        $omero_search_text = $_SESSION['$omero_search_text'];
+        $omero_tagset = $_SESSION['omero_tagset'];
         $omero_project = $_SESSION['omero_project'];
         $omero_dataset = $_SESSION['omero_dataset'];
 
         if (count($items) == 0 || empty($items[1])) {
-            array_push($result, array('name' => "Projects", 'path' => "/"));
+            array_push($result, array('name' => "/", 'path' => "/"));
+            $_SESSION['omero_tag'] = "";
             $_SESSION['omero_project'] = "";
             $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tagset'] = "";
+            $_SESSION['$omero_search_text'] = "";
+
+        } else if ($items[1] == "projects") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Projects", 'path' => "/projects"));
+            $_SESSION['omero_tag'] = "";
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tagset'] = "";
+            $_SESSION['$omero_search_text'] = "";
+
+        } else if ($items[1] == "get" && $items[2] == "annotations") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/annotations/"));
+            if ($search_text) {
+                array_push($result, array('name' => $search_text, 'path' => "/tag/$search_text"));
+                $_SESSION['$omero_search_text'] = $search_text;
+            }
+
+            $_SESSION['omero_tag'] = "";
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tagset'] = "";
+            $_SESSION['$omero_search_text'] = "";
+
+        } else if ($items[1] == "get" && $items[2] == "tags") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/annotations"));
+            array_push($result, array('name' => "TagSet: " . $items[3], 'path' => "/get/tags/$items[3]"));
+            if ($search_text) {
+                array_push($result, array('name' => $search_text, 'path' => "/tag/$search_text"));
+                $_SESSION['$omero_search_text'] = $search_text;
+            }
+            $_SESSION['omero_tagset'] = $items[3];
+            $_SESSION['omero_tag'] = "";
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+            $_SESSION['$omero_search_text'] = "";
+
+        } else if ($items[1] == "find" && $items[2] == "annotations") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/annotations"));
+            //FIXME: $omero_search_text seems to be always empty!!!
+            if (isset($omero_search_text) && !empty($omero_search_text)) {
+                array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
+            }
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tag'] = $path;
+
+        } else if ($items[1] == "get" && $items[2] == "imgs_by_tag") {
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Tags", 'path' => "/get/annotations"));
+            if (isset($omero_tagset) && !empty($omero_tagset)) {
+                array_push($result, array('name' => "TagSet: " . $omero_tagset,
+                    'path' => "/get/tags/$omero_tagset"));
+            }
+            //FIXME: $omero_search_text seems to be always empty!!!
+            if (isset($omero_search_text) && !empty($omero_search_text)) {
+                array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
+            }
+            array_push($result, array('name' => "Tag: " . $items[3], 'path' => $path));
+            $_SESSION['omero_project'] = "";
+            $_SESSION['omero_dataset'] = "";
+            $_SESSION['omero_tag'] = $path;
 
         } else if ($items[1] == "proj") {
-            array_push($result, array('name' => "Projects", 'path' => "/"));
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Projects", 'path' => "/projects"));
             array_push($result, array(
                     'name' => "Project [" . get_omero_item_id_from_url($path) . "]",
                     'path' => $path)
@@ -336,7 +487,8 @@ class repository_omero extends repository
             $_SESSION['omero_project'] = $path;
 
         } else if ($items[1] == "dataset") {
-            array_push($result, array('name' => "Projects", 'path' => "/"));
+            array_push($result, array('name' => "/", 'path' => "/"));
+            array_push($result, array('name' => "Projects", 'path' => "/projects"));
             array_push($result, array(
                     'name' => "Project [" . get_omero_item_id_from_url($omero_project) . "]",
                     'path' => $omero_project)
@@ -380,8 +532,32 @@ class repository_omero extends repository
             }
         }
 
+        $title = $item->name . " [id:" . $item->id . "]";
+        if (strcmp($type, "ProjectRoot") == 0) {
+            $title = "Projects";
+            $path = "/projects";
+            $children = array();
+            $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
-        if (strcmp($type, "Project") == 0) {
+        } else if (strcmp($type, "TagRoot") == 0) {
+            $title = "Tags";
+            $path = PathUtils::build_tag_list_url();
+            $children = array();
+            $thumbnail = ($this->file_icon("tagset", 64));
+
+        } else if (strcmp($type, "TagSet") == 0) {
+            $title = "TagSet " . $item->value;
+            $path = PathUtils::build_tagset_tag_list_url($item->id);
+            $children = array();
+            $thumbnail = ($this->file_icon("tagset", 64));
+
+        } else if (strcmp($type, "Tag") == 0) {
+            $path = PathUtils::build_tag_detail_url($item->id);
+            $children = array();
+            $thumbnail = ($this->file_icon("tag", 64));
+            $title = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
+
+        } else if (strcmp($type, "Project") == 0) {
             $path = PathUtils::build_project_detail_url($item->id);
             $children = array();
             $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
@@ -394,16 +570,16 @@ class repository_omero extends repository
         } else if (strcmp($type, "Image") == 0) {
             $path = PathUtils::build_image_detail_url($item->id);
             $thumbnail = $this->omero->get_thumbnail_url($item->id);
-            $image_info = $this->omero->process_request(
-                PathUtils::build_image_detail_url($item->id));
-            $image_date = $image_info->meta->imageTimestamp;
-            $image_author = $image_info->meta->imageAuthor;
+//            $image_info = $this->omero->process_request(
+//                PathUtils::build_image_detail_url($item->id));
+            //$image_date = $image_info->meta->imageTimestamp;
+            //$image_author = $image_info->meta->imageAuthor;
         } else
             throw new RuntimeException("Unknown data type");
 
         $itemObj = array(
             'image_id' => $item->id,
-            'title' => $item->name . " [id:" . $item->id . "]",
+            'title' => $title,
             'author' => $image_author,
             'path' => $path,
             'source' => $item->id,
@@ -416,16 +592,22 @@ class repository_omero extends repository
             'children' => $children
         );
 
-        $this->logger->debug("***");
-        $this->logger->debug("fields created ....");
-        foreach ($itemObj as $k => $v) {
-            if (!is_array($v))
-                $this->logger->debug("$k = $v");
-        }
-        $this->logger->debug("***");
         return $itemObj;
     }
 
+
+    public function print_search()
+    {
+        // The default implementation in class 'repository'
+        global $PAGE;
+        $renderer = $PAGE->get_renderer('core', 'files');
+        return $renderer->repository_default_searchform();
+    }
+
+    public function search($search_text, $page = 0)
+    {
+        return $this->get_listing('', 1, $search_text);
+    }
 
     function get_type($item)
     {
@@ -736,9 +918,6 @@ class repository_omero extends repository
         $this->logger->debug("get_link called: : $reference !!!");
 
         $ref = unserialize($reference);
-        foreach ($ref as $k => $v)
-            $this->logger->debug("$k ---> $v");
-
         if (!isset($ref->url)) {
             $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
@@ -977,6 +1156,45 @@ class repository_omero extends repository
             } catch (moodle_exception $e) {
             }
         }
+    }
+
+
+    /**
+     * Return the relative icon path for a folder image
+     *
+     * Usage:
+     * <code>
+     * $icon = $OUTPUT->pix_url(file_folder_icon())->out();
+     * echo html_writer::empty_tag('img', array('src' => $icon));
+     * </code>
+     * or
+     * <code>
+     * echo $OUTPUT->pix_icon(file_folder_icon(32));
+     * </code>
+     *
+     * @param int $iconsize The size of the icon. Defaults to 16 can also be 24, 32, 48, 64, 72, 80, 96, 128, 256
+     * @return string
+     */
+    function file_icon($iconname, $iconsize = null)
+    {
+        global $CFG;
+
+        static $iconpostfixes = array(256 => '-256', 128 => '-128', 96 => '-96', 80 => '-80', 72 => '-72', 64 => '-64', 48 => '-48', 32 => '-32', 24 => '-24', 16 => '');
+        static $cached = array();
+        $iconsize = max(array(16, (int)$iconsize));
+        if (!array_key_exists($iconsize, $cached)) {
+            foreach ($iconpostfixes as $size => $postfix) {
+                $fullname = $CFG->wwwroot . "/repository/omero/pix/$iconname/$iconsize.png";
+                return $fullname;
+                if ($iconsize >= $size && (file_exists($fullname)))
+                    return $fullname;
+//                if ($iconsize >= $size && (file_exists($fullname.'.png') || file_exists($fullname.'.gif'))) {
+//                    $cached[$iconsize] = 'f/tag'.$postfix;
+//                    break;
+//                }
+            }
+        }
+        return $cached[$iconsize];
     }
 }
 

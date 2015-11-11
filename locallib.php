@@ -83,6 +83,22 @@ class omero extends oauth_helper
     public function process_request($path = '/', $token = '', $secret = '')
     {
         $url = $this->omero_api . $path;
+        // TODO: use a single API endpoint for all requests
+        if (strrpos($path, "tag") !== FALSE || strrpos($path, "annotation") !== FALSE) {
+            $url = str_replace("webgateway", "ome_seadragon", $url);
+        }
+        $content = $this->get($url, array(), $token, $secret);
+        $data = json_decode($content);
+        return $data;
+    }
+
+
+    public function process_search($search_text, $token = '', $secret = '')
+    {
+        // FIXME: replace the explicit URL with a factory method
+        $url = $this->omero_api . "/find/annotations?query=$search_text";
+        // TODO: use a single API endpoint for all requests
+        $url = str_replace("webgateway", "ome_seadragon", $url);
         $content = $this->get($url, array(), $token, $secret);
         $data = json_decode($content);
         return $data;
@@ -211,6 +227,27 @@ class PathUtils
         return !strcmp($path, "/");
     }
 
+    public static function is_projects_root($path)
+    {
+        return !strcmp($path, "/projects/");
+    }
+
+    public static function is_tags_root($path)
+    {
+        return !strcmp($path, "/get/annotations/");
+    }
+
+    public static function is_tagset_root($path)
+    {
+        //return !strcmp($path, "/get/tags/");
+        return preg_match("/get\/tags\/(\d+)\//", $path);
+    }
+
+    public static function is_tag($path)
+    {
+        return preg_match("/get\/imgs_by_tag\/(\d+)\//", $path);
+    }
+
     public static function is_project($path)
     {
         return preg_match("/proj\/(\d+)\/detail/", $path);
@@ -229,6 +266,21 @@ class PathUtils
     public static function build_project_list_url()
     {
         return "/proj/list/";
+    }
+
+    public static function build_tag_list_url()
+    {
+        return "/get/annotations/";
+    }
+
+    public static function build_tagset_tag_list_url($tagset_id)
+    {
+        return "/get/tags/$tagset_id/";
+    }
+
+    public static function build_tag_detail_url($tag_id)
+    {
+        return "/get/imgs_by_tag/$tag_id";
     }
 
     public static function build_project_detail_url($project_id)
