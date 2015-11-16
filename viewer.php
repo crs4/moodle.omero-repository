@@ -88,7 +88,7 @@ $OME_SEADRAGON = "http://omero-test.crs4.it:8080"
             // Get a reference to the actual omero_image_model_manager
             var image_mgt = omero_image_model_manager;
             // Initialize the omero_image_model_maanger
-            image_mgt.init("<?= $OMERO_SERVER ?>");
+            image_mgt.init("<?= $OMERO_SERVER ?>", "<?= $imageId ?>");
 
             console.log("Loading openseadragon viewer");
             window.viewer = new ViewerController(
