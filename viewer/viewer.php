@@ -82,21 +82,17 @@ $imageParamsJs = "?" . implode('&',
 
         $(document).ready(function () {
 
-            try {
-                // Get a reference to the actual image_viewer_controller
-                var viewer_ctrl = image_viewer_controller;
-                // Initialize the image_viewer_controller
-                viewer_ctrl.init("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
-                    "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
-                    "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
+            // Get a reference to the actual image_viewer_controller
+            var viewer_ctrl = image_viewer_controller;
+            // Initialize the image_viewer_controller
+            viewer_ctrl.init("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
+                "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
+                "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
 
-                // Get a reference to the actual image_model_manager
-                var image_mgt = image_model_manager;
-                // Initialize the image_model_maanger
-                image_mgt.init("<?= $IMAGE_SERVER ?>", "<?= $imageId ?>");
-            }catch(e){
-                console.log(e);
-            }
+            // Get a reference to the actual image_model_manager
+            var image_mgt = image_model_manager;
+            // Initialize the image_model_maanger
+            image_mgt.init("<?= $IMAGE_SERVER ?>", "<?= $imageId ?>");
         });
     </script>
 </head>
