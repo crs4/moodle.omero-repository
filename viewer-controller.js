@@ -1,27 +1,27 @@
 /**
- * The instance of the controller for the Omero Viewer
+ * The instance of the controller for the Image Viewer
  *
- * @type {{omero_image_viewer_controller}}
+ * @type {{image_viewer_controller}}
  */
-omero_image_viewer_controller = {};
+image_viewer_controller = {};
 
 // internal shortcut for the controller instance
-var ctrl = omero_image_viewer_controller;
+var ctrl = image_viewer_controller;
 
 /**
- * Initialize the controller of the actual omero viewer
+ * Initialize the controller of the actual image viewer
  *
- * @param omero_server the actual omero server URL (e.g., http://10.211.55.33:4789/moodle)
+ * @param image_server the actual image server URL (e.g., http://10.211.55.33:4789/moodle)
  * @param frame_id the frame containing the viewer if it exists
  * @param image_id the image of the image to immediately view after the initialization
  */
-ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_shape_thumb_popup_id,
+ctrl.init = function (image_server, frame_id, viewport_id, rois_table_id, roi_shape_thumb_popup_id,
                       image_id, show_roi_table, image_params, visible_rois) {
 
-    var me = omero_image_viewer_controller;
+    var me = image_viewer_controller;
 
     // register the actual initialization parameters
-    me.omero_server = omero_server;
+    me.image_server = image_server;
     me.frame_id = frame_id;
     me.viewport_id = viewport_id;
     me.rois_table_id = rois_table_id;
@@ -37,7 +37,7 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
     me._frame = window.parent.document.getElementById(me.frame_id);
 
     // log controller initialization status
-    console.log("omero_image_viewer_controller initialized!!!");
+    console.log("image_viewer_controller initialized!!!");
 };
 
 
