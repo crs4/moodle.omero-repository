@@ -79,14 +79,14 @@ $OME_SEADRAGON = "http://omero-test.crs4.it:8080"
         $(document).ready(function() {
 
             // Get a reference to the actual omero_viewer_controller
-            var viewer_ctrl = omero_image_viewer_controller;
+            var viewer_ctrl = image_viewer_controller;
             // Initialize the omero_viewer_controller
             viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>",
                 "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
                 "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
 
             // Get a reference to the actual omero_image_model_manager
-            var image_mgt = omero_image_model_manager;
+            var image_mgt = image_model_manager;
             // Initialize the omero_image_model_maanger
             image_mgt.init("<?= $OMERO_SERVER ?>", "<?= $imageId ?>");
 
