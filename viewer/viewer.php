@@ -9,7 +9,7 @@
  */
 
 // Moodle ROOT directory
-$MOODLE_ROOT = dirname(__FILE__) . "/../../";
+$MOODLE_ROOT = dirname(__FILE__) . "/../../../";
 // Include Moodle configuration
 require_once("$MOODLE_ROOT/config.php");
 
@@ -23,9 +23,11 @@ if (!isloggedin()) {
 }
 
 
+// FIXME: do not include the string 'webgateway'
+// FIXME: change strings to hide OMERO dependencies
 // build the OMERO server URL
 $OMERO_WEBGATEWAY = get_config('omero', 'omero_restendpoint');
-$OMERO_SERVER = substr($OMERO_WEBGATEWAY, 0, strpos($OMERO_WEBGATEWAY, "/webgateway"));
+$IMAGE_SERVER = substr($OMERO_WEBGATEWAY, 0, strpos($OMERO_WEBGATEWAY, "/webgateway"));
 
 
 // Read parameters from the actual URL
@@ -46,8 +48,6 @@ foreach ($imageParamKeys as $paramName) {
 $imageParamsJs = "?" .implode('&',
     array_map(function ($v, $k) { return $k . '=' . $v; }, $imageParams, array_keys($imageParams)));
 
-$OME_SEADRAGON = "http://omero-test.crs4.it:8080"
-
 ?>
 
 <!DOCTYPE html>
@@ -56,17 +56,17 @@ $OME_SEADRAGON = "http://omero-test.crs4.it:8080"
     <meta charset="UTF-8">
     <title>Embedded OPENSEADRAGON Viewer for Moodle</title>
 
-    <!-- OmeroViewerController -->
+    <!-- ImageViewerController -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer-controller.js"></script>
 
-    <!-- OmeroImageModelManager -->
+    <!-- ImageModelManager -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer-model.js"></script>
 
     <!-- OME_SEADRAGON dependencies -->
-    <script src="<?php echo $OME_SEADRAGON ?>/static/ome_seadragon/js/openseadragon.min.js"></script>
-    <script src="<?php echo $OME_SEADRAGON ?>/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
-    <script src="<?php echo $OME_SEADRAGON ?>/static/ome_seadragon/js/ome_seadragon.min.js"></script>
-    <script src="<?php echo $OME_SEADRAGON ?>/static/webgateway/js/ome.csrf.js"></script>
+    <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/openseadragon.min.js"></script>
+    <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
+    <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/ome_seadragon.min.js"></script>
+    <script src="<?php echo $IMAGE_SERVER ?>/static/webgateway/js/ome.csrf.js"></script>
 
     <!-- JQuery/Bootstrap table integration -->
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
@@ -78,23 +78,23 @@ $OME_SEADRAGON = "http://omero-test.crs4.it:8080"
 
         $(document).ready(function() {
 
-            // Get a reference to the actual omero_viewer_controller
+            // Get a reference to the actual image_viewer_controller
             var viewer_ctrl = image_viewer_controller;
-            // Initialize the omero_viewer_controller
-            viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>",
+            // Initialize the image_viewer_controller
+            viewer_ctrl.init("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
                 "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
                 "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
 
-            // Get a reference to the actual omero_image_model_manager
+            // Get a reference to the actual image_model_manager
             var image_mgt = image_model_manager;
-            // Initialize the omero_image_model_maanger
-            image_mgt.init("<?= $OMERO_SERVER ?>", "<?= $imageId ?>");
+            // Initialize the image_model_maanger
+            image_mgt.init("<?= $IMAGE_SERVER ?>", "<?= $imageId ?>");
 
             console.log("Loading openseadragon viewer");
             window.viewer = new ViewerController(
                 "openseadragon_viewer",
-                "<?php echo $OME_SEADRAGON ?>/static/ome_seadragon/img/openseadragon/",
-                "<?php echo $OME_SEADRAGON ?>/ome_seadragon/deepzoom/get/<?php echo $imageId ?>.dzi"
+                "<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/img/openseadragon/",
+                "<?php echo $IMAGE_SERVER ?>/ome_seadragon/deepzoom/get/<?php echo $imageId ?>.dzi"
             );
             viewer.buildViewer();
         });
