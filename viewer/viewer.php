@@ -29,6 +29,8 @@ if (!isloggedin()) {
 $OMERO_WEBGATEWAY = get_config('omero', 'omero_restendpoint');
 $IMAGE_SERVER = substr($OMERO_WEBGATEWAY, 0, strpos($OMERO_WEBGATEWAY, "/webgateway"));
 
+// set the ID of the viewer container
+$IMAGE_VIEWER_CONTAINER = "openseadragon_viewer";
 
 // Read parameters from the actual URL
 $imageId = $_GET['id'];
@@ -45,8 +47,10 @@ foreach ($imageParamKeys as $paramName) {
     if (isset($_REQUEST[$paramName]))
         $imageParams[$paramName] = $_REQUEST[$paramName];
 }
-$imageParamsJs = "?" .implode('&',
-    array_map(function ($v, $k) { return $k . '=' . $v; }, $imageParams, array_keys($imageParams)));
+$imageParamsJs = "?" . implode('&',
+        array_map(function ($v, $k) {
+            return $k . '=' . $v;
+        }, $imageParams, array_keys($imageParams)));
 
 ?>
 
@@ -76,7 +80,7 @@ $imageParamsJs = "?" .implode('&',
 
     <script type="text/javascript">
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             // Get a reference to the actual image_viewer_controller
             var viewer_ctrl = image_viewer_controller;
@@ -89,18 +93,10 @@ $imageParamsJs = "?" .implode('&',
             var image_mgt = image_model_manager;
             // Initialize the image_model_maanger
             image_mgt.init("<?= $IMAGE_SERVER ?>", "<?= $imageId ?>");
-
-            console.log("Loading openseadragon viewer");
-            window.viewer = new ViewerController(
-                "openseadragon_viewer",
-                "<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/img/openseadragon/",
-                "<?php echo $IMAGE_SERVER ?>/ome_seadragon/deepzoom/get/<?php echo $imageId ?>.dzi"
-            );
-            viewer.buildViewer();
         });
     </script>
 </head>
 <body>
-<div id="openseadragon_viewer" style="width: 800px; height: 600px"></div>
+<div id="<?= $IMAGE_VIEWER_CONTAINER ?>" style="width: <?= $width ?>; height: <?= $height ?>"></div>
 </body>
 </html>
