@@ -82,17 +82,27 @@ $imageParamsJs = "?" . implode('&',
 
         $(document).ready(function () {
 
-            // Get a reference to the actual image_viewer_controller
-            var viewer_ctrl = image_viewer_controller;
-            // Initialize the image_viewer_controller
-            viewer_ctrl.init("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
-                "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
-                "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
+            // FIXME: make the ViewerController indipendent from the window object
+            // TODO: move the ViewerController initialization within the 'viewer_ctrl'
+            // initializes the viewer controller
+            window.viewer = new ViewerController(
+                "<?= $IMAGE_VIEWER_CONTAINER ?>",
+                "<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/img/openseadragon/",
+                "<?php echo $IMAGE_SERVER ?>/ome_seadragon/deepzoom/get/<?php echo $imageId ?>.dzi"
+            );
 
             // Get a reference to the actual image_model_manager
             var image_mgt = image_model_manager;
             // Initialize the image_model_maanger
             image_mgt.init("<?= $IMAGE_SERVER ?>", "<?= $imageId ?>");
+
+            // Get a reference to the actual image_viewer_controller
+            var viewer_ctrl = image_viewer_controller;
+            viewer_ctrl.setViewer(window.viewer);
+            // Initialize the image_viewer_controller
+            viewer_ctrl.init("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
+                "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
+                "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
         });
     </script>
 </head>
