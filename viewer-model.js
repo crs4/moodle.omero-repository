@@ -15,12 +15,11 @@ var mgt = omero_image_model_manager;
  */
 mgt.init = function (omero_server) {
 
+    // register the address of the current OMERO server
     ctrl._omero_server = omero_server;
 
-    // creates the viewport
-    $(document).ready(function () {
-        console.log("Ready!!!");
-    });
+    // log init status
+    console.info("omero_image_model_manager initialized!!!")
 };
 
 
