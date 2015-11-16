@@ -61,10 +61,10 @@ $imageParamsJs = "?" . implode('&',
     <title>Embedded OPENSEADRAGON Viewer for Moodle</title>
 
     <!-- ImageViewerController -->
-    <script type="text/javascript" src="/moodle/repository/omero/viewer-controller.js"></script>
+    <script type="text/javascript" src="/moodle/repository/omero/viewer/viewer-controller.js"></script>
 
     <!-- ImageModelManager -->
-    <script type="text/javascript" src="/moodle/repository/omero/viewer-model.js"></script>
+    <script type="text/javascript" src="/moodle/repository/omero/viewer/viewer-model.js"></script>
 
     <!-- OME_SEADRAGON dependencies -->
     <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/openseadragon.min.js"></script>
@@ -82,17 +82,21 @@ $imageParamsJs = "?" . implode('&',
 
         $(document).ready(function () {
 
-            // Get a reference to the actual image_viewer_controller
-            var viewer_ctrl = image_viewer_controller;
-            // Initialize the image_viewer_controller
-            viewer_ctrl.init("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
-                "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
-                "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
+            try {
+                // Get a reference to the actual image_viewer_controller
+                var viewer_ctrl = image_viewer_controller;
+                // Initialize the image_viewer_controller
+                viewer_ctrl.init("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
+                    "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
+                    "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
 
-            // Get a reference to the actual image_model_manager
-            var image_mgt = image_model_manager;
-            // Initialize the image_model_maanger
-            image_mgt.init("<?= $IMAGE_SERVER ?>", "<?= $imageId ?>");
+                // Get a reference to the actual image_model_manager
+                var image_mgt = image_model_manager;
+                // Initialize the image_model_maanger
+                image_mgt.init("<?= $IMAGE_SERVER ?>", "<?= $imageId ?>");
+            }catch(e){
+                console.log(e);
+            }
         });
     </script>
 </head>
