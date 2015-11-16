@@ -18,7 +18,7 @@ var ctrl = omero_image_viewer_controller;
 ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_shape_thumb_popup_id,
                       image_id, show_roi_table, image_params, visible_rois) {
 
-    var me = omero_viewer_controller;
+    var me = omero_image_viewer_controller;
 
     // register the actual initialization parameters
     me.omero_server = omero_server;
@@ -36,10 +36,8 @@ ctrl.init = function (omero_server, frame_id, viewport_id, rois_table_id, roi_sh
     // set frame reference
     me._frame = window.parent.document.getElementById(me.frame_id);
 
-    // creates the viewport
-    $(document).ready(function () {
-        console.log("Ready!!!");
-    });
+    // log controller initialization status
+    console.log("omero_image_viewer_controller initialized!!!");
 };
 
 
