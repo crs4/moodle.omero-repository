@@ -59,6 +59,9 @@ $OME_SEADRAGON = "http://omero-test.crs4.it:8080"
     <!-- OmeroViewerController -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer-controller.js"></script>
 
+    <!-- OmeroImageModelManager -->
+    <script type="text/javascript" src="/moodle/repository/omero/viewer-model.js"></script>
+
     <!-- OME_SEADRAGON dependencies -->
     <script src="<?php echo $OME_SEADRAGON ?>/static/ome_seadragon/js/openseadragon.min.js"></script>
     <script src="<?php echo $OME_SEADRAGON ?>/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
@@ -81,6 +84,11 @@ $OME_SEADRAGON = "http://omero-test.crs4.it:8080"
             viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>",
                 "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
                 "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
+
+            // Get a reference to the actual omero_image_model_manager
+            var image_mgt = omero_image_model_manager;
+            // Initialize the omero_image_model_maanger
+            image_mgt.init("<?= $OMERO_SERVER ?>");
 
             console.log("Loading openseadragon viewer");
             window.viewer = new ViewerController(
