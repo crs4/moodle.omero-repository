@@ -54,17 +54,34 @@ $OME_SEADRAGON = "http://omero-test.crs4.it:8080"
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>OPENSEADRAGON TEST VIEWER</title>
+    <title>Embedded OPENSEADRAGON Viewer for Moodle</title>
 
+    <!-- OmeroViewerController -->
+    <script type="text/javascript" src="/moodle/repository/omero/viewer-controller.js"></script>
 
-
+    <!-- OME_SEADRAGON dependencies -->
     <script src="<?php echo $OME_SEADRAGON ?>/static/ome_seadragon/js/openseadragon.min.js"></script>
     <script src="<?php echo $OME_SEADRAGON ?>/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
     <script src="<?php echo $OME_SEADRAGON ?>/static/ome_seadragon/js/ome_seadragon.min.js"></script>
     <script src="<?php echo $OME_SEADRAGON ?>/static/webgateway/js/ome.csrf.js"></script>
 
+    <!-- JQuery/Bootstrap table integration -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+
+
     <script type="text/javascript">
+
         $(document).ready(function() {
+
+            // Get a reference to the actual omero_viewer_controller
+            var viewer_ctrl = omero_image_viewer_controller;
+            // Initialize the omero_viewer_controller
+            viewer_ctrl.init("<?= $OMERO_SERVER ?>", "<?= $frameId ?>",
+                "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
+                "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
+
             console.log("Loading openseadragon viewer");
             window.viewer = new ViewerController(
                 "openseadragon_viewer",
