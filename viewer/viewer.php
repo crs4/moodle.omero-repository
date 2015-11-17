@@ -90,6 +90,9 @@ $imageParamsJs = "?" . implode('&',
     <script type="text/javascript">
 
         $(document).ready(function () {
+
+            $.ajaxSettings.cache = false;
+
             // builds the ImageViewerController
             var viewer_ctrl = new ImageViewerController("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
                 "<?= $IMAGE_VIEWER_CONTAINER ?>", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
