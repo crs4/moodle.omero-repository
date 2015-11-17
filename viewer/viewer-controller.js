@@ -116,6 +116,12 @@ ImageViewerController.prototype.showRoi = function (roi) {
     }
     me._annotations_canvas.refreshView();
 };
+
+
+ImageViewerController.prototype.hideRoi = function (roi) {
+
+};
+
 /**
  * Resize the viewer
  *
