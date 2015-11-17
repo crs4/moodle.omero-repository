@@ -60,6 +60,9 @@ $imageParamsJs = "?" . implode('&',
     <meta charset="UTF-8">
     <title>Embedded OPENSEADRAGON Viewer for Moodle</title>
 
+    <!-- Link to the StyleSheet -->
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+
     <!-- ImageViewerController -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer/viewer-controller.js"></script>
 
