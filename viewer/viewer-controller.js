@@ -122,6 +122,39 @@ ImageViewerController.prototype.hideRoi = function (roi) {
 
 };
 
+
+ImageViewerController.prototype._addVisibleRoiShapes = function (roi_ids) {
+    if (!roi_ids.split) roi_ids = "" + [roi_ids];
+    if (roi_ids != undefined && roi_ids.length > 0) {
+        var roi_id_list = roi_ids.split(",");
+        for (var i in roi_id_list) {
+            var roi_id = roi_id_list[i];
+            for (var j in this._current_roi_list) {
+                var e = this._current_roi_list[j];
+                if (e.id == roi_id) {
+                    // FIXME: a better mechanism for selecting a shape
+                    this._visible_roi_shape_list[e.id] = [e.shapes[0]];
+                    break;
+                }
+            }
+        }
+    }
+}
+
+ImageViewerController.prototype._removeVisibleRoiShapes = function (roi_ids) {
+    if (!roi_ids.split)
+        delete this._visible_roi_shape_list[roi_ids];
+    else if (roi_ids != undefined && roi_ids.length > 0) {
+        var roi_id_list = roi_ids.split(",");
+        for (var i in roi_id_list) {
+            var roi_id = roi_id_list[i];
+            console.log("ARRAY: ", this._visible_roi_shape_list);
+            var index = this._visible_roi_shape_list.indexOf(roi_id);
+            delete this._visible_roi_shape_list[roi_id];
+            console.log("Removed visible roi element: ", this._visible_roi_shape_list);
+        }
+    }
+}
 /**
  * Resize the viewer
  *
