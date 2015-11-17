@@ -42,7 +42,15 @@ me.init = function (image_server, frame_id, viewport_id, rois_table_id, roi_shap
     // TODO: add param to change the default behaviour
     if (me._viewer) {
         me.showImage();
+        me._model_manager.loadRoisInfo(function (data) {
+            me._roi_id_list = data;
+        });
     }
+
+    // FIXME: just for debug
+    window.addEventListener("image_server.roisInfoLoaded", function (data) {
+        console.log(data);
+    });
 
     // log controller initialization status
     console.log("image_viewer_controller initialized!!!");
@@ -62,7 +70,7 @@ me.setViewer = function (viewer) {
  * Registers a reference to a
  * @param model_manager
  */
-me.setImageModelManager = function(model_manager){
+me.setImageModelManager = function (model_manager) {
     me._model_manager = model_manager;
 };
 
