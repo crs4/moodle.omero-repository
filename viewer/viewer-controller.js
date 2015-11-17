@@ -45,7 +45,8 @@ me.init = function (image_server, frame_id, viewport_id, rois_table_id, roi_shap
     }
 
     // log controller initialization status
-    console.log("image_viewer_controller initialized!!!", me);
+    console.log("image_viewer_controller initialized!!!");
+    console.log("VIEWER controller", me); // TODO: remove me!!!
 };
 
 
@@ -58,12 +59,17 @@ me.setViewer = function (viewer) {
 };
 
 /**
+ * Registers a reference to a
+ * @param model_manager
+ */
+me.setImageModelManager = function(model_manager){
+    me._model_manager = model_manager;
+};
+
+
+/**
  * Shows the image
  */
 me.showImage = function () {
     me._viewer.buildViewer();
 };
-
-
-
-
