@@ -61,7 +61,10 @@ $imageParamsJs = "?" . implode('&',
     <title>Embedded OPENSEADRAGON Viewer for Moodle</title>
 
     <!-- Link to the StyleSheet -->
-    <link rel="stylesheet" type="text/css" href="./styles.css">
+    <!--<link rel="stylesheet" type="text/css" href="./styles.css">-->
+
+    <!-- Bootstrap CSS -->
+    <link href="/moodle/repository/omero/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- ImageViewerController -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer/viewer-controller.js"></script>
@@ -72,8 +75,11 @@ $imageParamsJs = "?" . implode('&',
     <!-- OME_SEADRAGON dependencies -->
     <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/openseadragon.min.js"></script>
     <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
+    <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/paper-full.min.js"></script>
     <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/ome_seadragon.min.js"></script>
-    <script src="<?php echo $IMAGE_SERVER ?>/static/webgateway/js/ome.csrf.js"></script>
+
+    <!-- Bootstrap -->
+    <script type="text/javascript" src="/moodle/repository/omero/libs/bootstrap/js/bootstrap.min.js"></script>
 
     <!-- JQuery/Bootstrap table integration -->
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
