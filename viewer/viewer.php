@@ -35,8 +35,8 @@ $IMAGE_VIEWER_CONTAINER = "openseadragon_viewer";
 // Read parameters from the actual URL
 $imageId = $_GET['id'];
 $frameId = $_GET['frame'];
-$width = $_GET['width'] = "600px";//? !empty($_GET['width']) : "80%";
-$height = $_GET['height']; //? !empty($_GET['height']) : "100%";
+$width = !empty($_GET['width']) ? $_GET['width'] : "100%";
+$height = !empty($_GET['height']) ? $_GET['height'] : "100%";
 $showRoiTable = isset($_GET['showRoiTable']) ? $_GET['showRoiTable'] : "false";
 $visibleRoiList = isset($_GET['visibleRois']) ? $_GET['visibleRois'] : "";
 
