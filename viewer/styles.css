@@ -1,0 +1,52 @@
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0;
+}
+
+/* Fixes position of the entry number selector */
+.dataTables_length {
+    padding: 18px;
+}
+
+/* Fixes the search box position */
+.dataTables_filter {
+    padding: 18px;
+}
+
+/* hide the default jquery icon of the sort controls */
+table.dataTable thead .sorting_asc {
+    background-image: none;
+}
+
+table.dataTable thead .sorting_desc {
+    background-image: none;
+}
+
+table.dataTable thead .sorting {
+    background-image: none;
+}
+
+table.dataTable tbody tr td.roi_thumb {
+    vertical-align: middle;
+}
+
+/* fixes position of the current entries caption */
+.col-sm-5 {
+    margin-left: 15px;
+    margin-bottom: 15px;
+    padding-top: 0px;
+    padding-bottom: 5px;
+    width: 37%;
+}
+
+/* fixes position of the pagination bar */
+.col-sm-7 {
+    padding: 5px;
+}
+
+#viewport-zsl {
+    visibility: hidden;
+}
+
+#viewport-bot {
+    visibility: hidden;
+}
