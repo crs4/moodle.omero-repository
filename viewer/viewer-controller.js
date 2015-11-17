@@ -59,4 +59,28 @@ function ImageViewerController(image_server,
     // log controller initialization status
     console.log("image_viewer_controller initialized!!!");
     console.log("VIEWER controller", this); // TODO: remove me!!!
+/**
+ * Resize the viewer
+ *
+ * @private
+ */
+ImageViewerController.prototype._resize = function () {
+    var me = this;
+    var iframe = parent.parent.document.getElementById(me._frame_id);
+
+    if (iframe) {
+
+        var omeroViewport = iframe.contentDocument.getElementById(me._viewer_container_id);
+        var roisTable = iframe.contentDocument.getElementById(me._rois_table_id);
+
+        console.log("iframe", iframe);
+        console.log("viewport", omeroViewport);
+        console.log("table", roisTable);
+        if (roisTable) {
+            var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 300;
+            iframe.style.height = height + "px";
+        }
+    } else {
+        alert("Not found!!!");
+    }
 };
