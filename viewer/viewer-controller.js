@@ -9,39 +9,42 @@ function ImageViewerController(image_server,
                                frame_id, view_container_id, rois_table_id, roi_shape_thumb_popup_id,
                                image_id, show_roi_table, image_params, visible_rois) {
 
+    // Reference to the current scope
+    var me = this;
+
     // register the actual initialization parameters
-    this._image_server = image_server;
-    this._frame_id = frame_id;
-    this._viewer_container_id = view_container_id;
-    this._rois_table_id = rois_table_id;
-    this._image_id = image_id;
-    this._image_params = image_params;
-    this._visible_rois = visible_rois; // && visible_rois.length > 0 ? visible_rois.split(",") : [];
-    this._visible_roi_shape_list = [];
-    this._roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
-    this._show_roi_table = show_roi_table;
+    me._image_server = image_server;
+    me._frame_id = frame_id;
+    me._viewer_container_id = view_container_id;
+    me._rois_table_id = rois_table_id;
+    me._image_id = image_id;
+    me._image_params = image_params;
+    me._visible_rois = visible_rois; // && visible_rois.length > 0 ? visible_rois.split(",") : [];
+    me._visible_roi_shape_list = [];
+    me._roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
+    me._show_roi_table = show_roi_table;
 
     // set frame reference
-    this._frame = window.parent.document.getElementById(this._frame_id);
+    me._frame = window.parent.document.getElementById(me._frame_id);
 
     // TODO: to change with the controller initialization
-    this._view = new ViewerController(
-        this._viewer_container_id,
-        this._image_server + "/static/ome_seadragon/img/openseadragon/",
-        this._image_server + "/ome_seadragon/deepzoom/get/" + this._image_id + ".dzi"
+    me._view = new ViewerController(
+        me._viewer_container_id,
+        me._image_server + "/static/ome_seadragon/img/openseadragon/",
+        me._image_server + "/ome_seadragon/deepzoom/get/" + me._image_id + ".dzi"
     );
 
     // Check viewer initialization
-    if (!this._view) {
+    if (!me._view) {
         console.error("Image viewer not initialized!!!");
         return
-    }else{
+    } else {
         // Binds the current viewer to the 'window' object
-        window.viewer = this._view;
+        window.viewer = me._view;
     }
 
     // initializes the ImageModelManager
-    this._model = new ImageModelManager(image_server, image_id);
+    me._model = new ImageModelManager(image_server, image_id);
 
     // FIXME: just for debug
     window.addEventListener("image_server.roisInfoLoaded", function (data) {
@@ -49,16 +52,28 @@ function ImageViewerController(image_server,
     });
 
     // TODO: add param to change the default behaviour
-    if (this._view) {
-        this._view.buildViewer();
-        this._model.loadRoisInfo(function (data) {
-            this._roi_id_list = data;
+    if (me._view) {
+        me._view.buildViewer();
+        me._view.viewer.addHandler("open", function(){
+            me._annotations_canvas = new AnnotationsController('annotations_canvas');
+            window.annotation_canvas = me._annotations_canvas;
+            me._annotations_canvas.buildAnnotationsCanvas(me._view);
+            me._view.addAnnotationsController(me._annotations_canvas, true);
+        });
+
+        me._model.loadRoisInfo(function (data) {
+            //me._roi_id_list = data;
+            me._current_roi_list = data;
+            if (me._show_roi_table) {
+                me.renderRoisTable(data);
+            }
         });
     }
 
     // log controller initialization status
     console.log("image_viewer_controller initialized!!!");
     console.log("VIEWER controller", this); // TODO: remove me!!!
+};
 /**
  * Resize the viewer
  *
