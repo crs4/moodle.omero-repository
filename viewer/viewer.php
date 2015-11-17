@@ -99,6 +99,7 @@ $imageParamsJs = "?" . implode('&',
             // Get a reference to the actual image_viewer_controller
             var viewer_ctrl = image_viewer_controller;
             viewer_ctrl.setViewer(window.viewer);
+            viewer_ctrl.setImageModelManager(image_mgt);
             // Initialize the image_viewer_controller
             viewer_ctrl.init("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
                 "viewport", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
