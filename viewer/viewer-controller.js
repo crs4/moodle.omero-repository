@@ -25,55 +25,38 @@ function ImageViewerController(image_server,
     this._frame = window.parent.document.getElementById(this._frame_id);
 
     // TODO: to change with the controller initialization
-    window.viewer = new ViewerController(
+    this._view = new ViewerController(
         this._viewer_container_id,
         this._image_server + "/static/ome_seadragon/img/openseadragon/",
         this._image_server + "/ome_seadragon/deepzoom/get/" + this._image_id + ".dzi"
     );
+
     // Check viewer initialization
-    if (!window.viewer) {
+    if (!this._view) {
         console.error("Image viewer not initialized!!!");
         return
+    }else{
+        // Binds the current viewer to the 'window' object
+        window.viewer = this._view;
     }
 
-    // Registers a reference to the current viewer
-    this._viewer = window.viewer;
-
-
-    this._model_manager = new ImageModelManager(image_server, image_id);
-
-
-    // TODO: add param to change the default behaviour
-    if (this._viewer) {
-        this.showImage();
-        this._model_manager.loadRoisInfo(function (data) {
-            this._roi_id_list = data;
-        });
-    }
+    // initializes the ImageModelManager
+    this._model = new ImageModelManager(image_server, image_id);
 
     // FIXME: just for debug
     window.addEventListener("image_server.roisInfoLoaded", function (data) {
         console.log(data);
     });
 
+    // TODO: add param to change the default behaviour
+    if (this._view) {
+        this._view.buildViewer();
+        this._model.loadRoisInfo(function (data) {
+            this._roi_id_list = data;
+        });
+    }
+
     // log controller initialization status
     console.log("image_viewer_controller initialized!!!");
     console.log("VIEWER controller", this); // TODO: remove me!!!
-};
-
-
-/**
- * Registers a reference to a
- * @param model_manager
- */
-ImageViewerController.prototype.setImageModelManager = function (model_manager) {
-    this._model_manager = model_manager;
-};
-
-
-/**
- * Shows the image
- */
-ImageViewerController.prototype.showImage = function () {
-    this._viewer.buildViewer();
 };
