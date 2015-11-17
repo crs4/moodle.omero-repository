@@ -115,13 +115,13 @@ $imageParamsJs = "?" . implode('&',
 <?php if ($showRoiTable == "true") { ?>
 
     <div id="rois-table-container" class="panel panel-default"
-         style="margin-top: 40px;font-size: 12pt;">
+         style="margin-top: <?= str_replace("px", "", $height) + 50 ?>px;font-size: 12pt;">
 
         <!-- Default panel contents -->
         <div class="panel-heading">ROI Shapes Inspector</div>
 
-        <div style="margin-top: 10px;">
-            <table id="rois-table" class="display" cellspacing="0" width="100%"></table>
+        <div style="margin-top: 50px;">
+            <table id="rois-table" class="display" cellspacing="10" width="100%"></table>
         </div>
     </div>
 <?php } ?>
