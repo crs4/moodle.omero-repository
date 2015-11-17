@@ -14,13 +14,13 @@ var mgt = image_model_manager;
  * @param image_server the actual image server URL (e.g., http://omero.crs4.it:8080)
  * @param image_id the ID of the image to manage
  */
-mgt.init = function (image_server, image_id) {
+function ImageModelManager(image_server, image_id) {
 
     // register the address of the current OMERO server
-    mgt._image_server = image_server;
+    this._image_server = image_server;
 
     // register the ID of the image to manage
-    mgt._image_id = image_id;
+    this._image_id = image_id;
 
     // log init status
     console.info("image_model_manager initialized!!!")
@@ -36,11 +36,10 @@ mgt.init = function (image_server, image_id) {
  * @param error_callback
  * @private
  */
-mgt.loadRoisInfo = function (success_callback, error_callback) {
-    var me = image_model_manager;
+ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_callback) {
 
     $.ajax({
-        url: me._image_server + "/webgateway/get_rois_json/" + mgt._image_id,
+        url: this._image_server + "/webgateway/get_rois_json/" + this._image_id,
 
         // The name of the callback parameter, as specified by the YQL service
         jsonp: "callback",
