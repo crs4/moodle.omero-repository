@@ -1,15 +1,32 @@
+body{
+    margin: 0;
+    padding: 0;
+}
+
+div#graphics_container{
+    margin: 0;
+    padding: 0;
+}
+
 .dataTables_wrapper .dataTables_paginate .paginate_button {
     padding: 0;
 }
 
+#rois-table{
+    margin: 25px;
+}
+
 /* Fixes position of the entry number selector */
 .dataTables_length {
-    padding: 18px;
+    margin-left: 25px;
+    padding: 10px;
 }
 
 /* Fixes the search box position */
 .dataTables_filter {
-    padding: 18px;
+    float: right;
+    margin-right: 25px;
+    padding: 10px;
 }
 
 /* hide the default jquery icon of the sort controls */
