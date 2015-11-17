@@ -11,7 +11,7 @@ function ImageViewerController(image_server,
 
     // register the actual initialization parameters
     this._image_server = image_server;
-    this._frathis_id = frame_id;
+    this._frame_id = frame_id;
     this._viewer_container_id = view_container_id;
     this._rois_table_id = rois_table_id;
     this._image_id = image_id;
