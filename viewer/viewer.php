@@ -95,5 +95,23 @@ $imageParamsJs = "?" . implode('&',
 </head>
 <body>
 <div id="<?= $IMAGE_VIEWER_CONTAINER ?>" style="width: <?= $width ?>; height: <?= $height ?>"></div>
+
+<!-- FIXME: Static table example: the table has to be dynamically generated -->
+<img id="roi_thumb_popup" style="border: 1px solid rgb(187, 187, 187); display: none; left: 202px; top: 78px;" src="">
+
+<?php if ($showRoiTable == "true") { ?>
+
+    <div id="rois-table-container" class="panel panel-default"
+         style="margin-top: 40px;font-size: 12pt;">
+
+        <!-- Default panel contents -->
+        <div class="panel-heading">ROI Shapes Inspector</div>
+
+        <div style="margin-top: 10px;">
+            <table id="rois-table" class="display" cellspacing="0" width="100%"></table>
+        </div>
+    </div>
+<?php } ?>
+
 </body>
 </html>
