@@ -74,6 +74,48 @@ function ImageViewerController(image_server,
     console.log("image_viewer_controller initialized!!!");
     console.log("VIEWER controller", this); // TODO: remove me!!!
 };
+
+
+ImageViewerController.prototype.showRoi = function (roi) {
+    var me = this;
+    var shapes = roi.shapes;
+    for (var shape in shapes) {
+        var shape_type = shapes[shape].type;
+        var shape_config = {
+            'fill_color': shapes[shape].fillColor,
+            'fill_alpha': shapes[shape].fillAlpha,
+            'stroke_color': shapes[shape].strokeColor,
+            'stroke_alpha': shapes[shape].strokeAlpha,
+            'stroke_width': shapes[shape].strokeWidth
+        };
+
+        switch (shape_type) {
+            case "Rectangle":
+                me._annotations_canvas.drawRectangle(
+                    shapes[shape].id, shapes[shape].x, shapes[shape].y, shapes[shape].width,
+                    shapes[shape].height, shape_config, false
+                );
+                break
+            case "Ellipse":
+                me._annotations_canvas.drawEllipse(
+                    shapes[shape].id, shapes[shape].cx, shapes[shape].cy,
+                    shapes[shape].rx, shapes[shape].ry, shape_config,
+                    false
+                );
+                break;
+            case "Line":
+                me._annotations_canvas.drawLine(
+                    shapes[shape].id, shapes[shape].x1, shapes[shape].y1,
+                    shapes[shape].x2, shapes[shape].y2, shape_config,
+                    false
+                );
+                break;
+            default:
+                console.warn('Unable to handle shape type ' + shape_type);
+        }
+    }
+    me._annotations_canvas.refreshView();
+};
 /**
  * Resize the viewer
  *
