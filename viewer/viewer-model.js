@@ -65,14 +65,14 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
             });
 
             if (success_callback) {
-                success_callback(result);
+                success_callback(data);
             }
 
             // Notify that ROI info are loaded
             window.dispatchEvent(new CustomEvent(
                 "image_server.roisInfoLoaded",
                 {
-                    detail: result,
+                    detail: data,
                     bubbles: true
                 })
             );
