@@ -138,8 +138,16 @@ ImageViewerController.prototype._addVisibleRoiShapes = function (roi_ids) {
             }
         }
     }
+    console.log("Visible ROI list", this._visible_roi_shape_list);
 };
 
+
+/**
+ * Removes a list of ROIs to the list of ROI to show
+ *
+ * @param roi_ids
+ * @private
+ */
 ImageViewerController.prototype._removeVisibleRoiShapes = function (roi_ids) {
     if (!roi_ids.split)
         delete this._visible_roi_shape_list[roi_ids];
@@ -153,6 +161,7 @@ ImageViewerController.prototype._removeVisibleRoiShapes = function (roi_ids) {
             console.log("Removed visible roi element: ", this._visible_roi_shape_list);
         }
     }
+    console.log("Visible ROI list", this._visible_roi_shape_list);
 };
 
 
