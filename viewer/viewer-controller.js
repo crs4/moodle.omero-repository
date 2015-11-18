@@ -207,13 +207,12 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
             {
                 "title": "Visibility",
                 "data": "id",
-                "className": "dt-head-center dt-body-center",
-                "width": "20px",
+                "className": "dt-head-center dt-body-center roi-visibility-selector",
                 "render": function (data, type, row) {
                     if (type === 'display') {
                         return '<input id="visibility_selector_' + data + '" ' +
                             (me._visible_rois.indexOf(data.toString()) != -1 ? " checked " : "") +
-                            ' type="checkbox" class="editor-active"  style="width: 20px">';
+                            ' type="checkbox" class="editor-active" style="text-align: center;">';
                     }
                     return data;
                 }
@@ -389,7 +388,7 @@ ImageViewerController.prototype._resize = function () {
         console.log("viewport", omeroViewport);
         console.log("table", roisTable);
         if (roisTable) {
-            var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 300;
+            var height = omeroViewport.offsetHeight + roisTable.offsetHeight + 450;
             iframe.style.height = height + "px";
         }
     } else {
