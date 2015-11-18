@@ -107,7 +107,7 @@ $imageParamsJs = "?" . implode('&',
 </head>
 <body>
 
-<div id="graphics_container" class="container" style="margin: 40px 0 0 12.5px; padding: 0; position: relative;">
+<div id="graphics_container" class="container" style="margin: 40px 0 0 0; padding: 0; position: relative;">
     <div id="<?= $IMAGE_VIEWER_CONTAINER ?>" style="position: absolute; width: <?= $width ?>; height: <?= $height ?>"></div>
     <canvas id="annotations_canvas" style="position: absolute; width: <?= $width ?>; height: <?= $height ?>"></canvas>
 </div>
