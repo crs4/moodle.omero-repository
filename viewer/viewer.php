@@ -61,7 +61,7 @@ $imageParamsJs = "?" . implode('&',
     <title>Embedded OPENSEADRAGON Viewer for Moodle</title>
 
     <!-- Link to the StyleSheet -->
-    <!--<link rel="stylesheet" type="text/css" href="./styles.css">-->
+    <link rel="stylesheet" type="text/css" href="./styles.css">
 
     <!-- Bootstrap CSS -->
     <link href="/moodle/repository/omero/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
