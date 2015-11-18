@@ -183,23 +183,6 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
                 "data": "shapes[0].textValue",
                 "className": "roi-description dt-head-center dt-body-left"
             },
-            //{
-            //    "title": "Preview",
-            //    "data": "shapes[0].id",
-            //    "className": "dt-head-center dt-body-center",
-            //    "width": "100px",
-            //    "render": function (data, type, row) {
-            //        if (type === 'display') {
-            //            return '<div class="shape-thumb-container" style=""><img src=" ' + me.omero_server +
-            //                '/webgateway/render_shape_thumbnail/0' + data + '/?color=f00" ' +
-            //                'id="' + data + '_shape_thumb" ' +
-            //                'class="roi_thumb shape_thumb" ' +
-            //                'style="vertical-align: top;"  ' +
-            //                'color="f00" width="150px" height="150px" /></div>';
-            //        }
-            //        return data;
-            //    }
-            //},
             {
                 "title": "Visibility",
                 "data": "id",
@@ -299,10 +282,9 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
                     // prepare ROI shape info
                     var selected_shape_info = {};
                     selected_shape_info[selected_roi_info.id] = [selected_roi_info.shapes[0]]; // FIXME: a better mechanism for shape selection
-                    //checked ? me._show_rois(selected_shape_info) : me.hide_rois(selected_roi_info);
-
-                    checked ? me.showRoi(selected_roi_info) : me.hideRoi(selected_roi_info);
-
+                    checked ?
+                        me._annotations_canvas.showShape(selected_roi_info.id) :
+                        me._annotations_canvas.hideShape(selected_roi_info.id);
 
                     // Notifies the event
                     window.dispatchEvent(new CustomEvent(
