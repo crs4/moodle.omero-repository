@@ -104,13 +104,13 @@ $imageParamsJs = "?" . implode('&',
 </head>
 <body>
 
-<div id="graphics_container" class="container" style="position: relative;">
+<div id="graphics_container" class="container" style="margin: 40px 0 0 12.5px; padding: 0; position: relative;">
     <div id="<?= $IMAGE_VIEWER_CONTAINER ?>" style="position: absolute; width: <?= $width ?>; height: <?= $height ?>"></div>
     <canvas id="annotations_canvas" style="position: absolute; width: <?= $width ?>; height: <?= $height ?>"></canvas>
 </div>
 
 <!-- FIXME: Static table example: the table has to be dynamically generated -->
-<img id="roi_thumb_popup" style="border: 1px solid rgb(187, 187, 187); display: none; left: 202px; top: 78px;" src="">
+<!--<img id="roi_thumb_popup" style="border: 1px solid rgb(187, 187, 187); display: none; left: 202px; top: 78px;" src="">-->
 
 <?php if ($showRoiTable == "true") { ?>
 
