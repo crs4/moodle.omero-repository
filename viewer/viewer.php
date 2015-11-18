@@ -66,6 +66,9 @@ $imageParamsJs = "?" . implode('&',
     <!-- Bootstrap CSS -->
     <link href="/moodle/repository/omero/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- JQuery/Bootstrap table CSS -->
+    <link href="https://cdn.datatables.net/1.10.7/css/jquery.dataTables.css" rel="stylesheet">
+
     <!-- ImageViewerController -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer/viewer-controller.js"></script>
 
