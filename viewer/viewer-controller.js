@@ -233,6 +233,7 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
             // skips the deselection if the click has been triggered by a checkbox
             selected = false;
             $(this).removeClass('selected');
+            me._annotations_canvas.deselectShape(selected_roi_shape.id, true);
             console.log("Deselected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
         } else {
             // Selected a table row
@@ -243,7 +244,7 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
             console.log(selected_roi_shape);
 
             me._addVisibleRoiShapes(selected_roi_shape.id);
-            //me._handleShapeRowClick(selected_roi_shape.shapes[0]);
+            me._annotations_canvas.selectShape(selected_roi_shape.id, true, true);
         }
 
         window.dispatchEvent(new CustomEvent(
