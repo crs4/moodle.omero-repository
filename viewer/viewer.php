@@ -120,7 +120,7 @@ $imageParamsJs = "?" . implode('&',
         <!-- Default panel contents -->
         <div class="panel-heading">ROI Shapes Inspector</div>
 
-        <div style="margin-top: 50px;">
+        <div>
             <table id="rois-table" class="display" cellspacing="10" width="100%"></table>
         </div>
     </div>
