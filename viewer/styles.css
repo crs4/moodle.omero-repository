@@ -1,32 +1,24 @@
-body{
+body {
     margin: 0;
     padding: 0;
 }
 
-div#graphics_container{
+div#graphics_container {
     margin: 0;
     padding: 0;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-    padding: 0;
-}
+/*.dataTables_wrapper .dataTables_paginate .paginate_button {*/
+/*padding: 0;*/
+/*text-align: center;*/
+/*}*/
 
-#rois-table{
+#rois-table {
     margin: 25px;
 }
 
-/* Fixes position of the entry number selector */
-.dataTables_length {
-    margin-left: 25px;
-    padding: 10px;
-}
-
-/* Fixes the search box position */
-.dataTables_filter {
-    float: right;
-    margin-right: 25px;
-    padding: 10px;
+input[search] {
+    margin-left: 10px;
 }
 
 /* hide the default jquery icon of the sort controls */
@@ -46,32 +38,62 @@ table.dataTable tbody tr td.roi_thumb {
     vertical-align: middle;
 }
 
-.dt-body-center{
+.dt-body-center {
+    padding: 15px;
+}
+
+.dt-body-center {
+    padding: 15px;
+}
+
+.roi-description {
+    width: 55%;
+    padding: 15px;
+}
+
+.roi-visibility-selector {
+    text-align: center;
+}
+
+/* Fixes position of the entry number selector */
+.dataTables_length {
+    margin-left: 25px;
     padding: 10px;
 }
 
-.dt-body-center{
-    padding: 10px;
+/* Fixes the search box position */
+.dataTables_filter {
+    float: right;
+    margin-right: 25px;
 }
 
-/* fixes position of the current entries caption */
-.col-sm-5 {
-    margin-left: 15px;
-    margin-bottom: 15px;
-    padding-top: 0px;
-    padding-bottom: 5px;
-    width: 37%;
+.dataTables_info {
+    /*margin-left: 35px;*/
 }
 
-/* fixes position of the pagination bar */
-.col-sm-7 {
-    padding: 5px;
+#rois-table_info{
+    margin-left: 35px;
 }
 
-#viewport-zsl {
-    visibility: hidden;
+#rois-table_paginate {
+    text-align: center;
+    float: right;
+    margin-right: 35px;
 }
 
-#viewport-bot {
-    visibility: hidden;
-}
+/*!* fixes position of the current entries caption *!*/
+/*.col-sm-5 {*/
+/*margin-left: 15px;*/
+/*margin-bottom: 15px;*/
+/*padding-top: 0px;*/
+/*padding-bottom: 5px;*/
+/*width: 37%;*/
+/*}*/
+
+/*#viewport-zsl {*/
+/*visibility: hidden;*/
+/*}*/
+
+/*#viewport-bot {*/
+/*visibility: hidden;*/
+/*}*/
