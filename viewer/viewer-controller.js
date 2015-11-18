@@ -187,23 +187,23 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
                 "data": "shapes[0].textValue",
                 "className": "roi-description dt-head-center dt-body-left"
             },
-            {
-                "title": "Preview",
-                "data": "shapes[0].id",
-                "className": "dt-head-center dt-body-center",
-                "width": "100px",
-                "render": function (data, type, row) {
-                    if (type === 'display') {
-                        return '<div class="shape-thumb-container" style=""><img src=" ' + me.omero_server +
-                            '/webgateway/render_shape_thumbnail/0' + data + '/?color=f00" ' +
-                            'id="' + data + '_shape_thumb" ' +
-                            'class="roi_thumb shape_thumb" ' +
-                            'style="vertical-align: top;"  ' +
-                            'color="f00" width="150px" height="150px" /></div>';
-                    }
-                    return data;
-                }
-            },
+            //{
+            //    "title": "Preview",
+            //    "data": "shapes[0].id",
+            //    "className": "dt-head-center dt-body-center",
+            //    "width": "100px",
+            //    "render": function (data, type, row) {
+            //        if (type === 'display') {
+            //            return '<div class="shape-thumb-container" style=""><img src=" ' + me.omero_server +
+            //                '/webgateway/render_shape_thumbnail/0' + data + '/?color=f00" ' +
+            //                'id="' + data + '_shape_thumb" ' +
+            //                'class="roi_thumb shape_thumb" ' +
+            //                'style="vertical-align: top;"  ' +
+            //                'color="f00" width="150px" height="150px" /></div>';
+            //        }
+            //        return data;
+            //    }
+            //},
             {
                 "title": "Visibility",
                 "data": "id",
