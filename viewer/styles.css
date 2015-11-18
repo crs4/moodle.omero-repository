@@ -46,6 +46,14 @@ table.dataTable tbody tr td.roi_thumb {
     vertical-align: middle;
 }
 
+.dt-body-center{
+    padding: 10px;
+}
+
+.dt-body-center{
+    padding: 10px;
+}
+
 /* fixes position of the current entries caption */
 .col-sm-5 {
     margin-left: 15px;
