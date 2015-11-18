@@ -54,19 +54,59 @@ function ImageViewerController(image_server,
     // TODO: add param to change the default behaviour
     if (me._view) {
         me._view.buildViewer();
-        me._view.viewer.addHandler("open", function(){
+        me._view.viewer.addHandler("open", function () {
             me._annotations_canvas = new AnnotationsController('annotations_canvas');
             window.annotation_canvas = me._annotations_canvas;
             me._annotations_canvas.buildAnnotationsCanvas(me._view);
             me._view.addAnnotationsController(me._annotations_canvas, true);
-        });
 
-        me._model.loadRoisInfo(function (data) {
-            //me._roi_id_list = data;
-            me._current_roi_list = data;
-            if (me._show_roi_table) {
-                me.renderRoisTable(data);
-            }
+            me._model.loadRoisInfo(function (data) {
+                //me._roi_id_list = data;
+                me._current_roi_list = data;
+                if (me._show_roi_table) {
+                    me.renderRoisTable(data);
+                    for (var roi in data) {
+                        var shapes = data[roi].shapes;
+                        for (var shape in shapes) {
+                            var shape_type = shapes[shape].type;
+                            var shape_config = {
+                                'fill_color': shapes[shape].fillColor,
+                                'fill_alpha': shapes[shape].fillAlpha,
+                                'stroke_color': shapes[shape].strokeColor,
+                                'stroke_alpha': shapes[shape].strokeAlpha,
+                                'stroke_width': shapes[shape].strokeWidth
+                            };
+
+                            switch (shape_type) {
+                                case "Rectangle":
+                                    me._annotations_canvas.drawRectangle(
+                                        shapes[shape].id, shapes[shape].x, shapes[shape].y, shapes[shape].width,
+                                        shapes[shape].height, shape_config, false
+                                    );
+                                    break;
+                                case "Ellipse":
+                                    me._annotations_canvas.drawEllipse(
+                                        shapes[shape].id, shapes[shape].cx, shapes[shape].cy,
+                                        shapes[shape].rx, shapes[shape].ry, shape_config,
+                                        false
+                                    );
+                                    break;
+                                case "Line":
+                                    me._annotations_canvas.drawLine(
+                                        shapes[shape].id, shapes[shape].x1, shapes[shape].y1,
+                                        shapes[shape].x2, shapes[shape].y2, shape_config,
+                                        false
+                                    );
+                                    break;
+                                default:
+                                    console.warn('Unable to handle shape type ' + shape_type);
+                            }
+                        }
+                    }
+                }
+                // Hide all shapes
+                me._annotations_canvas.hideShapes();
+            });
         });
     }
 
