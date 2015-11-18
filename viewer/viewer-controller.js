@@ -246,7 +246,6 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
 
     // Handle row selection, i.e., selection of the corresponding ROI shape
     $('#rois-table tbody').on('click', 'tr', function (event) {
-        alert("Click!");
         var data_table = roi_table.DataTable();
         var selected_roi_shape = data_table.row(this).data();
         var selected = true;
@@ -264,7 +263,6 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
             console.log("Selected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
 
             console.log(selected_roi_shape);
-            alert("XXXXX");
 
             me._addVisibleRoiShapes(selected_roi_shape.id);
             //me._handleShapeRowClick(selected_roi_shape.shapes[0]);
