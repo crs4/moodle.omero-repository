@@ -212,22 +212,6 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
             console.log("DATA", row, data, data[4], data[5]);
             $('input.editor-active', row).prop('checked', data.visibility);
         }
-
-        //"drawCallback": function ( settings ) {
-        //    var api = this.api();
-        //    var rows = api.rows( {page:'current'} ).nodes();
-        //    var last=null;
-        //
-        //    api.column(2, {page:'current'} ).data().each( function ( group, i ) {
-        //        if ( last !== group ) {
-        //            $(rows).eq( i ).before(
-        //                '<tr class="group"><td colspan="5">'+group+'</td></tr>'
-        //            );
-        //
-        //            last = group;
-        //        }
-        //    } );
-        //}
     });
 
 
@@ -291,7 +275,8 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
                     selected_roi_info = selected_roi_info[0];
                     // prepare ROI shape info
                     var selected_shape_info = {};
-                    selected_shape_info[selected_roi_info.id] = [selected_roi_info.shapes[0]]; // FIXME: a better mechanism for shape selection
+                    // FIXME: a better mechanism for shape selection
+                    selected_shape_info[selected_roi_info.id] = [selected_roi_info.shapes[0]];
                     checked ?
                         me._annotations_canvas.showShape(selected_roi_info.id) :
                         me._annotations_canvas.hideShape(selected_roi_info.id);
