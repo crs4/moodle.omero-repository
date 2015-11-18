@@ -116,16 +116,12 @@ function ImageViewerController(image_server,
 };
 
 
-ImageViewerController.prototype.showRoi = function (roi) {
-    this._annotations_canvas.showShape(roi.id);
-};
-
-
-ImageViewerController.prototype.hideRoi = function (roi) {
-    this._annotations_canvas.hideShape(roi.id);
-};
-
-
+/**
+ * Add a list of ROIs to the list of ROI to show
+ *
+ * @param roi_ids
+ * @private
+ */
 ImageViewerController.prototype._addVisibleRoiShapes = function (roi_ids) {
     if (!roi_ids.split) roi_ids = "" + [roi_ids];
     if (roi_ids != undefined && roi_ids.length > 0) {
