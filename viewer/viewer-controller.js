@@ -110,6 +110,13 @@ function ImageViewerController(image_server,
 
                 // Hide all shapes
                 me._annotations_controller.hideShapes(undefined, false);
+
+                // initialize the list of visible ROIs
+                if (image_params.visibleRois) {
+                    me._visible_roi_shape_list = image_params.visibleRois.split(",");
+                    me._annotations_controller.showShapes(me._visible_roi_shape_list);
+                }
+
             });
         });
     }
