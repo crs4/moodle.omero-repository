@@ -397,7 +397,7 @@ class repository_omero extends repository
      */
     public function build_navigation_from_url($result, $path, $search_text = false)
     {
-        $items = split("/", $path);
+        $items = explode("/", $path);
 
         $omero_tag = $_SESSION['omero_tag'];
         $omero_search_text = $_SESSION['$omero_search_text'];
