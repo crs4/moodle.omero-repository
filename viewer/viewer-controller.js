@@ -58,10 +58,10 @@ function ImageViewerController(image_server,
     if (me._view) {
         me._view.buildViewer();
         me._view.viewer.addHandler("open", function () {
-            me._annotations_canvas = new AnnotationsController('annotations_canvas');
-            window.annotation_canvas = me._annotations_canvas;
-            me._annotations_canvas.buildAnnotationsCanvas(me._view);
-            me._view.addAnnotationsController(me._annotations_canvas, true);
+            me._annotations_controller = new AnnotationsController('annotations_canvas');
+            window.annotation_canvas = me._annotations_controller;
+            me._annotations_controller.buildAnnotationsCanvas(me._view);
+            me._view.addAnnotationsController(me._annotations_controller, true);
 
             me._model.loadRoisInfo(function (data) {
                 //me._roi_id_list = data;
@@ -82,20 +82,20 @@ function ImageViewerController(image_server,
 
                             switch (shape_type) {
                                 case "Rectangle":
-                                    me._annotations_canvas.drawRectangle(
+                                    me._annotations_controller.drawRectangle(
                                         shapes[shape].id, shapes[shape].x, shapes[shape].y, shapes[shape].width,
                                         shapes[shape].height, shape_config, false
                                     );
                                     break;
                                 case "Ellipse":
-                                    me._annotations_canvas.drawEllipse(
+                                    me._annotations_controller.drawEllipse(
                                         shapes[shape].id, shapes[shape].cx, shapes[shape].cy,
                                         shapes[shape].rx, shapes[shape].ry, shape_config,
                                         false
                                     );
                                     break;
                                 case "Line":
-                                    me._annotations_canvas.drawLine(
+                                    me._annotations_controller.drawLine(
                                         shapes[shape].id, shapes[shape].x1, shapes[shape].y1,
                                         shapes[shape].x2, shapes[shape].y2, shape_config,
                                         false
@@ -107,8 +107,9 @@ function ImageViewerController(image_server,
                         }
                     }
                 }
+
                 // Hide all shapes
-                me._annotations_canvas.hideShapes();
+                me._annotations_controller.hideShapes(undefined, false);
             });
         });
     }
@@ -229,7 +230,7 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
             // skips the deselection if the click has been triggered by a checkbox
             selected = false;
             $(this).removeClass('selected');
-            me._annotations_canvas.deselectShape(selected_roi_shape.id, true);
+            me._annotations_controller.deselectShape(selected_roi_shape.id, true);
             console.log("Deselected ROI shape: " + selected_roi_shape.id, selected_roi_shape);
         } else {
             // Selected a table row
@@ -240,7 +241,10 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
             console.log(selected_roi_shape);
 
             me._addVisibleRoiShapes(selected_roi_shape.id);
-            me._annotations_canvas.selectShape(selected_roi_shape.id, true, true);
+            var shape_position = me._annotations_controller.getShapeCenter(selected_roi_shape.id);
+            // FIXME: wrong behaviour
+            //me._view.jumpToPoint(shape_position.x, shape_position.y);
+            me._annotations_controller.selectShape(selected_roi_shape.id, true, true);
         }
 
         window.dispatchEvent(new CustomEvent(
@@ -281,8 +285,8 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
                     // FIXME: a better mechanism for shape selection
                     selected_shape_info[selected_roi_info.id] = [selected_roi_info.shapes[0]];
                     checked ?
-                        me._annotations_canvas.showShape(selected_roi_info.id) :
-                        me._annotations_canvas.hideShape(selected_roi_info.id);
+                        me._annotations_controller.showShape(selected_roi_info.id) :
+                        me._annotations_controller.hideShape(selected_roi_info.id);
 
                     // Notifies the event
                     window.dispatchEvent(new CustomEvent(
