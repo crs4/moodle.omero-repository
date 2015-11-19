@@ -97,8 +97,9 @@ $imageParamsJs = "?" . implode('&',
                 "<?= $IMAGE_VIEWER_CONTAINER ?>", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
                 "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
             // binds the controller to the window object as image_viewer_controller
-            window.image_viewer_controller = viewer_ctrl;
+            window.omero_repository_image_viewer_controller = viewer_ctrl;
         });
+
     </script>
 </head>
 <body>
