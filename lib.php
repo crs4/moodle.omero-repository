@@ -940,15 +940,13 @@ class repository_omero extends repository
     {
         $this->logger->debug("---> Calling 'get_file_reference' <---");
 
-        $this->logger->debug("SOURCE: $source");
-
         global $USER, $CFG;
         $reference = new stdClass;
         $reference->path = "$this->omero_restendpoint/render_thumbnail/$source"; // FIXME: static URL
         $reference->userid = $USER->id;
         $reference->username = fullname($USER);
-        $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
-        $reference->access_secret = get_user_preferences($this->setting . '_access_secret', '');
+//        $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
+//        $reference->access_secret = get_user_preferences($this->setting . '_access_secret', '');
 
         // by API we don't know if we need this reference to just download a file from omero
         // into moodle filepool or create a reference. Since we need to create a shared link
