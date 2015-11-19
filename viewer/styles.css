@@ -3,9 +3,16 @@ body {
     padding: 0;
 }
 
+iframe[id*="omero-image-viewer"]{
+    border: none;
+    margin: 20px auto 20px;
+    padding: 0;
+}
+
 div#graphics_container {
     margin: 0;
     padding: 0;
+    position: relative;
 }
 
 #rois-table_wrapper {
