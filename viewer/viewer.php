@@ -22,12 +22,8 @@ if (!isloggedin()) {
     header('Location: ' . $moodle_url);
 }
 
-
-// FIXME: do not include the string 'webgateway'
-// FIXME: change strings to hide OMERO dependencies
-// build the OMERO server URL
-$OMERO_WEBGATEWAY = get_config('omero', 'omero_restendpoint');
-$IMAGE_SERVER = substr($OMERO_WEBGATEWAY, 0, strpos($OMERO_WEBGATEWAY, "/webgateway"));
+// get the image server address (from the repository configuration)
+$IMAGE_SERVER = get_config('omero', 'omero_restendpoint');
 
 // set the ID of the viewer container
 $IMAGE_VIEWER_CONTAINER = "openseadragon_viewer";
