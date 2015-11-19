@@ -34,6 +34,9 @@ function ImageViewerController(image_server,
         me._image_server + "/ome_seadragon/deepzoom/get/" + me._image_id + ".dzi"
     );
 
+    var image_params = parseImageParams();
+    me._image_params = image_params;
+
     // Check viewer initialization
     if (!me._view) {
         console.error("Image viewer not initialized!!!");
@@ -367,4 +370,39 @@ ImageViewerController.prototype._resize = function () {
     } else {
         alert("Not found!!!");
     }
+};function parseImageParams() {
 };
+
+
+function parseImageParams() {
+    var x = _parseImageParams(window.location.search);
+    console.log(x);
+    return x;
+}
+
+function _parseImageParams(string_params) {
+    var float_params = ["x", "y", "zm"];
+    console.log(string_params.substr(1).split('&'));
+    return (function (a) {
+        if (a == "") return {};
+        var b = {};
+        for (var i = 0; i < a.length; ++i) {
+            var p = a[i].split('=', 2);
+            var name = p[0].trim();
+            console.log("PARAM: " + i + " -- " + name);
+            if (p.length == 1)
+                if (float_params.indexOf(name) !== -1)
+                    b[name] = 0.0;
+                else
+                    b[name] = "";
+            else {
+                var value = p[1];
+                console.log("value of " + name + " is: " + value, float_params.indexOf(name) !== -1);
+                if (float_params.indexOf(name) !== -1)
+                    b[name] = parseFloat(value);
+                else b[name] = decodeURIComponent(value.replace(/\+/g, " "));
+            }
+        }
+        return b;
+    })(string_params.substr(1).split('&'));
+}
