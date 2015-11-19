@@ -73,7 +73,6 @@ class omero extends oauth_helper
         return $data;
     }
 
-
     /**
      * Get file listing from omero
      *
@@ -84,11 +83,16 @@ class omero extends oauth_helper
      */
     public function process_request($path = '/', $token = '', $secret = '')
     {
-        $url = $this->omero_api . $path;
+        $url = $this->omero_api;
+
         // TODO: use a single API endpoint for all requests
         if (strrpos($path, "tag") !== FALSE || strrpos($path, "annotation") !== FALSE) {
-            $url = str_replace("webgateway", "ome_seadragon", $url);
+            $url .= "/ome_seadragon";
+        } else {
+            $url .= "/webgateway";
         }
+        $url .= $path;
+
         $content = $this->get($url, array(), $token, $secret);
         $data = json_decode($content);
         return $data;
@@ -98,9 +102,7 @@ class omero extends oauth_helper
     public function process_search($search_text, $token = '', $secret = '')
     {
         // FIXME: replace the explicit URL with a factory method
-        $url = $this->omero_api . "/find/annotations?query=$search_text";
-        // TODO: use a single API endpoint for all requests
-        $url = str_replace("webgateway", "ome_seadragon", $url);
+        $url = $this->omero_api . "/ome_seadragon/find/annotations?query=$search_text";
         $content = $this->get($url, array(), $token, $secret);
         $data = json_decode($content);
         return $data;
