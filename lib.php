@@ -843,7 +843,7 @@ class repository_omero extends repository
         $secret = get_config('omero', 'omero_secret');
 
         if (empty($endpoint)) {
-            $endpoint = 'http://omero.crs4.it:8080/webgateway';
+            $endpoint = 'http://omero.crs4.it:8080';
         }
         if (empty($key)) {
             $key = '';
