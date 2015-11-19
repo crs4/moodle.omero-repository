@@ -137,6 +137,32 @@ function ImageViewerController(image_server,
     console.log("VIEWER controller", this); // TODO: remove me!!!
 };
 
+/**
+ * Returns a relative URL containing all relevant info to display
+ * the image currently managed by this ViewerController:
+ *
+ *  i.e., <IMAGE_ID>?t=<T level>&z=<Z level>&zm=<ZOOM level>
+ *                              &x=<X center>
+ *                              &y=<Y center>
+ *
+ * @returns {*}
+ */
+ImageViewerController.prototype.buildDetailedImageRelativeUrl = function () {
+    var result = null;
+    var viewport_details = this._view.getViewportDetails();
+    if (viewport_details) {
+        return "/omero-image-repository/" + this._image_id
+            + "?"
+            + "id=" + this._image_id + "&"
+            + "t=" + 1 + "&" // TODO: to update with the actual T value (we not support only T=1)
+            + "z=" + 1 + "&" // TODO: to update with the actual Z value (we not support only Z=1)
+            + "zm=" + viewport_details.zoom_level + "&"
+            + "x=" + viewport_details.center_x + "&"
+            + "y=" + viewport_details.center_y
+    }
+    return result;
+};
+
 
 /**
  * Add a list of ROIs to the list of ROI to show
