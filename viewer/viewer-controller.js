@@ -163,6 +163,43 @@ ImageViewerController.prototype.buildDetailedImageRelativeUrl = function () {
     return result;
 };
 
+/**
+ * Returns the list of ROI shapes related to the current image
+ * @returns {*}
+ */
+ImageViewerController.prototype.getRoiList = function () {
+    return this._current_roi_list;
+};
+
+
+/**
+ * Display the list of ROI shapes identified by their ID
+ *
+ * @param shape_id_list
+ */
+ImageViewerController.prototype.showRoiShapes = function (shape_id_list) {
+    this._annotations_controller.showShapes(shape_id_list, true);
+};
+
+/**
+ * Hide the list of ROIs identified by their ID
+ * @param shape_id_list
+ */
+ImageViewerController.prototype.hideRoiShapes = function (shape_id_list) {
+    this._annotations_controller.hideShapes(shape_id_list, true);
+};
+
+/**
+ * Set focus on a given ROI shape
+ * @param shape_id
+ */
+ImageViewerController.prototype.setFocusOnRoiShape = function (shape_id) {
+    var shape_position = this._annotations_controller.getShapeCenter(shape_id);
+    // FIXME: wrong behaviour
+    //me._view.jumpToPoint(shape_position.x, shape_position.y);
+    this._annotations_controller.selectShape(shape_id, true, true);
+};
+
 
 /**
  * Add a list of ROIs to the list of ROI to show
@@ -285,10 +322,7 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
             console.log(selected_roi_shape);
 
             me._addVisibleRoiShapes(selected_roi_shape.id);
-            var shape_position = me._annotations_controller.getShapeCenter(selected_roi_shape.id);
-            // FIXME: wrong behaviour
-            //me._view.jumpToPoint(shape_position.x, shape_position.y);
-            me._annotations_controller.selectShape(selected_roi_shape.id, true, true);
+            me.setFocusOnRoiShape(selected_roi_shape.id);
         }
 
         window.dispatchEvent(new CustomEvent(
