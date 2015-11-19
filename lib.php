@@ -397,7 +397,7 @@ class repository_omero extends repository
      */
     public function build_navigation_from_url($result, $path, $search_text = false)
     {
-        $items = split("/", $path);
+        $items = explode("/", $path);
 
         $omero_tag = $_SESSION['omero_tag'];
         $omero_search_text = $_SESSION['$omero_search_text'];
@@ -843,7 +843,7 @@ class repository_omero extends repository
         $secret = get_config('omero', 'omero_secret');
 
         if (empty($endpoint)) {
-            $endpoint = 'http://omero.crs4.it:8080/webgateway';
+            $endpoint = 'http://omero.crs4.it:8080';
         }
         if (empty($key)) {
             $key = '';
@@ -924,7 +924,8 @@ class repository_omero extends repository
         }
 
         $image_id = preg_replace("/\/render_thumbnail\/(\d+)/", "$1", $ref->path);
-        $res = $this->omero->get_thumbnail_url($image_id);
+        //$res = $this->omero->get_thumbnail_url($image_id);
+        $res = "/omero-image-repository/$image_id";
         $this->logger->debug("RES: " . $res);
         return $res;
     }
@@ -939,15 +940,13 @@ class repository_omero extends repository
     {
         $this->logger->debug("---> Calling 'get_file_reference' <---");
 
-        $this->logger->debug("SOURCE: $source");
-
         global $USER, $CFG;
         $reference = new stdClass;
         $reference->path = "$this->omero_restendpoint/render_thumbnail/$source"; // FIXME: static URL
         $reference->userid = $USER->id;
         $reference->username = fullname($USER);
-        $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
-        $reference->access_secret = get_user_preferences($this->setting . '_access_secret', '');
+//        $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
+//        $reference->access_secret = get_user_preferences($this->setting . '_access_secret', '');
 
         // by API we don't know if we need this reference to just download a file from omero
         // into moodle filepool or create a reference. Since we need to create a shared link
