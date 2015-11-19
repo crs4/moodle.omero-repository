@@ -924,7 +924,8 @@ class repository_omero extends repository
         }
 
         $image_id = preg_replace("/\/render_thumbnail\/(\d+)/", "$1", $ref->path);
-        $res = $this->omero->get_thumbnail_url($image_id);
+        //$res = $this->omero->get_thumbnail_url($image_id);
+        $res = "/omero-image-repository/$image_id";
         $this->logger->debug("RES: " . $res);
         return $res;
     }
