@@ -117,6 +117,17 @@ function ImageViewerController(image_server,
                     me._annotations_controller.showShapes(me._visible_roi_shape_list);
                 }
 
+                // Restore the previous status of the view (i.e., zoom and center(x,y))
+                if (image_params.x && image_params.y) {
+                    if (image_params.zm) {
+                        me._view.jumpTo(image_params.zm, image_params.x, image_params.y);
+                        console.log("Setting zoom level: " + image_params.zm);
+                    } else {
+                        me._view.jumpToPoint(image_params.x, image_params.y);
+                    }
+
+                    console.log("Jumping to " + image_params.x + " -- " + image_params.y);
+                }
             });
         });
     }
