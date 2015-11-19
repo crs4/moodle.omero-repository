@@ -374,7 +374,6 @@ ImageViewerController.prototype._resize = function () {
     } else {
         alert("Not found!!!");
     }
-};function parseImageParams() {
 };
 
 
