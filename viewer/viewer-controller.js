@@ -39,7 +39,8 @@ function ImageViewerController(image_server,
 
         var viewer_config = {
             'showNavigator': true,
-            'showFullPageControl': false
+            'showFullPageControl': false,
+            'animationTime': 0.01
         };
 
         // TODO: to change with the controller initialization
