@@ -76,7 +76,7 @@ $imageParamsJs = "?" . implode('&',
     <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/jquery-1.11.3.min.js"></script>
     <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/paper-full.min.js"></script>
     <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/ome_seadragon.min.js"></script>
-
+    <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
     <!-- Bootstrap -->
     <script type="text/javascript" src="/moodle/repository/omero/libs/bootstrap/js/bootstrap.min.js"></script>
 
