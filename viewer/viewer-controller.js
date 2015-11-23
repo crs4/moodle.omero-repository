@@ -27,32 +27,13 @@ function ImageViewerController(image_server,
     // set frame reference
     me._frame = window.parent.document.getElementById(me._frame_id);
 
-    // TODO: to change with the controller initialization
-    me._view = new ViewerController(
-        me._viewer_container_id,
-        me._image_server + "/static/ome_seadragon/img/openseadragon/",
-        me._image_server + "/ome_seadragon/deepzoom/get/" + me._image_id + ".dzi"
-    );
-
+    // get url params
     var image_params = parseImageParams();
     me._image_params = image_params;
-
-    // Check viewer initialization
-    if (!me._view) {
-        console.error("Image viewer not initialized!!!");
-        return
-    } else {
-        // Binds the current viewer to the 'window' object
-        window.viewer = me._view;
-    }
 
     // initializes the ImageModelManager
     me._model = new ImageModelManager(image_server, image_id);
 
-    // FIXME: just for debug
-    window.addEventListener("image_server.roisInfoLoaded", function (data) {
-        console.log(data);
-    });
 
     // TODO: add param to change the default behaviour
     if (me._view) {
@@ -149,7 +130,7 @@ function ImageViewerController(image_server,
  */
 ImageViewerController.prototype.buildDetailedImageRelativeUrl = function () {
     var result = null;
-    var viewport_details = this._view.getViewportDetails();
+    var viewport_details = this._viewer_controller.getViewportDetails();
     if (viewport_details) {
         return "/omero-image-repository/" + this._image_id
             + "?"
@@ -480,8 +461,8 @@ function _parseImageParams(string_params) {
                 var value = p[1];
                 console.log("value of " + name + " is: " + value, float_params.indexOf(name) !== -1);
                 if (float_params.indexOf(name) !== -1)
-                    b[name] = parseFloat(value);
-                else b[name] = decodeURIComponent(value.replace(/\+/g, " "));
+                    b[name] = value !== undefined ? parseFloat(value) : 0.0;
+                else b[name] = value !== undefined ? decodeURIComponent(value.replace(/\+/g, " ")) : "";
             }
         }
         return b;
