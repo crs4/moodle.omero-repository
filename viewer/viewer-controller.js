@@ -172,6 +172,17 @@ function ImageViewerController(image_server,
     console.log("VIEWER controller", this); // TODO: remove me!!!
 };
 
+
+/**
+ * Returns the modelManager related to this controller
+ *
+ * @returns {ImageModelManager|*}
+ */
+ImageViewerController.prototype.getModel = function () {
+    return this._model;
+};
+
+
 /**
  * Returns a relative URL containing all relevant info to display
  * the image currently managed by this ViewerController:
