@@ -195,8 +195,8 @@ ImageViewerController.prototype.hideRoiShapes = function (shape_id_list) {
  */
 ImageViewerController.prototype.setFocusOnRoiShape = function (shape_id) {
     var shape_position = this._annotations_controller.getShapeCenter(shape_id);
-    // FIXME: wrong behaviour
-    //me._view.jumpToPoint(shape_position.x, shape_position.y);
+    shape_position = this._viewer_controller.getViewportCoordinates(shape_position.x, shape_position.y);
+    this._viewer_controller.jumpToPoint(shape_position.x, shape_position.y);
     this._annotations_controller.selectShape(shape_id, true, true);
 };
 
