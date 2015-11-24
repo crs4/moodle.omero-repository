@@ -154,14 +154,15 @@ function ImageViewerController(image_server,
 
                     // Restore the previous status of the view (i.e., zoom and center(x,y))
                     if (image_params.x && image_params.y) {
+                        var image_center = me._viewer_controller.getViewportCoordinates(image_params.x, image_params.y);
                         if (image_params.zm) {
-                            me._viewer_controller.jumpTo(image_params.zm, image_params.x, image_params.y);
+                            me._viewer_controller.jumpTo(image_params.zm, image_center.x, image_center.y);
                             console.log("Setting zoom level: " + image_params.zm);
                         } else {
-                            me._viewer_controller.jumpToPoint(image_params.x, image_params.y);
+                            me._viewer_controller.jumpToPoint(image_center.x, image_center.y);
                         }
 
-                        console.log("Jumping to " + image_params.x + " -- " + image_params.y);
+                        console.log("Jumping to " + image_center.x + " -- " + image_center.y);
                     }
                 });
             });
