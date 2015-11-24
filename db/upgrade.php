@@ -27,12 +27,6 @@ function xmldb_repository_omero_upgrade($oldversion) {
     // Put any upgrade step following this
 
     if ($oldversion < 2012080702) {
-        // Set the default value for omero_cachelimit
-        $value = get_config('omero', 'omero_cachelimit');
-        if (empty($value)) {
-            set_config('omero_cachelimit', 1024*1024, 'omero');
-        }
-        upgrade_plugin_savepoint(true, 2012080702, 'repository', 'omero');
     }
 
     // Moodle v2.4.0 release upgrade line
