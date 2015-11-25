@@ -87,6 +87,8 @@ ImageModelManager.prototype._notifyListeners = function (event) {
  */
 ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_callback) {
 
+    var me = this;
+
     $.ajax({
         url: this._image_server + "/webgateway/get_rois_json/" + this._image_id,
 
@@ -118,8 +120,8 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
             }
 
             // Notify that ROI info are loaded
-            window.dispatchEvent(new CustomEvent(
-                "image_server.roisInfoLoaded",
+            me._notifyListeners(new CustomEvent(
+                "imageModelRoiLoaded",
                 {
                     detail: data,
                     bubbles: true
