@@ -30,6 +30,29 @@ function ImageModelManager(image_server, image_id) {
 };
 
 
+/**
+ * Registers the <pre>listener</pre> of the model events
+ * triggered by this 'model'
+ *
+ * @param listener
+ */
+ImageModelManager.prototype.addEventListener = function (listener) {
+    if (!listener) return;
+    this._listeners.push(listener);
+};
+
+
+/**
+ * Deregisters the <pre>listener</pre> from this model
+ *
+ * @param listener
+ */
+ImageModelManager.prototype.removeEventListener = function (listener) {
+    if (!listener) return;
+    var index = this._listeners.indexOf(listener);
+    if (index > -1)
+        this._listeners.splice(index, 1);
+};
 
 /**
  * Load info of ROIs related to the current image
