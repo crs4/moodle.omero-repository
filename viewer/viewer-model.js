@@ -54,6 +54,29 @@ ImageModelManager.prototype.removeEventListener = function (listener) {
         this._listeners.splice(index, 1);
 };
 
+
+/**
+ * Notifies an event to the registered listeners
+ *
+ * @param event
+ * @private
+ */
+ImageModelManager.prototype._notifyListeners = function (event) {
+    if (event) {
+        console.log("Event", event);
+        for (var i in this._listeners) {
+            var callbackName = "on" + event.type;
+            console.log("Listener", i, this._listeners[i], callbackName);
+            var callback = this._listeners[i][callbackName];
+            if (callback) {
+                console.log("Calling ", callback);
+                callback(event);
+            }
+        }
+    }
+};
+
+
 /**
  * Load info of ROIs related to the current image
  *
