@@ -22,6 +22,9 @@ function ImageModelManager(image_server, image_id) {
     // register the ID of the image to manage
     this._image_id = image_id;
 
+    // event listeners
+    this._listeners = [];
+
     // log init status
     console.info("image_model_manager initialized!!!")
 };
