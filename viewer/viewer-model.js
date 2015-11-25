@@ -65,7 +65,7 @@ ImageModelManager.prototype._notifyListeners = function (event) {
     if (event) {
         console.log("Event", event);
         for (var i in this._listeners) {
-            var callbackName = "on" + event.type;
+            var callbackName = "on" + event.type.charAt(0).toUpperCase() + event.type.slice(1);
             console.log("Listener", i, this._listeners[i], callbackName);
             var callback = this._listeners[i][callbackName];
             if (callback) {
