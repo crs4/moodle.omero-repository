@@ -229,6 +229,26 @@ ImageViewerController.prototype.buildDetailedImageRelativeUrl = function () {
     return result;
 };
 
+
+ImageViewerController.prototype.updateViewFromProperties = function (image_properties) {
+    var me = this;
+    if(!image_properties || !image_properties.center){
+        console.warn("incomplete image properties");
+        return false;
+    }
+    
+    var image_center = me._viewer_controller.getViewportCoordinates(
+        image_properties.center.x, image_properties.center.y
+    );
+    if (image_properties.zoom_level) {
+        me._viewer_controller.jumpTo(image_properties.zoom_level, image_center.x, image_center.y);
+        console.log("Setting zoom level: " + image_properties.zoom_level);
+    } else {
+        me._viewer_controller.jumpToPoint(image_center.x, image_center.y);
+    }
+
+    console.log("Jumping to " + image_center.x + " -- " + image_center.y);
+};
 /**
  * Returns the list of ROI shapes related to the current image
  * @returns {*}
