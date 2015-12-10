@@ -70,7 +70,7 @@ ImageModelManager.prototype._notifyListeners = function (event) {
             var callback = this._listeners[i][callbackName];
             if (callback) {
                 console.log("Calling ", callback);
-                callback(event);
+                callback.call(this._listeners[i], event);
             }
         }
     }
