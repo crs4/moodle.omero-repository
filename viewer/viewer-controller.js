@@ -249,6 +249,21 @@ ImageViewerController.prototype.updateViewFromProperties = function (image_prope
 
     console.log("Jumping to " + image_center.x + " -- " + image_center.y);
 };
+
+ImageViewerController.prototype.getImageProperties = function () {
+    var p = this._viewer_controller.getViewportDetails();
+    return {
+        "id": this._image_id,
+        "center": {
+            "x": p.center_x,
+            "y": p.center_y,
+        },
+        "t": 1,
+        "z": 1,
+        "zoom_level": p.zoom_level
+    };
+};
+
 /**
  * Returns the list of ROI shapes related to the current image
  * @returns {*}
@@ -347,7 +362,7 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
     var me = this;
 
     console.log("Rendering table started .... ");
-
+    return false;
     var roi_table = $('#rois-table');
     roi_table.dataTable({
         "data": dataSet,
