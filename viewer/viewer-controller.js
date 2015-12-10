@@ -24,6 +24,8 @@ function ImageViewerController(image_server,
     me._roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
     me._show_roi_table = show_roi_table;
 
+    me._event_listeners = [];
+
     // set frame reference
     me._frame = window.parent.document.getElementById(me._frame_id);
 
@@ -172,6 +174,11 @@ function ImageViewerController(image_server,
     // log controller initialization status
     console.log("image_viewer_controller initialized!!!");
     console.log("VIEWER controller", this); // TODO: remove me!!!
+};
+
+
+ImageViewerController.prototype.onViewerInitialized = function (listener) {
+    this._event_listeners.push(listener);
 };
 
 
