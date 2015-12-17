@@ -24,6 +24,8 @@ function ImageViewerController(image_server,
     me._roi_shape_thumb_popup_id = roi_shape_thumb_popup_id;
     me._show_roi_table = show_roi_table;
 
+    me._event_listeners = [];
+
     // set frame reference
     me._frame = window.parent.document.getElementById(me._frame_id);
 
@@ -34,144 +36,164 @@ function ImageViewerController(image_server,
     // initializes the ImageModelManager
     me._model = new ImageModelManager(image_server, image_id);
 
-    // init viewer
-    $.get(me._image_server + "/ome_seadragon/deepzoom/image_mpp/" + me._image_id + ".dzi").done(function (data) {
+    var viewer_config = {
+        'showNavigator': true,
+        'showFullPageControl': false,
+        'animationTime': 0.01
+    };
 
-        var viewer_config = {
-            'showNavigator': true,
-            'showFullPageControl': false,
-            'animationTime': 0.01
-        };
-
-        // TODO: to change with the controller initialization
-        me._viewer_controller = new ViewerController(
-            me._viewer_container_id,
-            me._image_server + "/static/ome_seadragon/img/openseadragon/",
-            me._image_server + "/ome_seadragon/deepzoom/get/" + me._image_id + ".dzi",
-            viewer_config
-        );
-
-        // Check viewer initialization
-        if (!me._viewer_controller) {
-            console.error("Image viewer not initialized!!!");
-            return
-        } else {
-            // Binds the current viewer to the 'window' object
-            window.viewer = me._viewer_controller;
-        }
+    // TODO: to change with the controller initialization
+    me._viewer_controller = new ViewerController(
+        me._viewer_container_id,
+        me._image_server + "/static/ome_seadragon/img/openseadragon/",
+        me._image_server + "/ome_seadragon/deepzoom/get/" + me._image_id + ".dzi",
+        viewer_config
+    );
 
 
-        // FIXME: just for debug
-        window.addEventListener("image_server.roisInfoLoaded", function (data) {
-            console.log(data);
-        });
+    // Check viewer initialization
+    if (!me._viewer_controller) {
+        console.error("Image viewer not initialized!!!");
+        return
+    } else {
+        // Binds the current viewer to the 'window' object
+        window.viewer = me._viewer_controller;
+    }
 
-        // builds and initializes the Viewer
-        if (me._viewer_controller) {
-            me._viewer_controller.buildViewer();
 
-            // Scalebar setup
-            var image_mpp = data.image_mpp ? data.image_mpp : 0;
-            var scalebar_config = {
-                "xOffset": 10,
-                "yOffset": 10,
-                "barThickness": 5,
-                "color": "#777777",
-                "fontColor": "#000000",
-                "backgroundColor": 'rgba(255, 255, 255, 0.5)'
-            };
-            me._viewer_controller.enableScalebar(image_mpp, scalebar_config);
+    // FIXME: just for debug
+    window.addEventListener("image_server.roisInfoLoaded", function (data) {
+        console.log(data);
+    });
+
+    // builds and initializes the Viewer
+    if (me._viewer_controller) {
+        me._viewer_controller.buildViewer();
+
+        //
+        me._viewer_controller.viewer.addHandler("open", function () {
+
+            // Ignore lowest-resolution levels in order to improve load times
+            me._viewer_controller.setMinDZILevel(8);
+
+            // Adds the annotation controller
+            me._annotations_controller = new AnnotationsController('annotations_canvas');
+            window.annotation_canvas = me._annotations_controller;
+            me._annotations_controller.buildAnnotationsCanvas(me._viewer_controller);
+            me._viewer_controller.addAnnotationsController(me._annotations_controller, true);
 
             //
-            me._viewer_controller.viewer.addHandler("open", function () {
+            me._model.loadRoisInfo(function (data) {
 
-                // Ignore lowest-resolution levels in order to improve load times
-                me._viewer_controller.setMinDZILevel(8);
+                //me._roi_id_list = data;
+                me._current_roi_list = data;
+                if (me._show_roi_table) {
+                    me.renderRoisTable(data);
+                }
 
-                // Adds the annotation controller
-                me._annotations_controller = new AnnotationsController('annotations_canvas');
-                window.annotation_canvas = me._annotations_controller;
-                me._annotations_controller.buildAnnotationsCanvas(me._viewer_controller);
-                me._viewer_controller.addAnnotationsController(me._annotations_controller, true);
 
-                //
-                me._model.loadRoisInfo(function (data) {
-                    //me._roi_id_list = data;
-                    me._current_roi_list = data;
-                    if (me._show_roi_table) {
-                        me.renderRoisTable(data);
-                        for (var roi in data) {
-                            var shapes = data[roi].shapes;
-                            for (var shape in shapes) {
-                                var shape_type = shapes[shape].type;
-                                var shape_config = {
-                                    'fill_color': shapes[shape].fillColor,
-                                    'fill_alpha': shapes[shape].fillAlpha,
-                                    'stroke_color': shapes[shape].strokeColor,
-                                    'stroke_alpha': shapes[shape].strokeAlpha,
-                                    'stroke_width': shapes[shape].strokeWidth
-                                };
+                // Initialize the list of ROIs
+                for (var roi in data) {
+                    var shapes = data[roi].shapes;
+                    for (var shape in shapes) {
+                        var shape_type = shapes[shape].type;
+                        var shape_config = {
+                            'fill_color': shapes[shape].fillColor,
+                            'fill_alpha': shapes[shape].fillAlpha,
+                            'stroke_color': shapes[shape].strokeColor,
+                            'stroke_alpha': shapes[shape].strokeAlpha,
+                            'stroke_width': shapes[shape].strokeWidth
+                        };
 
-                                switch (shape_type) {
-                                    case "Rectangle":
-                                        me._annotations_controller.drawRectangle(
-                                            shapes[shape].id, shapes[shape].x, shapes[shape].y, shapes[shape].width,
-                                            shapes[shape].height, shape_config, false
-                                        );
-                                        break;
-                                    case "Ellipse":
-                                        me._annotations_controller.drawEllipse(
-                                            shapes[shape].id, shapes[shape].cx, shapes[shape].cy,
-                                            shapes[shape].rx, shapes[shape].ry, shape_config,
-                                            false
-                                        );
-                                        break;
-                                    case "Line":
-                                        me._annotations_controller.drawLine(
-                                            shapes[shape].id, shapes[shape].x1, shapes[shape].y1,
-                                            shapes[shape].x2, shapes[shape].y2, shape_config,
-                                            false
-                                        );
-                                        break;
-                                    default:
-                                        console.warn('Unable to handle shape type ' + shape_type);
-                                }
-                            }
+                        switch (shape_type) {
+                            case "Rectangle":
+                                me._annotations_controller.drawRectangle(
+                                    shapes[shape].id, shapes[shape].x, shapes[shape].y, shapes[shape].width,
+                                    shapes[shape].height, shape_config, false
+                                );
+                                break;
+                            case "Ellipse":
+                                me._annotations_controller.drawEllipse(
+                                    shapes[shape].id, shapes[shape].cx, shapes[shape].cy,
+                                    shapes[shape].rx, shapes[shape].ry, shape_config,
+                                    false
+                                );
+                                break;
+                            case "Line":
+                                me._annotations_controller.drawLine(
+                                    shapes[shape].id, shapes[shape].x1, shapes[shape].y1,
+                                    shapes[shape].x2, shapes[shape].y2, shape_config,
+                                    false
+                                );
+                                break;
+                            default:
+                                console.warn('Unable to handle shape type ' + shape_type);
                         }
                     }
+                }
 
-                    // Hide all shapes
-                    me._annotations_controller.hideShapes(undefined, false);
+                // Hide all shapes
+                me._annotations_controller.hideShapes(undefined, false);
 
-                    // initialize the list of visible ROIs
-                    if (image_params.visibleRois !== undefined && image_params.visibleRois.length > 0) {
-                        var roi_shape_list = image_params.visibleRois.split(",");
-                        if (roi_shape_list && roi_shape_list.length > 0) {
-                            me._visible_roi_shape_list = roi_shape_list;
-                            me._annotations_controller.showShapes(me._visible_roi_shape_list);
-                        }
+                // initialize the list of visible ROIs
+                if (image_params.visibleRois !== undefined && image_params.visibleRois.length > 0) {
+                    var roi_shape_list = image_params.visibleRois.split(",");
+                    if (roi_shape_list && roi_shape_list.length > 0) {
+                        me._visible_roi_shape_list = roi_shape_list;
+                        me._annotations_controller.showShapes(me._visible_roi_shape_list);
+                    }
+                }
+
+                // Restore the previous status of the view (i.e., zoom and center(x,y))
+                if (image_params.x && image_params.y) {
+                    var image_center = me._viewer_controller.getViewportCoordinates(image_params.x, image_params.y);
+                    if (image_params.zm) {
+                        me._viewer_controller.jumpTo(image_params.zm, image_center.x, image_center.y);
+                        console.log("Setting zoom level: " + image_params.zm);
+                    } else {
+                        me._viewer_controller.jumpToPoint(image_center.x, image_center.y);
                     }
 
-                    // Restore the previous status of the view (i.e., zoom and center(x,y))
-                    if (image_params.x && image_params.y) {
-                        var image_center = me._viewer_controller.getViewportCoordinates(image_params.x, image_params.y);
-                        if (image_params.zm) {
-                            me._viewer_controller.jumpTo(image_params.zm, image_center.x, image_center.y);
-                            console.log("Setting zoom level: " + image_params.zm);
-                        } else {
-                            me._viewer_controller.jumpToPoint(image_center.x, image_center.y);
-                        }
+                    console.log("Jumping to " + image_center.x + " -- " + image_center.y);
+                }
 
-                        console.log("Jumping to " + image_center.x + " -- " + image_center.y);
-                    }
+
+                // Scalebar initialization
+                $.get(me._image_server + "/ome_seadragon/deepzoom/image_mpp/" + me._image_id + ".dzi").done(function (data) {
+
+                    // Scalebar setup
+                    var image_mpp = data.image_mpp ? data.image_mpp : 0;
+                    var scalebar_config = {
+                        "xOffset": 10,
+                        "yOffset": 10,
+                        "barThickness": 5,
+                        "color": "#777777",
+                        "fontColor": "#000000",
+                        "backgroundColor": 'rgba(255, 255, 255, 0.5)'
+                    };
+                    me._viewer_controller.enableScalebar(image_mpp, scalebar_config);
                 });
+
+
+                for (var i in me._event_listeners) {
+                    var callback = me._event_listeners[i];
+                    if (callback) {
+                        callback(me);
+                    }
+                }
             });
-        }
-    });
+        });
+    }
+    //});
 
     // log controller initialization status
     console.log("image_viewer_controller initialized!!!");
     console.log("VIEWER controller", this); // TODO: remove me!!!
+};
+
+
+ImageViewerController.prototype.onViewerInitialized = function (listener) {
+    this._event_listeners.push(listener);
 };
 
 
@@ -209,6 +231,41 @@ ImageViewerController.prototype.buildDetailedImageRelativeUrl = function () {
             + "y=" + viewport_details.center_y
     }
     return result;
+};
+
+
+ImageViewerController.prototype.updateViewFromProperties = function (image_properties) {
+    var me = this;
+    if(!image_properties || !image_properties.center){
+        console.warn("incomplete image properties");
+        return false;
+    }
+    
+    var image_center = me._viewer_controller.getViewportCoordinates(
+        image_properties.center.x, image_properties.center.y
+    );
+    if (image_properties.zoom_level) {
+        me._viewer_controller.jumpTo(image_properties.zoom_level, image_center.x, image_center.y);
+        console.log("Setting zoom level: " + image_properties.zoom_level);
+    } else {
+        me._viewer_controller.jumpToPoint(image_center.x, image_center.y);
+    }
+
+    console.log("Jumping to " + image_center.x + " -- " + image_center.y);
+};
+
+ImageViewerController.prototype.getImageProperties = function () {
+    var p = this._viewer_controller.getViewportDetails();
+    return {
+        "id": this._image_id,
+        "center": {
+            "x": p.center_x,
+            "y": p.center_y,
+        },
+        "t": 1,
+        "z": 1,
+        "zoom_level": p.zoom_level
+    };
 };
 
 /**
@@ -309,7 +366,7 @@ ImageViewerController.prototype.renderRoisTable = function (dataSet) {
     var me = this;
 
     console.log("Rendering table started .... ");
-
+    return false;
     var roi_table = $('#rois-table');
     roi_table.dataTable({
         "data": dataSet,

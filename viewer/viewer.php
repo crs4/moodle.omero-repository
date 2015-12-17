@@ -60,10 +60,10 @@ $imageParamsJs = "?" . implode('&',
     <link rel="stylesheet" type="text/css" href="./styles.css">
 
     <!-- Bootstrap CSS -->
-    <link href="/moodle/repository/omero/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!--<link href="/moodle/repository/omero/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">-->
 
     <!-- JQuery/Bootstrap table CSS -->
-    <link href="https://cdn.datatables.net/1.10.7/css/jquery.dataTables.css" rel="stylesheet">
+    <!--<link href="https://cdn.datatables.net/1.10.7/css/jquery.dataTables.css" rel="stylesheet">-->
 
     <!-- ImageViewerController -->
     <script type="text/javascript" src="/moodle/repository/omero/viewer/viewer-controller.js"></script>
@@ -78,12 +78,12 @@ $imageParamsJs = "?" . implode('&',
     <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/ome_seadragon.min.js"></script>
     <script src="<?php echo $IMAGE_SERVER ?>/static/ome_seadragon/js/openseadragon-scalebar.min.js"></script>
     <!-- Bootstrap -->
-    <script type="text/javascript" src="/moodle/repository/omero/libs/bootstrap/js/bootstrap.min.js"></script>
+    <!--<script type="text/javascript" src="/moodle/repository/omero/libs/bootstrap/js/bootstrap.min.js"></script>-->
 
     <!-- JQuery/Bootstrap table integration -->
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript"
-            src="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+    <!--<script type="text/javascript" src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>-->
+    <!--<script type="text/javascript"
+            src="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.js"></script>-->
 
 
     <script type="text/javascript">
