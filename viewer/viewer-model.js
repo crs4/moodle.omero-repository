@@ -22,10 +22,59 @@ function ImageModelManager(image_server, image_id) {
     // register the ID of the image to manage
     this._image_id = image_id;
 
+    // event listeners
+    this._listeners = [];
+
     // log init status
     console.info("image_model_manager initialized!!!")
 };
 
+
+/**
+ * Registers the <pre>listener</pre> of the model events
+ * triggered by this 'model'
+ *
+ * @param listener
+ */
+ImageModelManager.prototype.addEventListener = function (listener) {
+    if (!listener) return;
+    this._listeners.push(listener);
+};
+
+
+/**
+ * Deregisters the <pre>listener</pre> from this model
+ *
+ * @param listener
+ */
+ImageModelManager.prototype.removeEventListener = function (listener) {
+    if (!listener) return;
+    var index = this._listeners.indexOf(listener);
+    if (index > -1)
+        this._listeners.splice(index, 1);
+};
+
+
+/**
+ * Notifies an event to the registered listeners
+ *
+ * @param event
+ * @private
+ */
+ImageModelManager.prototype._notifyListeners = function (event) {
+    if (event) {
+        console.log("Event", event);
+        for (var i in this._listeners) {
+            var callbackName = "on" + event.type.charAt(0).toUpperCase() + event.type.slice(1);
+            console.log("Listener", i, this._listeners[i], callbackName);
+            var callback = this._listeners[i][callbackName];
+            if (callback) {
+                console.log("Calling ", callback);
+                callback.call(this._listeners[i], event);
+            }
+        }
+    }
+};
 
 
 /**
@@ -37,6 +86,8 @@ function ImageModelManager(image_server, image_id) {
  * @private
  */
 ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_callback) {
+
+    var me = this;
 
     $.ajax({
         url: this._image_server + "/webgateway/get_rois_json/" + this._image_id,
@@ -69,8 +120,8 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
             }
 
             // Notify that ROI info are loaded
-            window.dispatchEvent(new CustomEvent(
-                "image_server.roisInfoLoaded",
+            me._notifyListeners(new CustomEvent(
+                "imageModelRoiLoaded",
                 {
                     detail: data,
                     bubbles: true
