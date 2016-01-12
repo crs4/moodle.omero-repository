@@ -207,7 +207,8 @@ class repository_omero extends repository
      * Get omero files
      *
      * @param string $path
-     * @param int $page
+     * @param int|string $page
+     * @param null $search_text
      * @return array
      */
     public function get_listing($path = '', $page = '1', $search_text = null)
