@@ -158,7 +158,8 @@ class omero extends oauth_helper
     public function get_thumbnail_url($image_id)
     {
         // TODO: is it better to use the ome-seadragon function ?
-        return $this->omero_api . '/webgateway' . PathUtils::build_image_thumbnail_url($image_id);
+        //return $this->omero_api . '/webgateway' . PathUtils::build_image_thumbnail_url($image_id);
+        return $this->omero_api . '/ome_seadragon/deepzoom/get/thumbnail/' . $image_id . ".dzi?height=100&width=100";
     }
 
     /**
