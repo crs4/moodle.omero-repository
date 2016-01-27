@@ -109,20 +109,26 @@ function ImageViewerController(image_server,
                             case "Rectangle":
                                 me._annotations_controller.drawRectangle(
                                     shapes[shape].id, shapes[shape].x, shapes[shape].y, shapes[shape].width,
-                                    shapes[shape].height, shape_config, false
+                                    shapes[shape].height,
+                                    TransformMatrixHelper.fromOMETransform(shapes[shape].transform),
+                                    shape_config, false
                                 );
                                 break;
                             case "Ellipse":
                                 me._annotations_controller.drawEllipse(
                                     shapes[shape].id, shapes[shape].cx, shapes[shape].cy,
-                                    shapes[shape].rx, shapes[shape].ry, shape_config,
+                                    shapes[shape].rx, shapes[shape].ry,
+                                    TransformMatrixHelper.fromOMETransform(shapes[shape].transform),
+                                    shape_config,
                                     false
                                 );
                                 break;
                             case "Line":
                                 me._annotations_controller.drawLine(
                                     shapes[shape].id, shapes[shape].x1, shapes[shape].y1,
-                                    shapes[shape].x2, shapes[shape].y2, shape_config,
+                                    shapes[shape].x2, shapes[shape].y2,
+                                    TransformMatrixHelper.fromOMETransform(shapes[shape].transform),
+                                    shape_config,
                                     false
                                 );
                                 break;
