@@ -35,3 +35,5 @@ $string['cachelimit'] = 'Cache limit';
 $string['cachelimit_info'] = 'Enter the maximum size of files (in bytes) to be cached on server for omero aliases/shortcuts. Cached files will be served when the source is no longer available. Empty value or zero mean caching of all files regardless of size.';
 $string['omero:view'] = 'View a omero folder';
 $string['logoutdesc'] = '(Logout when you finish using omero)';
+$string['current_image'] = "Current image";
+$string['choose_image'] = "Choose an image";
