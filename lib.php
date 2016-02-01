@@ -123,8 +123,6 @@ class repository_omero extends repository
             $toprint .= $k;
         }
 
-        error_log("REST ENDPOINT: " . $this->omero_restendpoint . $toprint . "---" . implode(",", $options));
-
         $args = array(
             'omero_restendpoint' => $this->omero_restendpoint,
             'oauth_consumer_key' => $this->omero_key,
