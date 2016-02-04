@@ -404,111 +404,105 @@ class repository_omero extends repository
 
 
     /**
-     *
+     * Builds the navigation bar
      */
-    public function build_navigation_from_url($result, $path, $search_text = false)
+    public function build_navigation_bar($result, $path, $obj_info, $annotations_query = false)
     {
-        $items = explode("/", $path);
+        // alias for the 'requests' cache
+        $cache = $this->requests;
 
-        $omero_tag = $_SESSION['omero_tag'];
-        $omero_search_text = $_SESSION['$omero_search_text'];
-        $omero_tagset = $_SESSION['omero_tagset'];
-        $omero_project = $_SESSION['omero_project'];
-        $omero_dataset = $_SESSION['omero_dataset'];
+        // get existing session objects
+        $omero_tagset = $cache->get(self::OMERO_TAGSET_KEY);
+        $omero_project = $cache->get(self::OMERO_PROJECT_KEY);
+        if (!$annotations_query)
+            $annotations_query = $cache->get(self::OMERO_ANNOTATION_QUERY_KEY);
 
-        if (count($items) == 0 || empty($items[1])) {
-            array_push($result, array('name' => "/", 'path' => "/"));
-            $_SESSION['omero_tag'] = "";
-            $_SESSION['omero_project'] = "";
-            $_SESSION['omero_dataset'] = "";
-            $_SESSION['omero_tagset'] = "";
-            $_SESSION['$omero_search_text'] = "";
+        // clean current value sessions
+        // when a new navigation path starts
+        if (PathUtils::is_root_path($path) ||
+            PathUtils::is_projects_root($path) ||
+            PathUtils::is_annotations_root($path)
+        ) {
+            // invalidate current session values
+            $cache->delete_many(
+                array(
+                    self::OMERO_ANNOTATION_QUERY_KEY,
+                    self::OMERO_TAGSET_KEY,
+                    self::OMERO_PROJECT_KEY,
+                    self::OMERO_DATASET_KEY
+                )
+            );
+            // invalidate the annotation_query parameter
+            $annotations_query = false;
+        }
 
-        } else if ($items[1] == "projects") {
-            array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Projects", 'path' => "/projects"));
-            $_SESSION['omero_tag'] = "";
-            $_SESSION['omero_project'] = "";
-            $_SESSION['omero_dataset'] = "";
-            $_SESSION['omero_tagset'] = "";
-            $_SESSION['$omero_search_text'] = "";
+        // adds the root
+        array_push($result, array('name' => "/", 'path' => "/"));
 
-        } else if ($items[1] == "get" && $items[2] == "annotations") {
-            array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Tags", 'path' => "/get/annotations/"));
-            if ($search_text) {
-                array_push($result, array('name' => $search_text, 'path' => "/tag/$search_text"));
-                $_SESSION['$omero_search_text'] = $search_text;
+        if ($annotations_query) {
+            if ($annotations_query) {
+                array_push($result, array(
+                        'name' => "Query: $annotations_query",
+                        'path' => PathUtils::build_find_annotations_url($annotations_query))
+                );
+                $_SESSION['$omero_search_text'] = $annotations_query;
             }
+        }
 
-            $_SESSION['omero_tag'] = "";
-            $_SESSION['omero_project'] = "";
-            $_SESSION['omero_dataset'] = "";
-            $_SESSION['omero_tagset'] = "";
-            $_SESSION['$omero_search_text'] = "";
+        if (PathUtils::is_annotations_root($path)) {
+            if (!$annotations_query)
+                array_push($result, array('name' => "Tags", 'path' => PathUtils::build_annotation_list_url()));
 
-        } else if ($items[1] == "get" && $items[2] == "tags") {
-            array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Tags", 'path' => "/get/annotations"));
-            array_push($result, array('name' => "TagSet: " . $items[3], 'path' => "/get/tags/$items[3]"));
-            if ($search_text) {
-                array_push($result, array('name' => $search_text, 'path' => "/tag/$search_text"));
-                $_SESSION['$omero_search_text'] = $search_text;
-            }
-            $_SESSION['omero_tagset'] = $items[3];
-            $_SESSION['omero_tag'] = "";
-            $_SESSION['omero_project'] = "";
-            $_SESSION['omero_dataset'] = "";
-            $_SESSION['$omero_search_text'] = "";
+        } else if (PathUtils::is_tagset_root($path)) {
+            if (!$annotations_query)
+                array_push($result, array('name' => "Tags", 'path' => PathUtils::build_annotation_list_url()));
+            array_push($result, array(
+                    'name' => $this->format_navbar_element_name("TagSet", $obj_info->value, $obj_info->id),
+                    'path' => PathUtils::build_tagset_deatails_url($obj_info->id)
+                )
+            );
+            $cache->set(self::OMERO_TAGSET_KEY, $obj_info);
 
-        } else if ($items[1] == "find" && $items[2] == "annotations") {
-            array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Tags", 'path' => "/get/annotations"));
-            //FIXME: $omero_search_text seems to be always empty!!!
-            if (isset($omero_search_text) && !empty($omero_search_text)) {
-                array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
-            }
-            $_SESSION['omero_project'] = "";
-            $_SESSION['omero_dataset'] = "";
-            $_SESSION['omero_tag'] = $path;
-
-        } else if ($items[1] == "get" && $items[2] == "imgs_by_tag") {
-            array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Tags", 'path' => "/get/annotations"));
+        } else if (PathUtils::is_tag($path)) {
+            if (!$annotations_query)
+                array_push($result, array('name' => "Tags", 'path' => PathUtils::build_annotation_list_url()));
             if (isset($omero_tagset) && !empty($omero_tagset)) {
-                array_push($result, array('name' => "TagSet: " . $omero_tagset,
-                    'path' => "/get/tags/$omero_tagset"));
+                array_push($result, array(
+                        'name' => $this->format_navbar_element_name("TagSet", $omero_tagset->value, $omero_tagset->id),
+                        'path' => PathUtils::build_tagset_deatails_url($omero_tagset->id)
+                    )
+                );
             }
-            //FIXME: $omero_search_text seems to be always empty!!!
-            if (isset($omero_search_text) && !empty($omero_search_text)) {
-                array_push($result, array('name' => $omero_search_text, 'path' => "/get/imgs_by_tag/$omero_search_text"));
-            }
-            array_push($result, array('name' => "Tag: " . $items[3], 'path' => $path));
-            $_SESSION['omero_project'] = "";
-            $_SESSION['omero_dataset'] = "";
-            $_SESSION['omero_tag'] = $path;
+            array_push($result, array(
+                    'name' => $this->format_navbar_element_name("Tag", $obj_info->value, $obj_info->id),
+                    'path' => $path
+                )
+            );
 
-        } else if ($items[1] == "proj") {
-            array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Projects", 'path' => "/projects"));
-            array_push($result, array(
-                    'name' => "Project [" . get_omero_item_id_from_url($path) . "]",
-                    'path' => $path)
-            );
-            $_SESSION['omero_project'] = $path;
+        } else if (PathUtils::is_projects_root($path)) {
+            array_push($result, array('name' => "Projects", 'path' => PathUtils::build_project_list_url()));
 
-        } else if ($items[1] == "dataset") {
-            array_push($result, array('name' => "/", 'path' => "/"));
-            array_push($result, array('name' => "Projects", 'path' => "/projects"));
+        } else if (PathUtils::is_project($path)) {
+            $omero_project = $obj_info;
+            $cache->set(self::OMERO_PROJECT_KEY, $omero_project);
+            array_push($result, array('name' => "Projects", 'path' => PathUtils::build_project_list_url()));
             array_push($result, array(
-                    'name' => "Project [" . get_omero_item_id_from_url($omero_project) . "]",
-                    'path' => $omero_project)
+                    'name' => $this->format_navbar_element_name("Project", $omero_project->name, $omero_project->id),
+                    'path' => PathUtils::build_project_detail_url($omero_project->id))
+            );
+
+        } else if (PathUtils::is_dataset($path)) {
+            $omero_dataset = $obj_info;
+            $cache->set(self::OMERO_DATASET_KEY, $omero_dataset);
+            array_push($result, array('name' => "Projects", 'path' => PathUtils::build_project_list_url()));
+            array_push($result, array(
+                    'name' => $this->format_navbar_element_name("Project", $omero_project->name, $omero_project->id),
+                    'path' => PathUtils::build_project_detail_url($omero_project->id))
             );
             array_push($result, array(
-                    'name' => "DataSet [" . get_omero_item_id_from_url($path) . "]",
-                    'path' => $path)
+                    'name' => $this->format_navbar_element_name("Dataset", $omero_dataset->name, $omero_dataset->id),
+                    'path' => PathUtils::build_dataset_detail_url($omero_dataset->id))
             );
-            $_SESSION['omero_dataset'] = $path;
         }
 
         return $result;
