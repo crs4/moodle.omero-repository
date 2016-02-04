@@ -407,8 +407,10 @@ class repository_omero extends repository
     /**
      * Builds the navigation bar
      */
-    public function build_navigation_bar($result, $path, $obj_info, $annotations_query = false)
+    public function build_navigation_bar($result, $path, $obj_info = null, $annotations_query = false)
     {
+        debugging("BUILDING NAVIGATION BAR: $path");
+
         // alias for the 'requests' cache
         $cache = $this->requests;
 
@@ -440,6 +442,7 @@ class repository_omero extends repository
         // adds the root
         array_push($result, array('name' => "/", 'path' => "/"));
 
+        // Query reference
         if ($annotations_query) {
             if ($annotations_query) {
                 array_push($result, array(
@@ -450,6 +453,7 @@ class repository_omero extends repository
             }
         }
 
+        // process remaining elements by type
         if (PathUtils::is_annotations_root($path)) {
             if (!$annotations_query)
                 array_push($result, array('name' => "Tags", 'path' => PathUtils::build_annotation_list_url()));
