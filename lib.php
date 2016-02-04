@@ -83,6 +83,7 @@ class repository_omero extends repository
     const OMERO_PROJECT_KEY = "omero_project";
     const OMERO_DATASET_KEY = "omero_dataset";
     const OMERO_ANNOTATION_QUERY_KEY = "omero_annotation_query";
+    const OMERO_LAST_QUERY_KEY = "omero_last_query_key";
 
 
     /**
