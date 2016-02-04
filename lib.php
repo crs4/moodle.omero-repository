@@ -227,40 +227,45 @@ class repository_omero extends repository
      * @param null $search_text
      * @return array
      */
-    public function get_listing($path = '', $page = '1', $search_text = null)
+    public function get_listing($path = '/', $page = '1', $search_text = null)
     {
         global $CFG, $OUTPUT;
 
         // format the current selected URL
-        if (empty($path) || $path == '/') {
+        if (empty($path)) {
             $path = '/';
-        } else {
-            $path = file_correct_filepath($path);
         }
-        $encoded_path = str_replace("%2F", "/", rawurlencode($path));
 
         // Initializes the data structures needed to build the response
         $list = array();
         $list['list'] = array();
-        $list['manage'] = 'https://www.omero.com/home';
+        $list['manage'] = get_config('omero', 'omero_restendpoint');
         $list['dynload'] = true;
         $list['nologin'] = true;
         $list['search_query'] = $search_text;
-        #$list['logouturl'] = 'https://www.omero.com/logout';
-        #$list['message'] = get_string('logoutdesc', 'repository_omero');
 
+        // Check whether the current path has been already selected:
+        // if the 'lastPath' is equal to 'path' then the corresponding
+        // cached value will be removed !!!
+        if (strcmp($this->requests->get("lastPath"), $path) === 0) {
+            $this->requests->delete(urlencode($path));
+            debugging("Cleaning cache");
+        }
+
+        // Updated the last path
+        $this->requests->set("lastPath", $path);
 
         // Host the navigation links
         $navigation_list = array();
-
 
         // Enable/Disable the search field
         $list['nosearch'] = false;
 
         // process search request
-        if (isset($search_text)) {
-            $response = $this->omero->process_search($search_text,
-                $this->access_key, $this->access_secret);
+        if (isset($search_text) || PathUtils::is_annotations_query($path)) {
+            if (isset($search_text))
+                $response = $this->omero->process_search($search_text, $this->access_key, $this->access_secret);
+            else $response = $this->process_request($path);
 
             foreach ($response as $item) {
                 $itype = "Tag";
@@ -275,7 +280,7 @@ class repository_omero extends repository
             $list['issearchresult'] = true;
 
             // Build the navigation bar
-            $list['path'] = $this->build_navigation_from_url($navigation_list, "/find/annotations", $search_text);
+            $list['path'] = $this->build_navigation_bar($navigation_list, "/find/annotations", "", $search_text);
 
         } else {
 
@@ -283,31 +288,24 @@ class repository_omero extends repository
             $list['issearchresult'] = false;
 
             // Build the navigation bar
-            $list['path'] = $this->build_navigation_from_url($navigation_list, $path);
+            $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
             if (PathUtils::is_root_path($path)) {
                 $list['list'][] = $this->process_list_item("ProjectRoot", (object)$this->PROJECTS_ROOT_ITEM);
                 $list['list'][] = $this->process_list_item("TagRoot", (object)$this->TAGS_ROOT_ITEM);
 
             } else if (PathUtils::is_projects_root($path)) {
-                $this->logger->debug("The root project path has been selected !!!");
-
-                $response = $this->omero->process_request(PathUtils::build_project_list_url(),
-                    $this->access_key, $this->access_secret);
-
+                debugging("The root project path has been selected !!!");
+                $response = $this->process_request(PathUtils::build_project_list_url());
                 foreach ($response as $item) {
                     $obj = $this->process_list_item("Project", $item);
                     if ($obj != null)
                         $list['list'][] = $obj;
                 }
 
-            } else if (PathUtils::is_tags_root($path)) {
-                $this->logger->debug("The root tag path has been selected !!!");
-
-                // TODO: replace the real call
-                $response = $this->omero->process_request(PathUtils::build_tag_list_url(),
-                    $this->access_key, $this->access_secret);
-
+            } else if (PathUtils::is_annotations_root($path)) {
+                debugging("The root tag path has been selected !!!");
+                $response = $this->process_request(PathUtils::build_annotation_list_url());
                 foreach ($response as $item) {
                     $itype = "Tag";
                     if (strcmp($item->type, "tagset") == 0)
@@ -319,13 +317,10 @@ class repository_omero extends repository
                 }
 
             } else if (PathUtils::is_tagset_root($path)) {
-                $this->logger->debug("The tagset root path has been selected !!!");
-
-                // TODO: replace the real call
-                $response = $this->omero->process_request($path,
-                    $this->access_key, $this->access_secret);
-
-                foreach ($response as $item) {
+                debugging("The tagset root path has been selected: $path !!!");
+                $response = $this->process_request($path);
+                $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
+                foreach ($response->tags as $item) {
                     $obj = $this->process_list_item("Tag", $item);
                     if ($obj != null) {
                         $list['list'][] = $obj;
@@ -334,51 +329,44 @@ class repository_omero extends repository
 
             } else {
 
-                $selected_obj_info = $this->omero->process_request($path, $this->access_key, $this->access_secret);
-
                 if (PathUtils::is_tag($path)) {
-                    $this->logger->debug("Tag selected!!!");
+                    debugging("Tag selected: $path!!!");
+                    $selected_obj_info = $this->process_request($path);
                     $response = $selected_obj_info;
-                    foreach ($response as $item) {
+                    $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
+                    foreach ($response->images as $item) {
                         $obj = $this->process_list_item("Image", $item);
                         if ($obj != null)
                             $list['list'][] = $obj;
                     }
 
-                } else if ($this->is_project($selected_obj_info)) {
-
-                    $this->logger->debug("Project selected!!!");
-                    $response = $this->omero->process_request(
-                        PathUtils::build_dataset_list_url($selected_obj_info->id),
-                        $this->access_key, $this->access_secret);
-                    foreach ($response as $item) {
-                        $obj = $this->process_list_item("Dataset", $item);
-                        if ($obj != null)
-                            $list['list'][] = $obj;
+                } else if (PathUtils::is_project($path)) {
+                    $project_id = PathUtils::get_element_id_from_url($path, "project");
+                    $response = $this->process_request(PathUtils::build_dataset_list_url($project_id));
+                    $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
+                    if (isset($response->datasets)) {
+                        foreach ($response->datasets as $item) {
+                            $obj = $this->process_list_item("Dataset", $item);
+                            if ($obj != null)
+                                $list['list'][] = $obj;
+                        }
                     }
 
-                } else if ($this->is_dataset($selected_obj_info)) {
-
-                    $this->logger->debug("Dataset selected!!!");
-                    $response = $this->omero->process_request(
-                        PathUtils::build_image_list_url($selected_obj_info->id),
-                        $this->access_key, $this->access_secret);
-
-                    if (self::ENABLE_PAGINATION) {
-                        
+                } else if (PathUtils::is_dataset($path)) {
+                    debugging("Dataset selected!!!");
+                    $response = $this->process_request($path);
+                    $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
+                    if ($this->ENABLE_PAGINATION) {
                         if (empty($page))
                             $page = 1;
                         else $page = ((int)$page);
-
                         $num_images_per_page = 12;
                         $list['page'] = $page;
                         $list['pages'] = 1;
                         if (count($response) > 12)
                             $list['pages'] = 1 + ceil((count($response) - 12) / $num_images_per_page);
-
                         $last = $page == 1 ? 12 : $page * $num_images_per_page;
                         $first = $last - ($page == 1 ? 12 : $num_images_per_page);
-
                         $counter = 0;
                         foreach ($response as $item) {
                             if ($counter == $last) break;
@@ -396,7 +384,7 @@ class repository_omero extends repository
 
                     } else {
                         $list['pages'] = 1;
-                        foreach ($response as $item) {
+                        foreach ($response->images as $item) {
                             $processed_item = $this->process_list_item("Image", $item);
                             if ($processed_item != null) {
                                 $list['list'][] = $processed_item;
@@ -405,15 +393,8 @@ class repository_omero extends repository
                         return $list;
                     }
 
-                } else if ($this->is_image($selected_obj_info)) {
-
-                    $this->logger->debug("Image selected!!!");
-                    $response = $this->omero->process_request(
-                        PathUtils::build_image_detail($selected_obj_info->id),
-                        $this->access_key, $this->access_secret);
-
                 } else {
-                    $this->logger->debug("Unknown resource selected: $path !!!: ");
+                    debugging("Unknown resource selected: $path !!!: ");
                 }
             }
         }
