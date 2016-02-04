@@ -64,6 +64,7 @@ class repository_omero extends repository
 
     /** @var array Projects root */
     private $PROJECTS_ROOT_ITEM = array(
+        "id" => "0",
         "name" => "projects",
         "type" => "projects",
         "path" => "/projects"
@@ -71,6 +72,7 @@ class repository_omero extends repository
 
     /** @var array Tagsets root */
     private $TAGS_ROOT_ITEM = array(
+        "id" => "0",
         "name" => "tags",
         "type" => "tags",
         "path" => "/tags"
