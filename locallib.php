@@ -155,13 +155,6 @@ class omero extends oauth_helper
     }
 
 
-    public function get_thumbnail_url($image_id)
-    {
-        // TODO: is it better to use the ome-seadragon function ?
-        return $this->omero_api . '/webgateway' . PathUtils::build_image_thumbnail_url($image_id);
-        //return $this->omero_api . '/ome_seadragon/deepzoom/get/thumbnail/' . $image_id . ".dzi?height=100&width=100";
-    }
-
     /**
      * Downloads a file from omero and saves it locally
      *
@@ -330,44 +323,4 @@ function repository_omero_cron()
     foreach ($instances as $instance) {
         $instance->cron();
     }
-}
-
-
-/**
- * String utility function: check whether a string 'haystack' starts with the string 'needle' or not
- * @param $haystack
- * @param $needle
- * @return bool
- */
-function startsWith($haystack, $needle)
-{
-    // search backwards starting from haystack length characters from the end
-    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
-}
-
-/**
- * String utility function: check whether a string 'haystack' ends with the string 'needle' or not
- * @param $haystack
- * @param $needle
- * @return bool
- */
-function endsWith($haystack, $needle)
-{
-    // search forward starting from end minus needle length characters
-    return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
-}
-
-/**
- * Return the ID of the object which the '$url' is related to
- * @param $url
- * @return int
- */
-function get_omero_item_id_from_url($url)
-{
-    $result = -1;
-    $parts = split("/", $url);
-    if (count($parts) > 2) {
-        return $parts[2];
-    }
-    return $result;
 }
