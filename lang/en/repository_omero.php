@@ -31,9 +31,13 @@ $string['apikey'] = 'omero API key';
 $string['omero'] = 'omero';
 $string['secret'] = 'omero secret';
 $string['instruction'] = 'You can get your API Key and secret from <a href="http://www.omero.com/developers/apps">omero developers</a>. When setting up your key please select "Full omero" as the "Access level".';
-$string['cachelimit'] = 'Cache limit';
-$string['cachelimit_info'] = 'Enter the maximum size of files (in bytes) to be cached on server for omero aliases/shortcuts. Cached files will be served when the source is no longer available. Empty value or zero mean caching of all files regardless of size.';
 $string['omero:view'] = 'View a omero folder';
 $string['logoutdesc'] = '(Logout when you finish using omero)';
 $string['current_image'] = "Current image";
 $string['choose_image'] = "Choose an image";
+# cache settings
+$string['cachelimit'] = 'Cache limit';
+$string['cachelimit_info'] = 'Enter the maximum size of files (in bytes) to be cached on server for omero aliases/shortcuts. Cached files will be served when the source is no longer available. Empty value or zero mean caching of all files regardless of size.';
+# cache description
+$string['cachedef_repository_info_cache'] = "Session cache for queries to the OmeSeadraon Rest API";
+$string['cachedef_thumbnail_cache'] = "Application cache to optimize retrieval of omeseadragon thumbnails";
