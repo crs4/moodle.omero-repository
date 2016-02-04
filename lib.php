@@ -290,12 +290,12 @@ class repository_omero extends repository
             // true if the list is a search result
             $list['issearchresult'] = false;
 
-            // Build the navigation bar
-            $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
             if (PathUtils::is_root_path($path)) {
                 $list['list'][] = $this->process_list_item("ProjectRoot", (object)$this->PROJECTS_ROOT_ITEM);
                 $list['list'][] = $this->process_list_item("TagRoot", (object)$this->TAGS_ROOT_ITEM);
+                // Build the navigation bar
+                $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
             } else if (PathUtils::is_projects_root($path)) {
                 debugging("The root project path has been selected !!!");
@@ -305,6 +305,8 @@ class repository_omero extends repository
                     if ($obj != null)
                         $list['list'][] = $obj;
                 }
+                // Build the navigation bar
+                $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
             } else if (PathUtils::is_annotations_root($path)) {
                 debugging("The root tag path has been selected !!!");
@@ -318,17 +320,20 @@ class repository_omero extends repository
                         $list['list'][] = $obj;
                     }
                 }
+                // Build the navigation bar
+                $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
             } else if (PathUtils::is_tagset_root($path)) {
                 debugging("The tagset root path has been selected: $path !!!");
                 $response = $this->process_request($path);
-                $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
                 foreach ($response->tags as $item) {
                     $obj = $this->process_list_item("Tag", $item);
                     if ($obj != null) {
                         $list['list'][] = $obj;
                     }
                 }
+                // Build the navigation bar
+                $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
 
             } else {
 
@@ -336,17 +341,17 @@ class repository_omero extends repository
                     debugging("Tag selected: $path!!!");
                     $selected_obj_info = $this->process_request($path);
                     $response = $selected_obj_info;
-                    $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
                     foreach ($response->images as $item) {
                         $obj = $this->process_list_item("Image", $item);
                         if ($obj != null)
                             $list['list'][] = $obj;
                     }
+                    // Build the navigation bar
+                    $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
 
                 } else if (PathUtils::is_project($path)) {
                     $project_id = PathUtils::get_element_id_from_url($path, "project");
                     $response = $this->process_request(PathUtils::build_dataset_list_url($project_id));
-                    $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
                     if (isset($response->datasets)) {
                         foreach ($response->datasets as $item) {
                             $obj = $this->process_list_item("Dataset", $item);
@@ -354,11 +359,15 @@ class repository_omero extends repository
                                 $list['list'][] = $obj;
                         }
                     }
+                    // Build the navigation bar
+                    $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
 
                 } else if (PathUtils::is_dataset($path)) {
                     debugging("Dataset selected!!!");
                     $response = $this->process_request($path);
+                    // Build the navigation bar
                     $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
+                    // process images
                     if ($this->ENABLE_PAGINATION) {
                         if (empty($page))
                             $page = 1;
