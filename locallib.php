@@ -26,7 +26,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/oauthlib.php');
-require_once(dirname(__FILE__) . '/logger.php');
 
 /**
  * Authentication class to access omero API
@@ -54,7 +53,6 @@ class omero extends oauth_helper
         parent::__construct($options);
         $this->omero_api = get_config('omero', 'omero_restendpoint');
         $this->omero_content_api = get_config('omero', 'omero_restendpoint');
-        $this->logger = new Logger("omero-local-lib");
     }
 
     /**
