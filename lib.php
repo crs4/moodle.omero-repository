@@ -43,40 +43,53 @@ class repository_omero extends repository
 
     /** @var array files */
     public $files;
+
     /** @var bool flag of login status */
     public $logged = false;
+
     /** @var int maximum size of file to cache in moodle filepool */
     public $cachelimit = null;
 
     /** @var int cached file ttl */
     private $cachedfilettl = null;
 
-    /** item blacklist */
+    /** projects and datasets filter */
     private $item_black_list = array(
         "Atlante", "Melanomi e nevi", "slide_seminar_CAAP2015",
         "2015-08-11", "TEST"
     );
 
-    const ENABLE_PAGINATION = false;
+    /** @var bool enable/disable pagination */
+    private $ENABLE_PAGINATION = false;
 
+    /** @var array Projects root */
     private $PROJECTS_ROOT_ITEM = array(
         "name" => "projects",
         "type" => "projects",
         "path" => "/projects"
     );
 
+    /** @var array Tagsets root */
     private $TAGS_ROOT_ITEM = array(
         "name" => "tags",
         "type" => "tags",
         "path" => "/tags"
     );
 
+    // Session keys
+    const OMERO_TAGSET_KEY = "omero_tagset";
+    const OMERO_PROJECT_KEY = "omero_project";
+    const OMERO_DATASET_KEY = "omero_dataset";
+    const OMERO_ANNOTATION_QUERY_KEY = "omero_annotation_query";
+
+
     /**
      * Constructor of omero plugin
      *
      * @param int $repositoryid
-     * @param stdClass $context
+     * @param bool|int|stdClass $context
      * @param array $options
+     * @throws coding_exception
      */
     public function __construct($repositoryid, $context = SYSCONTEXTID, $options = array())
     {
