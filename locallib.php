@@ -88,10 +88,15 @@ class omero extends oauth_helper
     }
 
 
+    /**
+     * @param $search_text
+     * @param string $token
+     * @param string $secret
+     * @return mixed
+     */
     public function process_search($search_text, $token = '', $secret = '')
     {
-        // FIXME: replace the explicit URL with a factory method
-        $url = $this->omero_api . "/ome_seadragon/find/annotations?query=$search_text";
+        $url = $this->omero_api . "/ome_seadragon" . PathUtils::build_find_annotations_url($search_text);
         $content = $this->get($url, array(), $token, $secret);
         $data = json_decode($content);
         return $data;
