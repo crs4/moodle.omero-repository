@@ -73,19 +73,22 @@ class omero extends oauth_helper
     }
 
     /**
-     * Get file listing from omero
+     * Process request
      *
      * @param string $path
+     * @param bool $decode
      * @param string $token
      * @param string $secret
-     * @return array
+     * @return mixed
      */
-    public function process_request($path = '/', $token = '', $secret = '')
+    public function process_request($path = '/', $decode = true, $token = '', $secret = '')
     {
+        debugging("PROCESSING REQUEST: $path - decode: $decode");
         $url = $this->omero_api . "/ome_seadragon" . $path;
         $response = $this->get($url, array(), $token, $secret);
-        $data = json_decode($response);
-        return $data;
+        $result = $decode ? json_decode($response) : $response;
+        debugging("PROCESSING REQUEST OK");
+        return $result;
     }
 
 
@@ -162,7 +165,7 @@ class omero extends oauth_helper
      */
     public function get_file($filepath, $saveas, $timeout = 0)
     {
-        $url = $this->omero_content_api . '/files/' . $this->mode . $this->prepare_filepath($filepath);
+        $url = $this->omero_api . '/files/' . $this->mode . $this->prepare_filepath($filepath);
         if (!($fp = fopen($saveas, 'w'))) {
             throw new moodle_exception('cannotwritefile', 'error', '', $saveas);
         }
@@ -271,7 +274,8 @@ class PathUtils
         return "/get/annotations";
     }
 
-    public static function build_find_annotations_url($query){
+    public static function build_find_annotations_url($query)
+    {
         return "/find/annotations?query=$query";
     }
 
@@ -305,7 +309,7 @@ class PathUtils
         return "/get/image/$image_id?rois=$rois";
     }
 
-    public static function build_image_thumbnail_url($image_id, $lastUpdate, $height=128, $width=128)
+    public static function build_image_thumbnail_url($image_id, $lastUpdate, $height = 128, $width = 128)
     {
         global $CFG;
         return "$CFG->wwwroot/repository/omero/thumbnail.php?id=$image_id&lastUpdate=$lastUpdate&height=$height&width=$width";
