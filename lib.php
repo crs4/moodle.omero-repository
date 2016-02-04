@@ -37,6 +37,10 @@ class repository_omero extends repository
 {
     /** @var omero the instance of omero client */
     private $omero;
+
+    /** @var cache_session */
+    private $requests;
+
     /** @var array files */
     public $files;
     /** @var bool flag of login status */
@@ -129,6 +133,9 @@ class repository_omero extends repository
 
         $this->logger = new Logger("omero-lib");
         $this->omero = new omero($args);
+
+        // set cache references
+        $this->requests = cache::make('repository_omero', 'repository_info_cache');
     }
 
     /**
