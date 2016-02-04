@@ -247,17 +247,6 @@ class repository_omero extends repository
         $list['nologin'] = true;
         $list['search_query'] = $search_text;
 
-        // Check whether the current path has been already selected:
-        // if the 'lastPath' is equal to 'path' then the corresponding
-        // cached value will be removed !!!
-        if (strcmp($this->requests->get("lastPath"), $path) === 0) {
-            $this->requests->delete(urlencode($path));
-            debugging("Cleaning cache");
-        }
-
-        // Updated the last path
-        $this->requests->set("lastPath", $path);
-
         // Host the navigation links
         $navigation_list = array();
 
@@ -535,18 +524,35 @@ class repository_omero extends repository
     /**
      * Process a request (with cache support)
      *
-     * @param $path
+     * @param $url
      * @return array|false|mixed
      */
-    private function process_request($path)
+    private function process_request($url)
     {
-        $key = urlencode($path);
+        debugging("Processing request: $url");
+
+        // cache key
+        $key = urlencode($url);
+
+        // check whether the current path has been already selected:
+        // if the 'lastPath' is equal to 'path' then the corresponding
+        // cached value will be removed !!!
+        if (strcmp($this->requests->get(self::OMERO_LAST_QUERY_KEY), $url) === 0) {
+            $this->requests->delete($key);
+            debugging("Cleaning cache: " . "$url -- " . $key);
+        }
+
+        // store the last query URL
+        $this->requests->set(self::OMERO_LAST_QUERY_KEY, $url);
+
+        // check whether the request is in cache and process it otherwise
         $response = $this->requests->get($key);
         if (!$response) {
-            debugging("Getting data from the SERVER: $path");
-            $response = $this->omero->process_request($path, $this->access_key, $this->access_secret);
+            debugging("Getting data from the SERVER: $url");
+            $response = $this->omero->process_request($url, true, $this->access_key, $this->access_secret);
             $this->requests->set($key, $response);
-        } else debugging("Getting data from the CACHE: $path");
+            debugging("RESPONSE IS OBJECT: " . (is_object($response) ? "OK" : "NO"));
+        } else debugging("Getting data from the CACHE: $url");
         return $response;
     }
 
