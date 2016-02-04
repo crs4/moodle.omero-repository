@@ -144,7 +144,7 @@ class repository_omero extends repository
             'api_root' => $this->omero_restendpoint,
         );
 
-        $this->logger = new Logger("omero-lib");
+        // instantiate the omero client
         $this->omero = new omero($args);
 
         // set cache references
