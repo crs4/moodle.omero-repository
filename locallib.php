@@ -43,32 +43,33 @@ class omero extends oauth_helper
     /** @var string omero content api url */
     private $omero_content_api;
 
+
     /**
      * Constructor for omero class
      *
      * @param array $options
      */
-    function __construct($options)
+    function __construct($options = array())
     {
-        parent::__construct($options);
+        parent::__construct($this->get_config($options));
         $this->omero_api = get_config('omero', 'omero_restendpoint');
-        $this->omero_content_api = get_config('omero', 'omero_restendpoint');
     }
 
     /**
-     * Get file listing from omero
-     *
-     * @param string $path
-     * @param string $token
-     * @param string $secret
+     * Returns the configuration merging default values with client definded
+     * @param $options
      * @return array
+     * @throws dml_exception
      */
-    public function get_listing($path = '/', $token = '', $secret = '')
+    private function get_config($options)
     {
-        $url = $this->omero_api . $path;
-        $content = $this->get($url, array(), $token, $secret);
-        $data = json_decode($content);
-        return $data;
+        // TODO: update the default settings
+        return array_merge(array(
+            "oauth_consumer_key" => get_config('omero', "omero_key"),
+            "oauth_consumer_secret" => get_config('omero', "omero_secret"),
+            "access_token" => "omero",
+            "access_token_secret" => "omero"
+        ), $options);
     }
 
     /**
