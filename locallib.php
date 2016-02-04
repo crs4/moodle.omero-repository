@@ -217,88 +217,99 @@ class PathUtils
 
     public static function is_projects_root($path)
     {
-        return !strcmp($path, "/projects/");
+        return preg_match("/get\/projects/", $path);
     }
 
-    public static function is_tags_root($path)
+    public static function is_annotations_root($path)
     {
-        return !strcmp($path, "/get/annotations/");
+        return preg_match("/get\/annotations/", $path);
     }
 
     public static function is_tagset_root($path)
     {
-        //return !strcmp($path, "/get/tags/");
-        return preg_match("/get\/tags\/(\d+)\//", $path);
+        return preg_match("/get\/tagset\/(\d+)/", $path);
     }
 
     public static function is_tag($path)
     {
-        return preg_match("/get\/imgs_by_tag\/(\d+)\//", $path);
+        return preg_match("/get\/tag\/(\d+)/", $path);
     }
 
     public static function is_project($path)
     {
-        return preg_match("/proj\/(\d+)\/detail/", $path);
+        return preg_match("/get\/project\/(\d+)/", $path);
     }
 
     public static function is_dataset($path)
     {
-        return preg_match("/dataset\/(\d+)\/detail/", $path);
+        return preg_match("/get\/dataset\/(\d+)/", $path);
     }
 
     public static function is_image_file($path)
     {
-        return preg_match("/imgData\/(\d+)/", $path);
+        return preg_match("/get\/image/\/(\d+)/", $path);
+    }
+
+    public static function is_annotations_query($path)
+    {
+        return preg_match("/find\/annotations/", $path);
     }
 
     public static function build_project_list_url()
     {
-        return "/proj/list/";
+        return "/get/projects";
     }
 
-    public static function build_tag_list_url()
+    public static function build_annotation_list_url()
     {
-        return "/get/annotations/";
+        return "/get/annotations";
     }
 
-    public static function build_tagset_tag_list_url($tagset_id)
+    public static function build_find_annotations_url($query){
+        return "/find/annotations?query=$query";
+    }
+
+    public static function build_tagset_deatails_url($tagset_id, $tags = true)
     {
-        return "/get/tags/$tagset_id/";
+        return "/get/tagset/$tagset_id?tags=$tags";
     }
 
     public static function build_tag_detail_url($tag_id)
     {
-        return "/get/imgs_by_tag/$tag_id";
+        return "/get/tag/$tag_id?images=true";
     }
 
     public static function build_project_detail_url($project_id)
     {
-        return "/proj/$project_id/detail";
+        return "/get/project/$project_id";
     }
 
-    public static function build_dataset_list_url($project_id)
+    public static function build_dataset_list_url($project_id, $datasets = true)
     {
-        return "/proj/$project_id/children";
+        return "/get/project/$project_id?datasets=$datasets";
     }
 
-    public static function build_dataset_detail_url($dataset_id)
+    public static function build_dataset_detail_url($dataset_id, $images = true)
     {
-        return "/dataset/$dataset_id/detail";
+        return "/get/dataset/$dataset_id?images=$images";
     }
 
-    public static function build_image_detail_url($image_id)
+    public static function build_image_detail_url($image_id, $rois = true)
     {
-        return "/imgData/$image_id";
+        return "/get/image/$image_id?rois=$rois";
     }
 
-    public static function build_image_thumbnail_url($image_id)
+    public static function build_image_thumbnail_url($image_id, $lastUpdate, $height=128, $width=128)
     {
-        return "/render_thumbnail/$image_id";
+        global $CFG;
+        return "$CFG->wwwroot/repository/omero/thumbnail.php?id=$image_id&lastUpdate=$lastUpdate&height=$height&width=$width";
     }
 
-    public static function build_image_list_url($dataset_id)
+    public static function get_element_id_from_url($url, $element_name)
     {
-        return "/dataset/$dataset_id/children";
+        if (preg_match("/$element_name\/(\d+)/", $url, $matches))
+            return $matches[1];
+        return null;
     }
 }
 
