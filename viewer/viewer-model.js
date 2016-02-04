@@ -93,8 +93,8 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
         //url: this._image_server + "/webgateway/get_rois_json/" + this._image_id,
         url: this._image_server + "/ome_seadragon/get/image/" + this._image_id,
 
-        // The name of the callback parameter, as specified by the YQL service
-        jsonp: "callback",
+        //// The name of the callback parameter, as specified by the YQL service
+        //jsonp: "callback",
 
         // Tell jQuery we're expecting JSONP
         dataType: "json",
