@@ -25,7 +25,6 @@
  */
 require_once($CFG->dirroot . '/repository/lib.php');
 require_once(dirname(__FILE__) . '/locallib.php');
-require_once(dirname(__FILE__) . '/logger.php');
 
 /**
  * Repository to access omero files
@@ -47,9 +46,6 @@ class repository_omero extends repository
 
     /** @var int cached file ttl */
     private $cachedfilettl = null;
-
-    /** @var Logger */
-    private $logger = null;
 
     /** item blacklist */
     private $item_black_list = array(
@@ -654,9 +650,8 @@ class repository_omero extends repository
      */
     public function send_thumbnail($source)
     {
-        $this->logger->debug("#### send_thumbnail");
-
         global $CFG;
+        debugging("#### send_thumbnail");
         $saveas = $this->prepare_file('');
         try {
             $access_key = get_user_preferences($this->setting . '_access_key', '');
@@ -820,8 +815,7 @@ class repository_omero extends repository
      */
     public function get_file($reference, $saveas = '')
     {
-
-        $this->logger->debug("### get_file ###");
+        debugging("### get_file ###");
 
         global $CFG;
         $ref = unserialize($reference);
@@ -929,7 +923,7 @@ class repository_omero extends repository
     {
         global $CFG;
 
-        $this->logger->debug("get_link called: : $reference !!!");
+        debugging("get_link called: : $reference !!!");
 
         $ref = unserialize($reference);
         if (!isset($ref->url)) {
@@ -940,7 +934,7 @@ class repository_omero extends repository
         $image_id = preg_replace("/\/render_thumbnail\/(\d+)/", "$1", $ref->path);
         //$res = $this->omero->get_thumbnail_url($image_id);
         $res = "/omero-image-repository/$image_id";
-        $this->logger->debug("RES: " . $res);
+        debugging("RES: " . $res);
         return $res;
     }
 
@@ -952,7 +946,7 @@ class repository_omero extends repository
      */
     public function get_file_reference($source)
     {
-        $this->logger->debug("---> Calling 'get_file_reference' <---");
+        debugging("---> Calling 'get_file_reference' <---");
 
         global $USER, $CFG;
         $reference = new stdClass;
@@ -967,14 +961,14 @@ class repository_omero extends repository
         // only in case of reference we analyze the script parameter
         $usefilereference = optional_param('usefilereference', false, PARAM_BOOL);
         if ($usefilereference) {
-            $this->logger->debug("Computing reference: $usefilereference");
+            debugging("Computing reference: $usefilereference");
             $this->omero->set_access_token($reference->access_key, $reference->access_secret);
             $url = $this->omero->get_file_share_link($source, $CFG->repositorygetfiletimeout);
             if ($url) {
                 unset($reference->access_key);
                 unset($reference->access_secret);
-                $reference->url = "$this->omero_restendpoint/webclient/img_detail/$source"; // FIXME: static URL
-                $this->logger->debug("Computed reference: " . $reference->url);
+                $reference->url = PathUtils::build_image_detail_url($source);
+                debugging("Computed reference: " . $reference->url);
             }
         }
         return serialize($reference);
@@ -982,10 +976,8 @@ class repository_omero extends repository
 
     public function sync_reference(stored_file $file)
     {
-        $this->logger->debug("---> Calling 'sync_reference' <---");
-
+        debugging("---> Calling 'sync_reference' <---");
         global $CFG;
-
         if ($file->get_referencelastsync() + DAYSECS > time()) {
             // Synchronise not more often than once a day.
             return false;
@@ -1043,8 +1035,7 @@ class repository_omero extends repository
      */
     public function cache_file_by_reference($reference, $storedfile)
     {
-        $this->logger->debug("---> Calling 'cache_file_by_reference' <---");
-
+        debugging("---> Calling 'cache_file_by_reference' <---");
         try {
             $this->import_external_file_contents($storedfile, $this->max_cache_bytes());
         } catch (Exception $e) {
@@ -1061,7 +1052,7 @@ class repository_omero extends repository
      */
     public function get_reference_details($reference, $filestatus = 0)
     {
-        $this->logger->debug("---> Calling 'get_reference_details' <---");
+        debugging("---> Calling 'get_reference_details' <---");
         global $USER;
         $ref = unserialize($reference);
         $detailsprefix = $this->get_name();
@@ -1128,7 +1119,7 @@ class repository_omero extends repository
      */
     public function send_file($storedfile, $lifetime = null, $filter = 0, $forcedownload = false, array $options = null)
     {
-        $this->logger->debug("---> Calling 'send_file' <---");
+        debugging("---> Calling 'send_file' <---");
 
         $ref = unserialize($storedfile->get_reference());
         if ($storedfile->get_filesize() > $this->max_cache_bytes()) {
