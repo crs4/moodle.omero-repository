@@ -134,7 +134,7 @@ class omero extends oauth_helper
      */
     public function get_thumbnail($filepath, $saveas, $timeout = 0)
     {
-        $url = $this->omero_content_api . '/thumbnails/' . $this->mode . $this->prepare_filepath($filepath);
+        $url = $this->omero_api . '/thumbnails/' . $this->mode . $this->prepare_filepath($filepath);
         if (!($fp = fopen($saveas, 'w'))) {
             throw new moodle_exception('cannotwritefile', 'error', '', $saveas);
         }
