@@ -527,6 +527,25 @@ class repository_omero extends repository
     }
 
     /**
+     * Process a request (with cache support)
+     *
+     * @param $path
+     * @return array|false|mixed
+     */
+    private function process_request($path)
+    {
+        $key = urlencode($path);
+        $response = $this->requests->get($key);
+        if (!$response) {
+            debugging("Getting data from the SERVER: $path");
+            $response = $this->omero->process_request($path, $this->access_key, $this->access_secret);
+            $this->requests->set($key, $response);
+        } else debugging("Getting data from the CACHE: $path");
+        return $response;
+    }
+
+
+    /**
      * Fill data for a list item
      *
      * @param $type
