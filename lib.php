@@ -619,29 +619,6 @@ class repository_omero extends repository
         return $this->get_listing('', 1, $search_text);
     }
 
-    function get_type($item)
-    {
-        return $item->type;
-    }
-
-
-    function is_project($item)
-    {
-        return (strcmp($this->get_type($item), "Project") == 0);
-    }
-
-
-    function is_dataset($item)
-    {
-        return (strcmp($this->get_type($item), "Dataset") == 0);
-    }
-
-
-    function is_image($item)
-    {
-        return (strcmp($this->get_type($item), "Image") == 0);
-    }
-
 
     /**
      * Displays a thumbnail for current user's omero file
@@ -736,6 +713,7 @@ class repository_omero extends repository
      * Fixes references in DB that contains user credentials
      *
      * @param string $reference contents of DB field files_reference.reference
+     * @return string
      */
     public function fix_old_style_reference($reference)
     {
