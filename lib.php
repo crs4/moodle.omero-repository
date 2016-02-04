@@ -514,6 +514,17 @@ class repository_omero extends repository
         return $result;
     }
 
+    /**
+     * Format the name of navigation element
+     * @param $label
+     * @param $name
+     * @param $id
+     * @return string
+     */
+    private function format_navbar_element_name($label, $name, $id)
+    {
+        return "$label: $name [id.$id]";
+    }
 
     /**
      * Fill data for a list item
