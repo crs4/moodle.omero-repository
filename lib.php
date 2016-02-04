@@ -103,8 +103,8 @@ class repository_omero extends repository
         $this->setting = 'omero_';
 
         $this->omero_restendpoint = $this->get_option('omero_restendpoint');
-        $this->omero_key = "omero_key"; //FIXME: to restore ---> $this->get_option('omero_key');
-        $this->omero_secret = "omero_secret"; // FIXME: to restore --> $this->get_option('omero_secret');
+        $this->omero_key = $this->get_option('omero_key');
+        $this->omero_secret = $this->get_option('omero_secret');
 
         // one day
         $this->cachedfilettl = 60 * 60 * 24;
