@@ -551,13 +551,6 @@ class repository_omero extends repository
     {
         global $OUTPUT;
 
-        $path = "/";
-        $children = null;
-        $thumbnail = null;
-        $itemObj = null;
-        $image_date = null;
-        $image_author = null;
-
         // Hardwired filter to force only a subset of projects and datasets
         if (strcmp($type, "Project") == 0 || strcmp($type, "Dataset") == 0) {
             foreach ($this->item_black_list as $pattern) {
@@ -568,64 +561,62 @@ class repository_omero extends repository
         }
 
         $title = $item->name . " [id:" . $item->id . "]";
-        if (strcmp($type, "ProjectRoot") == 0) {
-            $title = "Projects";
-            $path = "/projects";
-            $children = array();
-            $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
-
-        } else if (strcmp($type, "TagRoot") == 0) {
-            $title = "Tags";
-            $path = PathUtils::build_tag_list_url();
-            $children = array();
-            $thumbnail = ($this->file_icon("tagset", 64));
-
-        } else if (strcmp($type, "TagSet") == 0) {
-            $title = "TagSet " . $item->value;
-            $path = PathUtils::build_tagset_tag_list_url($item->id);
-            $children = array();
-            $thumbnail = ($this->file_icon("tagset", 64));
-
-        } else if (strcmp($type, "Tag") == 0) {
-            $path = PathUtils::build_tag_detail_url($item->id);
-            $children = array();
-            $thumbnail = ($this->file_icon("tag", 64));
-            $title = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
-
-        } else if (strcmp($type, "Project") == 0) {
-            $path = PathUtils::build_project_detail_url($item->id);
-            $children = array();
-            $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
-
-        } else if (strcmp($type, "Dataset") == 0) {
-            $path = PathUtils::build_dataset_detail_url($item->id);
-            $children = array();
-            $thumbnail = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
-
-        } else if (strcmp($type, "Image") == 0) {
-            $path = PathUtils::build_image_detail_url($item->id);
-            $thumbnail = $this->omero->get_thumbnail_url($item->id);
-//            $image_info = $this->omero->process_request(
-//                PathUtils::build_image_detail_url($item->id));
-            //$image_date = $image_info->meta->imageTimestamp;
-            //$image_author = $image_info->meta->imageAuthor;
-        } else
-            throw new RuntimeException("Unknown data type");
-
         $itemObj = array(
             'image_id' => $item->id,
             'title' => $title,
-            'author' => $image_author,
-            'path' => $path,
             'source' => $item->id,
-            'date' => $image_date,
-            'thumbnail' => $thumbnail,
-            'icon' => $thumbnail,
-            'license' => "",
+            'license' => "unknown",
             'thumbnail_height' => 128,
             'thumbnail_width' => 128,
-            'children' => $children
+            'children' => array()
         );
+
+        if (strcmp($type, "ProjectRoot") == 0) {
+            $itemObj["title"] = "Projects";
+            $itemObj["path"] = PathUtils::build_project_list_url();
+            $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+
+        } else if (strcmp($type, "TagRoot") == 0) {
+            $itemObj["title"] = "Tags";
+            $itemObj["path"] = PathUtils::build_annotation_list_url();
+            $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
+
+        } else if (strcmp($type, "TagSet") == 0) {
+            $itemObj["title"] = "TagSet " . $item->value;
+            $itemObj["path"] = PathUtils::build_tagset_deatails_url($item->id);
+            $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
+
+        } else if (strcmp($type, "Tag") == 0) {
+            $itemObj["title"] = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
+            $itemObj["path"] = PathUtils::build_tag_detail_url($item->id);
+            $itemObj["thumbnail"] = $this->file_icon("tag", 64);
+
+        } else if (strcmp($type, "Project") == 0) {
+            $itemObj["title"] = $title;
+            $itemObj["path"] = PathUtils::build_project_detail_url($item->id);
+            $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+
+        } else if (strcmp($type, "Dataset") == 0) {
+            $itemObj["path"] = PathUtils::build_dataset_detail_url($item->id);
+            $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
+
+        } else if (strcmp($type, "Image") == 0) {
+            $image_thumbnail = PathUtils::build_image_thumbnail_url($item->id, $item->lastUpdate);
+            $itemObj["author"] = $item->author;
+            $itemObj["path"] = PathUtils::build_image_detail_url($item->id);
+            $itemObj["thumbnail"] = $image_thumbnail;
+            $itemObj["url"] = $image_thumbnail;
+            $itemObj["date"] = $item->importTime;
+            $itemObj["datecreated"] = $item->creationTime;
+            $itemObj["datemodified"] = $item->lastUpdate;
+            $itemObj['children'] = null;
+            $itemObj["image_width"] = $item->width;
+            $itemObj["image_height"] = $item->height;
+
+        } else
+            throw new RuntimeException("Unknown data type");
+
+        $itemObj["icon"] = $itemObj["thumbnail"];
 
         return $itemObj;
     }
