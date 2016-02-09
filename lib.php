@@ -456,13 +456,22 @@ class repository_omero extends repository
         // process remaining elements by type
         if (PathUtils::is_annotations_root($path)) {
             if (!$annotations_query)
-                array_push($result, array('name' => "Tags", 'path' => PathUtils::build_annotation_list_url()));
+                array_push($result, array(
+                        'name' => get_string('tags', 'repository_omero'),
+                        'path' => PathUtils::build_annotation_list_url())
+                );
 
         } else if (PathUtils::is_tagset_root($path)) {
             if (!$annotations_query)
-                array_push($result, array('name' => "Tags", 'path' => PathUtils::build_annotation_list_url()));
+                array_push($result, array(
+                        'name' => get_string('tags', 'repository_omero'),
+                        'path' => PathUtils::build_annotation_list_url()
+                    )
+                );
             array_push($result, array(
-                    'name' => $this->format_navbar_element_name("TagSet", $obj_info->value, $obj_info->id),
+                    'name' => $this->format_navbar_element_name(
+                        get_string('tagset', 'repository_omero'), $obj_info->value, $obj_info->id
+                    ),
                     'path' => PathUtils::build_tagset_deatails_url($obj_info->id)
                 )
             );
@@ -470,42 +479,62 @@ class repository_omero extends repository
 
         } else if (PathUtils::is_tag($path)) {
             if (!$annotations_query)
-                array_push($result, array('name' => "Tags", 'path' => PathUtils::build_annotation_list_url()));
+                array_push($result, array(
+                        'name' => get_string('tags', 'repository_omero'),
+                        'path' => PathUtils::build_annotation_list_url())
+                );
             if (isset($omero_tagset) && !empty($omero_tagset)) {
                 array_push($result, array(
-                        'name' => $this->format_navbar_element_name("TagSet", $omero_tagset->value, $omero_tagset->id),
+                        'name' => $this->format_navbar_element_name(
+                            get_string('tagset', 'repository_omero'), $omero_tagset->value, $omero_tagset->id
+                        ),
                         'path' => PathUtils::build_tagset_deatails_url($omero_tagset->id)
                     )
                 );
             }
             array_push($result, array(
-                    'name' => $this->format_navbar_element_name("Tag", $obj_info->value, $obj_info->id),
+                    'name' => $this->format_navbar_element_name(
+                        get_string('tag', 'repository_omero'), $obj_info->value, $obj_info->id
+                    ),
                     'path' => $path
                 )
             );
 
         } else if (PathUtils::is_projects_root($path)) {
-            array_push($result, array('name' => "Projects", 'path' => PathUtils::build_project_list_url()));
+            array_push($result, array(
+                    'name' => get_string('projects', 'repository_omero'),
+                    'path' => PathUtils::build_project_list_url())
+            );
 
         } else if (PathUtils::is_project($path)) {
             $omero_project = $obj_info;
             $cache->set(self::OMERO_PROJECT_KEY, $omero_project);
-            array_push($result, array('name' => "Projects", 'path' => PathUtils::build_project_list_url()));
             array_push($result, array(
-                    'name' => $this->format_navbar_element_name("Project", $omero_project->name, $omero_project->id),
+                    'name' => get_string('projects', 'repository_omero'),
+                    'path' => PathUtils::build_project_list_url())
+            );
+            array_push($result, array(
+                    'name' => $this->format_navbar_element_name(
+                        get_string('project', 'repository_omero'), $omero_project->name, $omero_project->id
+                    ),
                     'path' => PathUtils::build_project_detail_url($omero_project->id))
             );
 
         } else if (PathUtils::is_dataset($path)) {
             $omero_dataset = $obj_info;
             $cache->set(self::OMERO_DATASET_KEY, $omero_dataset);
-            array_push($result, array('name' => "Projects", 'path' => PathUtils::build_project_list_url()));
             array_push($result, array(
-                    'name' => $this->format_navbar_element_name("Project", $omero_project->name, $omero_project->id),
+                'name' => get_string('projects', 'repository_omero'),
+                'path' => PathUtils::build_project_list_url()));
+            array_push($result, array(
+                    'name' => $this->format_navbar_element_name(
+                        get_string('project', 'repository_omero'),
+                        $omero_project->name, $omero_project->id),
                     'path' => PathUtils::build_project_detail_url($omero_project->id))
             );
             array_push($result, array(
-                    'name' => $this->format_navbar_element_name("Dataset", $omero_dataset->name, $omero_dataset->id),
+                    'name' => $this->format_navbar_element_name(
+                        get_string('dataset', 'repository_omero'), $omero_dataset->name, $omero_dataset->id),
                     'path' => PathUtils::build_dataset_detail_url($omero_dataset->id))
             );
         }
@@ -593,17 +622,17 @@ class repository_omero extends repository
         );
 
         if (strcmp($type, "ProjectRoot") == 0) {
-            $itemObj["title"] = "Projects";
+            $itemObj["title"] = get_string('projects', 'repository_omero');
             $itemObj["path"] = PathUtils::build_project_list_url();
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "TagRoot") == 0) {
-            $itemObj["title"] = "Tags";
+            $itemObj["title"] = get_string('tags', 'repository_omero');
             $itemObj["path"] = PathUtils::build_annotation_list_url();
             $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
 
         } else if (strcmp($type, "TagSet") == 0) {
-            $itemObj["title"] = "TagSet " . $item->value;
+            $itemObj["title"] = get_string('tagset', 'repository_omero') . $item->value;
             $itemObj["path"] = PathUtils::build_tagset_deatails_url($item->id);
             $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
 
