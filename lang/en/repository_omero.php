@@ -46,4 +46,3 @@ $string['cachelimit_info'] = 'Enter the maximum size of files (in bytes) to be c
 $string['current_image'] = "Current image";
 $string['choose_image'] = "Choose an image";
 $string['omero:view'] = 'View a omero folder';
-$string['logoutdesc'] = '(Logout when you finish using omero)';
