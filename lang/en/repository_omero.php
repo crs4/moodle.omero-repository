@@ -23,7 +23,7 @@
  */
 
 $string['pluginname'] = 'Omero';
-$string['configplugin'] = 'Omero configuration';
+$string['configplugin'] = 'Omero Repository Configuration';
 $string['omero_restendpoint'] = 'Ome-Seadragon REST API EndPoint';
 $string['apikey'] = 'omero API key';
 $string['omero'] = 'omero';
