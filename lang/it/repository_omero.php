@@ -32,27 +32,28 @@ $string['apikey'] = 'omero API key';
 $string['omero'] = 'omero';
 $string['secret'] = 'omero secret';
 # TODO: to be updated
-$string['instruction'] = 'You can get your API Key and secret from <pre>OMERO API Endpoint>/apps</pre>.';
+$string['instruction'] = 'E\' possibile ottenere l\'<em>API Key</em> e l\'<em>API secret</em>em> da <pre>OMERO API Endpoint>/apps</pre>.';
 
 # cache definition
-$string['cachedef_repository_info_cache'] = "Session cache for queries to the OmeSeadraon Rest API";
-$string['cachedef_thumbnail_cache'] = "Application cache to optimize retrieval of omeseadragon thumbnails";
+$string['cachedef_repository_info_cache'] = "Cache di sessione utilizzata per le query della API fornita da OmeSeadraon";
+$string['cachedef_thumbnail_cache'] = "Cache di livello applicativo per ottimizzare il recupero delle thumbnails prodotte da OmeSeadragon";
 
 # cache settings
-$string['cachelimit'] = 'Cache limit';
+$string['cachelimit'] = 'Limite Cache';
 $string['cachelimit_info'] = 'Enter the maximum size of files (in bytes) to be cached on server for omero aliases/shortcuts. Cached files will be served when the source is no longer available. Empty value or zero mean caching of all files regardless of size.';
+$string['cachelimit_info'] = 'Inserisci la dimensione massima (in bytes) dei file ospitati dalla cache del server. L\'assenza di valore o valore zero indicano file di qualsiasi dimensione.';
 
 # UI strings
-$string['current_image'] = "Current image";
-$string['choose_image'] = "Choose an image";
-$string['omero:view'] = 'View a omero folder';
-$string['projects'] = 'Projects';
-$string['project'] = 'Project';
+$string['current_image'] = "Immagine selezionata";
+$string['choose_image'] = "Scegli un'immagine";
+$string['omero:view'] = 'Visualizza una cartella del repository Omero';
+$string['projects'] = 'Progetti';
+$string['project'] = 'Progetto';
 $string['datasets'] = 'DataSets';
 $string['dataset'] = 'DataSet';
 $string['tagsets'] = 'TagSets';
 $string['tagset'] = 'TagSet';
 $string['tags'] = 'Tags';
 $string['tag'] = 'Tag';
-$string['images'] = 'Images';
-$string['image'] = 'Image';
+$string['images'] = 'Immagini';
+$string['image'] = 'Immagine';
