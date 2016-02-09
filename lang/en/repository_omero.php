@@ -22,11 +22,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['configplugin'] = 'Omero configuration';
-$string['notitle'] = 'notitle';
-$string['remember'] = 'Remember me';
 $string['pluginname'] = 'Omero';
-$string['omero_restendpoint'] = 'Omero REST API EndPoint';
+$string['configplugin'] = 'Omero configuration';
+$string['omero_restendpoint'] = 'Ome-Seadragon REST API EndPoint';
 $string['apikey'] = 'omero API key';
 $string['omero'] = 'omero';
 $string['secret'] = 'omero secret';
