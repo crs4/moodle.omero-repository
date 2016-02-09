@@ -45,7 +45,7 @@ $string['cachelimit_info'] = 'Inserisci la dimensione massima (in bytes) dei fil
 
 # UI strings
 $string['current_image'] = "Immagine selezionata";
-$string['choose_image'] = "Scegli un'image";
+$string['choose_image'] = "Scegli un'immagine";
 $string['omero:view'] = 'Visualizza una cartella del repository Omero';
 $string['projects'] = 'Progetti';
 $string['project'] = 'Progetto';
