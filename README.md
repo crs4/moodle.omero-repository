@@ -10,4 +10,8 @@ In order to install this plugin, see the following steps:
 * go to *Site Administration --> Notifications* and follow the Moodle instructions to complete the plugin installation;
 * go to *Site Administration --> Plugins --> Repositories --> Manage Repositories* and go to the *Omero Settings* row:
     * set as *'Enabled and visible'* the Omero Repository;
-    * set the Omero server address/hostname from the Omero Repository *Settings*.
+    * set the OmeSeadragon server address/hostname from the Omero Repository *Settings*.
+    
+## Copyright and licence
+Code and documentation Copyright © 2015-2016, [CRS4](http://www.crs4.it). 
+Code released under the [MIT license](https://opensource.org/licenses/mit-license.php). 
