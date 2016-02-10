@@ -28,7 +28,7 @@ require_once($CFG->libdir . '/oauthlib.php');
  * @since      Moodle 2.0
  * @package    repository_omero
  * @copyright  2015-2016 CRS4
- * @licence    https://opensource.org/licenses/mit-license.php MIT licence
+ * @license    https://opensource.org/licenses/mit-license.php MIT license
  */
 class omero extends oauth_helper
 {

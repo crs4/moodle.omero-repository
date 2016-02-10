@@ -23,7 +23,7 @@
  * @type {{image__model_manager}}
  *
  * @copyright  2015-2016 CRS4
- * @licence    https://opensource.org/licenses/mit-license.php MIT licence
+ * @license    https://opensource.org/licenses/mit-license.php MIT license
  */
 image_model_manager = {};
 

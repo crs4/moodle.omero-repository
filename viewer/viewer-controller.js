@@ -25,7 +25,7 @@
  * @param image_id the image of the image to immediately view after the initialization
  *
  * @copyright  2015-2016 CRS4
- * @licence    https://opensource.org/licenses/mit-license.php MIT licence
+ * @license    https://opensource.org/licenses/mit-license.php MIT license
  */
 function ImageViewerController(image_server,
                                frame_id, view_container_id, rois_table_id, roi_shape_thumb_popup_id,
