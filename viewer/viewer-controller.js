@@ -57,7 +57,7 @@ function ImageViewerController(image_server, viewer_model_server,
     me._image_params = image_params;
 
     // initializes the ImageModelManager
-    me._model = new ImageModelManager(image_server, image_id);
+    me._model = new ImageModelManager(this._viewer_model_server, image_id);
 
     var viewer_config = {
         'showNavigator': true,
