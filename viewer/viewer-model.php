@@ -39,11 +39,19 @@ if (!isloggedin()) {
 // omero server
 $omero_server = new omero();
 
+// get method
+$method = required_param("m", PARAM_TEXT);
+
 // get the Image ID
 $image_id = required_param("id", PARAM_INT);
 
 // set the response header
 header('Content-Type: application/json');
 
-echo $omero_server->process_request(PathUtils::build_image_detail_url($image_id), false);
+if($method == "img_details")
+    echo $omero_server->process_request(PathUtils::build_image_detail_url($image_id), false);
+else if($method == "dzi")
+    echo $omero_server->process_request(PathUtils::build_image_dzi_url($image_id), false);
+else
+    echo json_encode(array("error"=>"Not supported method!!!"));
 exit;
