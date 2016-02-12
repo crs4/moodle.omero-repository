@@ -186,10 +186,8 @@ function ImageViewerController(image_server, viewer_model_server,
                     console.log("Jumping to " + image_center.x + " -- " + image_center.y);
                 }
 
-
                 // Scalebar initialization
-                $.get(me._image_server + "/ome_seadragon/deepzoom/image_mpp/" + me._image_id + ".dzi").done(function (data) {
-
+                me._model.getImageDZI(function(data){
                     // Scalebar setup
                     var image_mpp = data.image_mpp ? data.image_mpp : 0;
                     var scalebar_config = {
