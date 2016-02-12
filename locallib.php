@@ -305,6 +305,11 @@ class PathUtils
         return "/get/image/$image_id?rois=$rois";
     }
 
+    public static function build_image_dzi_url($image_id)
+    {
+        return "/deepzoom/image_mpp/${image_id}.dzi";
+    }
+
     public static function build_image_thumbnail_url($image_id, $lastUpdate, $height = 128, $width = 128)
     {
         global $CFG;
