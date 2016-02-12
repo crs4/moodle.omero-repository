@@ -167,3 +167,49 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
         error: error_callback
     });
 };
+
+
+/**
+ * Load info of ROIs related to the current image
+ *
+ * @param image_id
+ * @param success_callback
+ * @param error_callback
+ * @private
+ */
+ImageModelManager.prototype.getImageDZI = function (success_callback, error_callback) {
+    var me = this;
+
+    $.ajax({
+        // request URL
+        url: this._image_server,
+
+        // result format
+        dataType: "json",
+
+        // Request parameters
+        data: {
+            format: "json",
+            m: "dzi",
+            id: this._image_id
+        },
+
+        // Set callback methods
+        success: function (data) {
+
+            if (success_callback) {
+                success_callback(data);
+            }
+
+            // Notify that ROI info are loaded
+            me._notifyListeners(new CustomEvent(
+                "imageDziLoaded",
+                {
+                    detail: data,
+                    bubbles: true
+                })
+            );
+        },
+        error: error_callback
+    });
+};
