@@ -27,7 +27,7 @@
  * @copyright  2015-2016 CRS4
  * @license    https://opensource.org/licenses/mit-license.php MIT license
  */
-function ImageViewerController(image_server,
+function ImageViewerController(image_server, viewer_model_server,
                                frame_id, view_container_id, rois_table_id, roi_shape_thumb_popup_id,
                                image_id, show_roi_table, image_params, visible_rois) {
 
@@ -36,6 +36,7 @@ function ImageViewerController(image_server,
 
     // register the actual initialization parameters
     me._image_server = image_server;
+    me._viewer_model_server = viewer_model_server,
     me._frame_id = frame_id;
     me._viewer_container_id = view_container_id;
     me._rois_table_id = rois_table_id;
