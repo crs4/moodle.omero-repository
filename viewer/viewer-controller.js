@@ -203,7 +203,7 @@ function ImageViewerController(image_server, viewer_model_server,
                     me._viewer_controller.enableScalebar(image_mpp, scalebar_config);
                 });
 
-
+                // notifies listeners
                 for (var i in me._event_listeners) {
                     var callback = me._event_listeners[i];
                     if (callback) {
