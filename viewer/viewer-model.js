@@ -113,7 +113,8 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
 
     $.ajax({
         //url: this._image_server + "/webgateway/get_rois_json/" + this._image_id,
-        url: this._image_server + "/ome_seadragon/get/image/" + this._image_id,
+        //url: this._image_server + "/ome_seadragon/get/image/" + this._image_id,
+        url: this._image_server,
 
         //// The name of the callback parameter, as specified by the YQL service
         //jsonp: "callback",
@@ -125,6 +126,8 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
         data: {
             //q: "", //FIXME: not required
             //format: "json",
+            m: "img_details",
+            id: this._image_id,
             rois: true
         },
 
