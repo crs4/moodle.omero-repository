@@ -79,11 +79,11 @@ class omero extends oauth_helper
      */
     public function process_request($path = '/', $decode = true, $token = '', $secret = '')
     {
-        debugging("PROCESSING REQUEST: $path - decode: $decode");
+        //debugging("PROCESSING REQUEST: $path - decode: $decode");
         $url = $this->omero_api . "/ome_seadragon" . $path;
         $response = $this->get($url, array(), $token, $secret);
         $result = $decode ? json_decode($response) : $response;
-        debugging("PROCESSING REQUEST OK");
+        //debugging("PROCESSING REQUEST OK");
         return $result;
     }
 
@@ -303,6 +303,11 @@ class PathUtils
     public static function build_image_detail_url($image_id, $rois = true)
     {
         return "/get/image/$image_id?rois=$rois";
+    }
+
+    public static function build_image_dzi_url($image_id)
+    {
+        return "/deepzoom/image_mpp/${image_id}.dzi";
     }
 
     public static function build_image_thumbnail_url($image_id, $lastUpdate, $height = 128, $width = 128)

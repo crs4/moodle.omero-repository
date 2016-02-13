@@ -113,7 +113,10 @@ $imageParamsJs = "?" . implode('&',
             $.ajaxSettings.cache = false;
 
             // builds the ImageViewerController
-            var viewer_ctrl = new ImageViewerController("<?= $IMAGE_SERVER ?>", "<?= $frameId ?>",
+            var viewer_ctrl = new ImageViewerController(
+                "<?= $IMAGE_SERVER ?>",
+                "<?= $CFG->wwwroot ?>/repository/omero/viewer/viewer-model.php",
+                "<?= $frameId ?>",
                 "<?= $IMAGE_VIEWER_CONTAINER ?>", "rois-table", "roi_thumb_popup", "<?= $imageId ?>",
                 "<?= $showRoiTable ?>", "<?= $imageParamsJs ?>", "<?= $visibleRoiList ?>");
             // binds the controller to the window object as image_viewer_controller

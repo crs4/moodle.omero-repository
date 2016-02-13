@@ -113,7 +113,8 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
 
     $.ajax({
         //url: this._image_server + "/webgateway/get_rois_json/" + this._image_id,
-        url: this._image_server + "/ome_seadragon/get/image/" + this._image_id,
+        //url: this._image_server + "/ome_seadragon/get/image/" + this._image_id,
+        url: this._image_server,
 
         //// The name of the callback parameter, as specified by the YQL service
         //jsonp: "callback",
@@ -125,6 +126,8 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
         data: {
             //q: "", //FIXME: not required
             //format: "json",
+            m: "img_details",
+            id: this._image_id,
             rois: true
         },
 
@@ -157,6 +160,52 @@ ImageModelManager.prototype.loadRoisInfo = function (success_callback, error_cal
                 "imageModelRoiLoaded",
                 {
                     detail: data.rois,
+                    bubbles: true
+                })
+            );
+        },
+        error: error_callback
+    });
+};
+
+
+/**
+ * Load info of ROIs related to the current image
+ *
+ * @param image_id
+ * @param success_callback
+ * @param error_callback
+ * @private
+ */
+ImageModelManager.prototype.getImageDZI = function (success_callback, error_callback) {
+    var me = this;
+
+    $.ajax({
+        // request URL
+        url: this._image_server,
+
+        // result format
+        dataType: "json",
+
+        // Request parameters
+        data: {
+            format: "json",
+            m: "dzi",
+            id: this._image_id
+        },
+
+        // Set callback methods
+        success: function (data) {
+
+            if (success_callback) {
+                success_callback(data);
+            }
+
+            // Notify that ROI info are loaded
+            me._notifyListeners(new CustomEvent(
+                "imageDziLoaded",
+                {
+                    detail: data,
                     bubbles: true
                 })
             );
