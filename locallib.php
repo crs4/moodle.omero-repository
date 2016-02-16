@@ -1,39 +1,34 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+
+// Copyright (c) 2015-2016, CRS4
 //
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do so,
+// subject to the following conditions:
 //
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+defined('MOODLE_INTERNAL') || die();
+require_once($CFG->libdir . '/oauthlib.php');
 
 /**
  * A helper class to access omero resources
  *
- * @since Moodle 2.0
+ * @since      Moodle 2.0
  * @package    repository_omero
- * @copyright  2015 CRS4
- * @author
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-defined('MOODLE_INTERNAL') || die();
-require_once($CFG->libdir . '/oauthlib.php');
-require_once(dirname(__FILE__) . '/logger.php');
-
-/**
- * Authentication class to access omero API
- *
- * @package    repository_omero
- * @copyright  2010 Dongsheng Cai
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2015-2016 CRS4
+ * @license    https://opensource.org/licenses/mit-license.php MIT license
  */
 class omero extends oauth_helper
 {
@@ -44,65 +39,64 @@ class omero extends oauth_helper
     /** @var string omero content api url */
     private $omero_content_api;
 
+
     /**
      * Constructor for omero class
      *
      * @param array $options
      */
-    function __construct($options)
+    function __construct($options = array())
     {
-        parent::__construct($options);
+        parent::__construct($this->get_config($options));
         $this->omero_api = get_config('omero', 'omero_restendpoint');
-        $this->omero_content_api = get_config('omero', 'omero_restendpoint');
-        $this->logger = new Logger("omero-local-lib");
     }
 
     /**
-     * Get file listing from omero
-     *
-     * @param string $path
-     * @param string $token
-     * @param string $secret
+     * Returns the configuration merging default values with client definded
+     * @param $options
      * @return array
+     * @throws dml_exception
      */
-    public function get_listing($path = '/', $token = '', $secret = '')
+    private function get_config($options)
     {
-        $url = $this->omero_api . $path;
-        $content = $this->get($url, array(), $token, $secret);
-        $data = json_decode($content);
-        return $data;
+        // TODO: update the default settings
+        return array_merge(array(
+            "oauth_consumer_key" => get_config('omero', "omero_key"),
+            "oauth_consumer_secret" => get_config('omero', "omero_secret"),
+            "access_token" => "omero",
+            "access_token_secret" => "omero"
+        ), $options);
     }
 
     /**
-     * Get file listing from omero
+     * Process request
      *
      * @param string $path
+     * @param bool $decode
      * @param string $token
      * @param string $secret
-     * @return array
+     * @return mixed
      */
-    public function process_request($path = '/', $token = '', $secret = '')
+    public function process_request($path = '/', $decode = true, $token = '', $secret = '')
     {
-        $url = $this->omero_api;
-
-        // TODO: use a single API endpoint for all requests
-        if (strrpos($path, "tag") !== FALSE || strrpos($path, "annotation") !== FALSE) {
-            $url .= "/ome_seadragon";
-        } else {
-            $url .= "/webgateway";
-        }
-        $url .= $path;
-
-        $content = $this->get($url, array(), $token, $secret);
-        $data = json_decode($content);
-        return $data;
+        //debugging("PROCESSING REQUEST: $path - decode: $decode");
+        $url = $this->omero_api . "/ome_seadragon" . $path;
+        $response = $this->get($url, array(), $token, $secret);
+        $result = $decode ? json_decode($response) : $response;
+        //debugging("PROCESSING REQUEST OK");
+        return $result;
     }
 
 
+    /**
+     * @param $search_text
+     * @param string $token
+     * @param string $secret
+     * @return mixed
+     */
     public function process_search($search_text, $token = '', $secret = '')
     {
-        // FIXME: replace the explicit URL with a factory method
-        $url = $this->omero_api . "/ome_seadragon/find/annotations?query=$search_text";
+        $url = $this->omero_api . "/ome_seadragon" . PathUtils::build_find_annotations_url($search_text);
         $content = $this->get($url, array(), $token, $secret);
         $data = json_decode($content);
         return $data;
@@ -139,7 +133,7 @@ class omero extends oauth_helper
      */
     public function get_thumbnail($filepath, $saveas, $timeout = 0)
     {
-        $url = $this->omero_content_api . '/thumbnails/' . $this->mode . $this->prepare_filepath($filepath);
+        $url = $this->omero_api . '/thumbnails/' . $this->mode . $this->prepare_filepath($filepath);
         if (!($fp = fopen($saveas, 'w'))) {
             throw new moodle_exception('cannotwritefile', 'error', '', $saveas);
         }
@@ -155,13 +149,6 @@ class omero extends oauth_helper
     }
 
 
-    public function get_thumbnail_url($image_id)
-    {
-        // TODO: is it better to use the ome-seadragon function ?
-        return $this->omero_api . '/webgateway' . PathUtils::build_image_thumbnail_url($image_id);
-        //return $this->omero_api . '/ome_seadragon/deepzoom/get/thumbnail/' . $image_id . ".dzi?height=100&width=100";
-    }
-
     /**
      * Downloads a file from omero and saves it locally
      *
@@ -174,7 +161,7 @@ class omero extends oauth_helper
      */
     public function get_file($filepath, $saveas, $timeout = 0)
     {
-        $url = $this->omero_content_api . '/files/' . $this->mode . $this->prepare_filepath($filepath);
+        $url = $this->omero_api . '/files/' . $this->mode . $this->prepare_filepath($filepath);
         if (!($fp = fopen($saveas, 'w'))) {
             throw new moodle_exception('cannotwritefile', 'error', '', $saveas);
         }
@@ -235,88 +222,105 @@ class PathUtils
 
     public static function is_projects_root($path)
     {
-        return !strcmp($path, "/projects/");
+        return preg_match("/get\/projects/", $path);
     }
 
-    public static function is_tags_root($path)
+    public static function is_annotations_root($path)
     {
-        return !strcmp($path, "/get/annotations/");
+        return preg_match("/get\/annotations/", $path);
     }
 
     public static function is_tagset_root($path)
     {
-        //return !strcmp($path, "/get/tags/");
-        return preg_match("/get\/tags\/(\d+)\//", $path);
+        return preg_match("/get\/tagset\/(\d+)/", $path);
     }
 
     public static function is_tag($path)
     {
-        return preg_match("/get\/imgs_by_tag\/(\d+)\//", $path);
+        return preg_match("/get\/tag\/(\d+)/", $path);
     }
 
     public static function is_project($path)
     {
-        return preg_match("/proj\/(\d+)\/detail/", $path);
+        return preg_match("/get\/project\/(\d+)/", $path);
     }
 
     public static function is_dataset($path)
     {
-        return preg_match("/dataset\/(\d+)\/detail/", $path);
+        return preg_match("/get\/dataset\/(\d+)/", $path);
     }
 
     public static function is_image_file($path)
     {
-        return preg_match("/imgData\/(\d+)/", $path);
+        return preg_match("/get\/image/\/(\d+)/", $path);
+    }
+
+    public static function is_annotations_query($path)
+    {
+        return preg_match("/find\/annotations/", $path);
     }
 
     public static function build_project_list_url()
     {
-        return "/proj/list/";
+        return "/get/projects";
     }
 
-    public static function build_tag_list_url()
+    public static function build_annotation_list_url()
     {
-        return "/get/annotations/";
+        return "/get/annotations";
     }
 
-    public static function build_tagset_tag_list_url($tagset_id)
+    public static function build_find_annotations_url($query)
     {
-        return "/get/tags/$tagset_id/";
+        return "/find/annotations?query=$query";
+    }
+
+    public static function build_tagset_deatails_url($tagset_id, $tags = true)
+    {
+        return "/get/tagset/$tagset_id?tags=$tags";
     }
 
     public static function build_tag_detail_url($tag_id)
     {
-        return "/get/imgs_by_tag/$tag_id";
+        return "/get/tag/$tag_id?images=true";
     }
 
     public static function build_project_detail_url($project_id)
     {
-        return "/proj/$project_id/detail";
+        return "/get/project/$project_id";
     }
 
-    public static function build_dataset_list_url($project_id)
+    public static function build_dataset_list_url($project_id, $datasets = true)
     {
-        return "/proj/$project_id/children";
+        return "/get/project/$project_id?datasets=$datasets";
     }
 
-    public static function build_dataset_detail_url($dataset_id)
+    public static function build_dataset_detail_url($dataset_id, $images = true)
     {
-        return "/dataset/$dataset_id/detail";
+        return "/get/dataset/$dataset_id?images=$images";
     }
 
-    public static function build_image_detail_url($image_id)
+    public static function build_image_detail_url($image_id, $rois = true)
     {
-        return "/imgData/$image_id";
+        return "/get/image/$image_id?rois=$rois";
     }
 
-    public static function build_image_thumbnail_url($image_id)
+    public static function build_image_dzi_url($image_id)
     {
-        return "/render_thumbnail/$image_id";
+        return "/deepzoom/image_mpp/${image_id}.dzi";
     }
 
-    public static function build_image_list_url($dataset_id)
+    public static function build_image_thumbnail_url($image_id, $lastUpdate, $height = 128, $width = 128)
     {
-        return "/dataset/$dataset_id/children";
+        global $CFG;
+        return "$CFG->wwwroot/repository/omero/thumbnail.php?id=$image_id&lastUpdate=$lastUpdate&height=$height&width=$width";
+    }
+
+    public static function get_element_id_from_url($url, $element_name)
+    {
+        if (preg_match("/$element_name\/(\d+)/", $url, $matches))
+            return $matches[1];
+        return null;
     }
 }
 
@@ -330,44 +334,4 @@ function repository_omero_cron()
     foreach ($instances as $instance) {
         $instance->cron();
     }
-}
-
-
-/**
- * String utility function: check whether a string 'haystack' starts with the string 'needle' or not
- * @param $haystack
- * @param $needle
- * @return bool
- */
-function startsWith($haystack, $needle)
-{
-    // search backwards starting from haystack length characters from the end
-    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
-}
-
-/**
- * String utility function: check whether a string 'haystack' ends with the string 'needle' or not
- * @param $haystack
- * @param $needle
- * @return bool
- */
-function endsWith($haystack, $needle)
-{
-    // search forward starting from end minus needle length characters
-    return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
-}
-
-/**
- * Return the ID of the object which the '$url' is related to
- * @param $url
- * @return int
- */
-function get_omero_item_id_from_url($url)
-{
-    $result = -1;
-    $parts = split("/", $url);
-    if (count($parts) > 2) {
-        return $parts[2];
-    }
-    return $result;
 }

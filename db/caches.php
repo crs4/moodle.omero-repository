@@ -1,5 +1,4 @@
 <?php
-
 // Copyright (c) 2015-2016, CRS4
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -20,16 +19,18 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /**
- * Version details
+ * Cache definitions
  *
- * @since      Moodle 2.0
  * @package    repository_omero
  * @copyright  2015-2016 CRS4
  * @license    https://opensource.org/licenses/mit-license.php MIT license
  */
+$definitions = array(
+    'thumbnail_cache' => array(
+        'mode' => cache_store::MODE_APPLICATION
+    ),
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2016020400;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2015051100;        // Requires this Moodle version
-$plugin->component = 'repository_omero'; // Full name of the plugin (used for diagnostics)
+    'repository_info_cache' => array(
+        'mode' => cache_store::MODE_SESSION
+    )
+);
