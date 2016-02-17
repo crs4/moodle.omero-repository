@@ -52,6 +52,9 @@ function ImageViewerController(image_server, viewer_model_server,
     // set frame reference
     me._frame = window.parent.document.getElementById(me._frame_id);
 
+    var please_wait_ID = me._viewer_container_id + "-loading-dialog";
+    me._loading_dialog = $(me._frame.contentDocument.getElementById(please_wait_ID));
+
     // get url params
     var image_params = parseImageParams();
     me._image_params = image_params;
@@ -92,6 +95,9 @@ function ImageViewerController(image_server, viewer_model_server,
     // builds and initializes the Viewer
     if (me._viewer_controller) {
         me._viewer_controller.buildViewer();
+
+        // show loading message
+        me._loading_dialog.show();
 
         //
         me._viewer_controller.viewer.addHandler("open", function () {
@@ -208,6 +214,9 @@ function ImageViewerController(image_server, viewer_model_server,
                         callback(me);
                     }
                 }
+
+                // hide loading message
+                me._loading_dialog.hide();
             });
         });
     }

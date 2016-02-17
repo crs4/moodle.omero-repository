@@ -131,6 +131,10 @@ $imageParamsJs = "?" . implode('&',
     <div id="<?= $IMAGE_VIEWER_CONTAINER ?>"
          style="position: absolute; width: <?= $width ?>; height: <?= $height ?>"></div>
     <canvas id="annotations_canvas" style="position: absolute; width: <?= $width ?>; height: <?= $height ?>"></canvas>
+    <div id="<?= $IMAGE_VIEWER_CONTAINER ?>-loading-dialog"
+         style="position: absolute; width: <?= $width ?>; height: <?= $height ?>;
+             background: rgba(255, 255, 255, 0.4) url('<?= $CFG->wwwroot ?>/repository/omero/pix/loading.gif') no-repeat center;">
+    </div>
 </div>
 
 <!-- FIXME: Static table example: the table has to be dynamically generated -->
