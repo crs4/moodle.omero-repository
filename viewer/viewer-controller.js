@@ -96,6 +96,9 @@ function ImageViewerController(image_server, viewer_model_server,
     if (me._viewer_controller) {
         me._viewer_controller.buildViewer();
 
+        // show loading message
+        me._loading_dialog.show();
+
         //
         me._viewer_controller.viewer.addHandler("open", function () {
 
@@ -211,6 +214,9 @@ function ImageViewerController(image_server, viewer_model_server,
                         callback(me);
                     }
                 }
+
+                // hide loading message
+                me._loading_dialog.hide();
             });
         });
     }
