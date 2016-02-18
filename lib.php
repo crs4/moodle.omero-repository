@@ -608,13 +608,13 @@ class repository_omero extends repository
             }
         }
 
+        $thumbnail_height = 142;
+        $thumbnail_width = 142;
         $itemObj = array(
             'image_id' => $item->id,
             'title' => "Undefined",
             'source' => $item->id,
             'license' => "unknown",
-            'thumbnail_height' => 128,
-            'thumbnail_width' => 128,
             'children' => array()
         );
 
@@ -649,7 +649,8 @@ class repository_omero extends repository
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "Image") == 0) {
-            $image_thumbnail = PathUtils::build_image_thumbnail_url($item->id, $item->lastUpdate);
+            $image_thumbnail = PathUtils::build_image_thumbnail_url(
+                $item->id, $item->lastUpdate, $thumbnail_height, $thumbnail_width);
             $itemObj["title"] = $item->name . " [id:" . $item->id . "]";
             $itemObj["author"] = $item->author;
             $itemObj["path"] = PathUtils::build_image_detail_url($item->id);
@@ -661,6 +662,8 @@ class repository_omero extends repository
             $itemObj['children'] = null;
             $itemObj["image_width"] = $item->width;
             $itemObj["image_height"] = $item->height;
+            $itemObj['thumbnail_height'] = $thumbnail_height;
+            $itemObj['thumbnail_width'] = $thumbnail_width;
 
         } else
             throw new RuntimeException("Unknown data type");
