@@ -608,8 +608,8 @@ class repository_omero extends repository
             }
         }
 
-        $thumbnail_height = 142;
-        $thumbnail_width = 142;
+        $thumbnail_height = 95;
+        $thumbnail_width = 95;
         $itemObj = array(
             'image_id' => $item->id,
             'title' => "Undefined",
