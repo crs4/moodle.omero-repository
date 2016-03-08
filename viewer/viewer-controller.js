@@ -37,7 +37,7 @@ function ImageViewerController(image_server, viewer_model_server,
     // register the actual initialization parameters
     me._image_server = image_server;
     me._viewer_model_server = viewer_model_server,
-    me._frame_id = frame_id;
+        me._frame_id = frame_id;
     me._viewer_container_id = view_container_id;
     me._rois_table_id = rois_table_id;
     me._image_id = image_id;
@@ -193,7 +193,7 @@ function ImageViewerController(image_server, viewer_model_server,
                 }
 
                 // Scalebar initialization
-                me._model.getImageDZI(function(data){
+                me._model.getImageDZI(function (data) {
                     // Scalebar setup
                     var image_mpp = data.image_mpp ? data.image_mpp : 0;
                     var scalebar_config = {
@@ -272,11 +272,11 @@ ImageViewerController.prototype.buildDetailedImageRelativeUrl = function () {
 
 ImageViewerController.prototype.updateViewFromProperties = function (image_properties) {
     var me = this;
-    if(!image_properties || !image_properties.center){
+    if (!image_properties || !image_properties.center) {
         console.warn("incomplete image properties");
         return false;
     }
-    
+
     var image_center = me._viewer_controller.getViewportCoordinates(
         image_properties.center.x, image_properties.center.y
     );
@@ -593,6 +593,36 @@ ImageViewerController.prototype._resize = function () {
     } else {
         alert("Not found!!!");
     }
+};
+
+
+/**
+ * Checks whether a list of ROIs is valid,
+ * i.e., every ROI in the list exists.
+ *
+ * @param annotations_controller
+ * @param shape_id_list
+ * @returns {Array}
+ */
+ImageViewerController.prototype.checkRois = function (shape_id_list, fix) {
+
+    var result = [];
+    if (shape_id_list) {
+        var list = shape_id_list.slice(0);
+        for (var i in list) {
+            var shape = this._annotations_controller.getShape(list[i]);
+            if (!shape) {
+                result.push(list[i]);
+                if (fix) {
+                    var index = shape_id_list.indexOf(list[i]);
+                    if (index !== -1) {
+                        shape_id_list.splice(index, 1);
+                    }
+                }
+            }
+        }
+    }
+    return result;
 };
 
 
