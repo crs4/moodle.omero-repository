@@ -968,20 +968,13 @@ class repository_omero extends repository
     public function get_link($reference)
     {
         global $CFG;
-
         debugging("get_link called: : $reference !!!");
-
         $ref = unserialize($reference);
         if (!isset($ref->url)) {
             $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
         }
-
-        $image_id = preg_replace("/\/render_thumbnail\/(\d+)/", "$1", $ref->path);
-        //$res = $this->omero->get_thumbnail_url($image_id);
-        $res = "/omero-image-repository/$image_id";
-        debugging("RES: " . $res);
-        return $res;
+        return $ref->path;
     }
 
     /**
@@ -992,11 +985,12 @@ class repository_omero extends repository
      */
     public function get_file_reference($source)
     {
-        debugging("---> Calling 'get_file_reference' <---");
-
         global $USER, $CFG;
+
+        debugging("---> Calling 'get_file_reference: $source' <---");
+
         $reference = new stdClass;
-        $reference->path = "$this->omero_restendpoint/render_thumbnail/$source"; // FIXME: static URL
+        $reference->path = "/omero-image-repository/$source";
         $reference->userid = $USER->id;
         $reference->username = fullname($USER);
 //        $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
