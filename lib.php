@@ -649,9 +649,15 @@ class repository_omero extends repository
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "Image") == 0) {
+
+            // replace image ID with the ID of the higher resolution image of the series
+            $image_source = isset($item->high_resolution_image) ?
+                $item->high_resolution_image : $item->id;
+
             $image_thumbnail = PathUtils::build_image_thumbnail_url(
                 $item->id, $item->lastUpdate, $thumbnail_height, $thumbnail_width);
-            $itemObj["title"] = $item->name . " [id:" . $item->id . "]";
+            $itemObj['source'] = $image_source;
+            $itemObj["title"] = $item->name . " [id:" . $image_source . "]";
             $itemObj["author"] = $item->author;
             $itemObj["path"] = PathUtils::build_image_detail_url($item->id);
             $itemObj["thumbnail"] = $image_thumbnail;
@@ -664,7 +670,6 @@ class repository_omero extends repository
             $itemObj["image_height"] = $item->height;
             $itemObj['thumbnail_height'] = $thumbnail_height;
             $itemObj['thumbnail_width'] = $thumbnail_width;
-
         } else
             throw new RuntimeException("Unknown data type");
 
