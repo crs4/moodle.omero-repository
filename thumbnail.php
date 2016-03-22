@@ -71,10 +71,16 @@ if ($force_reload || !$file) {
     try {
         $file = $force_reload ? null : $cache->get($cache_key);
         if (!$file) {
-            //$url = "${omero_server}/ome_seadragon/deepzoom/get/thumbnail/${image_id}.dzi";
-            $url = "${omero_server}/webgateway/render_thumbnail/${image_id}/${image_width}/${image_height}";
+            $url = "${omero_server}/ome_seadragon/deepzoom/get/thumbnail/${image_id}.dzi";
+            //$url = "${omero_server}/webgateway/render_thumbnail/${image_id}/${image_width}/${image_height}";
             $c = new curl();
-            $file = $c->download_one($url, array("width" => $image_width, "height" => $image_height));
+            $file = $c->download_one($url,
+                array(
+                    "size" => $image_height,
+                    "width" => $image_width,
+                    "height" => $image_height
+                )
+            );
             if ($file) {
                 $cache->set($cache_key, $file);
             }
