@@ -22,6 +22,154 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/oauthlib.php');
 
+
+/**
+ * Class confidential_oauth2_client,
+ * an helper class to handle OAuth request
+ * from a confidential OAuth client.
+ */
+class confidential_oauth2_client extends oauth2_client
+{
+    private $disable_login_check = false;
+
+    protected function enable_authorization($enabled = true)
+    {
+        $this->disable_login_check = !$enabled;
+    }
+
+    /**
+     * Returns the auth url for OAuth 2.0 request
+     * @return string the auth url
+     */
+    protected function auth_url()
+    {
+        return "http://mep.crs4.it:8000/o/authorize/"; // FIXME: remove me: it's just for debugging!
+        return get_config('omero', 'omero_restendpoint') . "/o/authorize/";
+    }
+
+    /**
+     * Returns the token url for OAuth 2.0 request
+     * @return string the auth url
+     */
+    protected function token_url()
+    {
+        return "http://mep.crs4.it:8000/o/token/"; // FIXME: remove me: it's just for debugging!
+        return get_config('omero', 'omero_restendpoint') . "/o/token/";
+    }
+
+    /**
+     * Is the user logged in? Note that if this is called
+     * after the first part of the authorisation flow the token
+     * is upgraded to an accesstoken.
+     *
+     * @return boolean true if logged in
+     */
+    public function is_logged_in() {
+        // Has the token expired?
+        $token = $this->get_accesstoken();
+//        debugging("Expired: " .
+//        (isset($token->expires) && time() >= $token->expires)
+//            ? "NO" : "YES"
+//        );
+        if (isset($token->expires) && time() >= $token->expires) {
+            $this->log_out();
+            return false;
+        }
+
+        // We have a token so we are logged in.
+        if (isset($token->token)) {
+            return true;
+        }
+
+        // This kind of client doesn't support authorization code
+        return false;
+    }
+
+    /**
+     * @param bool $refresh
+     * @return bool
+     * @throws moodle_exception
+     */
+    public function upgrade_token($refresh = false)
+    {
+        $token = null;
+        if (!$this->disable_login_check && (!$this->get_stored_token() || $refresh)) {
+
+            //debugging("Token not found in cache");
+
+            $this->disable_login_check = true;
+
+            $params = array(
+                'client_id' => $this->get_clientid(),
+                'client_secret' => $this->get_clientsecret(),
+                'grant_type' => 'client_credentials'
+            );
+
+            // clear the current token
+            $this->store_token(null);
+
+            // retrieve a new token
+            $response = $this->post($this->token_url(), $params);
+            $token = json_decode($response);
+
+            // register the new token
+            if ($token && isset($token->access_token)) {
+                //debugging("retrieved token: " . json_encode($token));
+                $token->token = $token->access_token;
+                $token->expires = (time() + ($token->expires_in - 10)); // Expires 10 seconds before actual expiry.
+                $this->store_token($token);
+                //debugging("Type of retrieve object: " . gettype($token));
+                return true;
+            } else {
+                //debugging("Unable to retrieve the authentication token");
+                error("Authentication Error !!!");
+            }
+
+            $this->disable_login_check = false;
+
+        } else {
+            $token = $this->get_stored_token();
+            //debugging("Token is in SESSION");
+            //debugging("Type of token object: " . gettype($token));
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Refresh the current token
+     */
+    protected function refresh_access_token()
+    {
+        $this->upgrade_token(true);
+    }
+
+    /**
+     * Process a request adding the required OAuth token
+     *
+     * @param string $url
+     * @param array $options
+     * @return bool
+     */
+    protected function request($url, $options = array())
+    {
+        if (!$this->disable_login_check) {
+            //debugging("Is LOGGED: " . ($this->is_logged_in() ? "YES" : "NO"));
+            if (!$this->is_logged_in()) {
+                if ($this->upgrade_token(false)) {
+                    //debugging("New TOKEN: " . json_encode($this->get_accesstoken()));
+                }
+            } else {
+                //debugging("Old TOKEN: " . json_encode($this->get_accesstoken()));
+            }
+        }
+        return parent::request($url, $options);
+    }
+}
+
+
 /**
  * Base class of the helper to access OMERO resources.
  *
@@ -669,120 +817,6 @@ class RepositoryUrls
         return ($result && isset($result["id"])) ? $result["id"] : false;
     }
 }
-
-/**
- * Class confidential_oauth2_client,
- * an helper class to handle OAuth request
- * from a confidential OAuth client.
- */
-class confidential_oauth2_client extends oauth2_client
-{
-    private $disable_login_check = false;
-
-    /**
-     * Returns the auth url for OAuth 2.0 request
-     * @return string the auth url
-     */
-    protected function auth_url()
-    {
-        return "http://mep.crs4.it:8000/o/authorize/"; // FIXME: remove me: it's just for debugging!
-        return get_config('omero', 'omero_restendpoint') . "/o/authorize/";
-    }
-
-    /**
-     * Returns the token url for OAuth 2.0 request
-     * @return string the auth url
-     */
-    protected function token_url()
-    {
-        return "http://mep.crs4.it:8000/o/token/"; // FIXME: remove me: it's just for debugging!
-        return get_config('omero', 'omero_restendpoint') . "/o/token/";
-    }
-
-    /**
-     * @param bool $refresh
-     * @return bool
-     * @throws moodle_exception
-     */
-    public function upgrade_token($refresh = false)
-    {
-        $token = null;
-        if (!$this->disable_login_check && (!$this->get_stored_token() || $refresh)) {
-
-            debugging("Token not found in cache");
-
-            $this->disable_login_check = true;
-
-            $params = array(
-                'client_id' => $this->get_clientid(),
-                'client_secret' => $this->get_clientsecret(),
-                'grant_type' => 'client_credentials'
-            );
-
-            // clear the current token
-            $this->store_token(null);
-
-            // retrieve a new token
-            $response = $this->post($this->token_url(), $params);
-            $token = json_decode($response);
-
-            // register the new token
-            if ($token && isset($token->access_token)) {
-                debugging("retrieved token: " . json_encode($token));
-                $token->token = $token->access_token;
-                $token->expires = (time() + ($token->expires_in - 10)); // Expires 10 seconds before actual expiry.
-                $this->store_token($token);
-                debugging("Type of retrieve object: " . gettype($token));
-                return true;
-            } else {
-                debugging("Unable to retrieve the authentication token");
-                error("Authentication Error !!!");
-            }
-
-            $this->disable_login_check = false;
-
-        } else {
-            $token = $this->get_stored_token();
-            debugging("Token is in SESSION");
-            debugging("Type of token object: " . gettype($token));
-            return true;
-        }
-
-        return false;
-    }
-
-
-    /**
-     * Refresh the current token
-     */
-    protected function refresh_access_token()
-    {
-        $this->upgrade_token(true);
-    }
-
-    /**
-     * Process a request adding the required OAuth token
-     *
-     * @param string $url
-     * @param array $options
-     * @return bool
-     */
-    protected function request($url, $options = array())
-    {
-        if (!$this->disable_login_check) {
-            debugging("Is LOGGED: " . ($this->is_logged_in() ? "YES" : "NO"));
-            if (!$this->is_logged_in()) {
-                if ($this->upgrade_token(false)) {
-                    debugging("New TOKEN: " . json_encode($this->get_accesstoken()));
-                }
-            } else {
-                debugging("Old TOKEN: " . json_encode($this->get_accesstoken()));
-            }
-        }
-        return parent::request($url, $options);
-    }
-}
-
 
 /**
  * omero plugin cron task
