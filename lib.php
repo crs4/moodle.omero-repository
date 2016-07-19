@@ -649,9 +649,15 @@ class repository_omero extends repository
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "Image") == 0) {
+
+            // replace image ID with the ID of the higher resolution image of the series
+            $image_source = isset($item->high_resolution_image) ?
+                $item->high_resolution_image : $item->id;
+
             $image_thumbnail = PathUtils::build_image_thumbnail_url(
                 $item->id, $item->lastUpdate, $thumbnail_height, $thumbnail_width);
-            $itemObj["title"] = $item->name . " [id:" . $item->id . "]";
+            $itemObj['source'] = $image_source;
+            $itemObj["title"] = $item->name . " [id:" . $image_source . "]";
             $itemObj["author"] = $item->author;
             $itemObj["path"] = PathUtils::build_image_detail_url($item->id);
             $itemObj["thumbnail"] = $image_thumbnail;
@@ -664,7 +670,6 @@ class repository_omero extends repository
             $itemObj["image_height"] = $item->height;
             $itemObj['thumbnail_height'] = $thumbnail_height;
             $itemObj['thumbnail_width'] = $thumbnail_width;
-
         } else
             throw new RuntimeException("Unknown data type");
 
@@ -968,20 +973,13 @@ class repository_omero extends repository
     public function get_link($reference)
     {
         global $CFG;
-
         debugging("get_link called: : $reference !!!");
-
         $ref = unserialize($reference);
         if (!isset($ref->url)) {
             $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
         }
-
-        $image_id = preg_replace("/\/render_thumbnail\/(\d+)/", "$1", $ref->path);
-        //$res = $this->omero->get_thumbnail_url($image_id);
-        $res = "/omero-image-repository/$image_id";
-        debugging("RES: " . $res);
-        return $res;
+        return $ref->path;
     }
 
     /**
@@ -992,11 +990,12 @@ class repository_omero extends repository
      */
     public function get_file_reference($source)
     {
-        debugging("---> Calling 'get_file_reference' <---");
-
         global $USER, $CFG;
+
+        debugging("---> Calling 'get_file_reference: $source' <---");
+
         $reference = new stdClass;
-        $reference->path = "$this->omero_restendpoint/render_thumbnail/$source"; // FIXME: static URL
+        $reference->path = "/omero-image-repository/$source";
         $reference->userid = $USER->id;
         $reference->username = fullname($USER);
 //        $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
