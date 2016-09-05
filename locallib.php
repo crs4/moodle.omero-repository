@@ -86,8 +86,12 @@ class omero extends oauth_helper
         $url = $this->repository_server . "/ome_seadragon" . $request;
 
         $response = $this->get($url, array(), $token, $secret);
+    protected function do_http_request($request, $decode = true)
+    {
+        debugging("Processing HTTP request: $request, $decode ....");
+        $response = $this->get($request, array(), $this->access_token_api, $this->access_token_api);
         $result = $decode ? json_decode($response) : $response;
-        //debugging("PROCESSING REQUEST OK");
+        debugging("HTTP request processed: $request, $decode");
         return $result;
     }
 
