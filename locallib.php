@@ -82,10 +82,21 @@ class omero extends oauth_helper
      */
     public function process_request($request = '/', $decode = true, $token = '', $secret = '')
     {
-        //debugging("PROCESSING REQUEST: $path - decode: $decode");
-        $url = $this->repository_server . "/ome_seadragon" . $request;
+        debugging("PROCESSING REQUEST: $request - decode: $decode");
+        $request_info = RepositoryUrls::extract_request($request);
+        if (!$request_info)
+            throw new InvalidArgumentException("Invalid request: unable to identify the actual request '$request'");
 
-        $response = $this->get($url, array(), $token, $secret);
+        $result = false;
+        if (isset($request_info["id"]))
+            $result = $this->{$request_info["request"]}($request_info["id"])
+                ? isset($request_info["id"])
+                : $this->{$request_info["request"]}();
+        $result = $result ? $decode : json_encode($result);
+        debugging("PROCESSING REQUEST OK");
+        return $result;
+    }
+
     protected function do_http_request($request, $decode = true)
     {
         debugging("Processing HTTP request: $request, $decode ....");
