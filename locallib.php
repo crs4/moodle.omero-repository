@@ -242,6 +242,7 @@ class RepositoryUrls
     const TAGSETS = "/get_tagsets";
     const IMAGE = "/get_image";
     const IMAGES = "/get_images";
+    const THUMBNAIL = "/get_image_thumbnail";
 
 
     private static function get_pattern($path, $with_id = false)
@@ -309,6 +310,11 @@ class RepositoryUrls
     public static function is_image_file_url($path)
     {
         return self::is_url_type(self::IMAGE, $path, true);
+    }
+
+    public static function is_image_thumnail_url($path)
+    {
+        return self::is_url_type(self::THUMBNAIL, $path, true);
     }
 }
 
