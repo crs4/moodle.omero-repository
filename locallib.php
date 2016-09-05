@@ -107,6 +107,28 @@ abstract class omero extends oauth_helper
     }
 
 
+    public abstract function get_annotations();
+
+    public abstract function find_annotations($query);
+
+    public abstract function get_tagset($tagset_id, $tags = true);
+
+    public abstract function get_tag($tag_id, $images = true);
+
+    public abstract function get_projects();
+
+    public abstract function get_project($project_id, $datasets = true);
+
+    public abstract function get_datasets($project_id, $images = true);
+
+    public abstract function get_dataset($dataset_id, $images = true);
+
+    public abstract function get_image($image_id, $rois = true);
+
+    public abstract function get_image_dzi($image_id);
+
+    public abstract function get_image_thumbnail($image_id, $lastUpdate, $height = 128, $width = 128);
+
     /**
      * @param $search_text
      * @param string $token
