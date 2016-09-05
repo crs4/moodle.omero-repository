@@ -255,10 +255,10 @@ class RepositoryUrls
         return preg_match(self::get_pattern($type, $with_id), $path);
     }
 
-    public static function extract_request($path)
+    public static function extract_request($request_url)
     {
         $result = false;
-        if (preg_match("/\/([^\/]+)(\/(\d+)(\/)?)?/", $path, $matches)) {
+        if (preg_match("/\/([^\/]+)(\/(\d+)(\/)?)?/", $request_url, $matches)) {
             $result = array("request" => $matches[1]);
             if (count($matches) == 4)
                 $result["id"] = $matches[3];
