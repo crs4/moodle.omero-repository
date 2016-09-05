@@ -30,14 +30,14 @@ require_once($CFG->libdir . '/oauthlib.php');
  * @copyright  2015-2016 CRS4
  * @license    https://opensource.org/licenses/mit-license.php MIT license
  */
-class omero extends oauth_helper
+abstract class omero extends oauth_helper
 {
     /** @var string omero access type, can be omero or sandbox */
-    private $mode = 'omero';
+    protected $mode = 'omero';
     /** @var string omero api url */
-    private $repository_server;
+    protected $repository_server;
     /** @var string omero content api url */
-    private $omero_content_api;
+    protected $omero_content_api;
     /** @var RepositoryUrls */
     public $URLS;
 
