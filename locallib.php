@@ -38,6 +38,8 @@ class omero extends oauth_helper
     private $repository_server;
     /** @var string omero content api url */
     private $omero_content_api;
+    /** @var RepositoryUrls */
+    public $URLS;
 
 
     /**
@@ -49,6 +51,7 @@ class omero extends oauth_helper
     {
         parent::__construct($this->get_config($options));
         $this->repository_server = get_config('omero', 'omero_restendpoint');
+        $this->URLS = new RepositoryUrls();
     }
 
     /**
@@ -81,6 +84,7 @@ class omero extends oauth_helper
     {
         //debugging("PROCESSING REQUEST: $path - decode: $decode");
         $url = $this->repository_server . "/ome_seadragon" . $request;
+
         $response = $this->get($url, array(), $token, $secret);
         $result = $decode ? json_decode($response) : $response;
         //debugging("PROCESSING REQUEST OK");
