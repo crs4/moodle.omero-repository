@@ -250,6 +250,75 @@ abstract class omero extends oauth_helper
 }
 
 
+class OmeSeadragonApi extends omero
+{
+    /** @var string */
+    protected $base_url;
+
+    public function __construct($options = array())
+    {
+        parent::__construct($options);
+        $this->base_url = $this->repository_server . "/ome_seadragon";
+    }
+
+
+    public function get_annotations()
+    {
+        return $this->do_http_request($this->base_url . "/get/annotations");
+    }
+
+    public function find_annotations($query)
+    {
+        return $this->do_http_request($this->base_url . "/find/annotations?query=$query");
+    }
+
+    public function get_tagset($tagset_id, $tags = true)
+    {
+        return $this->do_http_request($this->base_url . "/get/tagset/$tagset_id?tags=$tags");
+    }
+
+    public function get_tag($tag_id, $images = true)
+    {
+        return $this->do_http_request($this->base_url . "/get/tag/$tag_id?images=$images");
+    }
+
+    public function get_projects()
+    {
+        return $this->do_http_request($this->base_url . "/get/projects");
+    }
+
+    public function get_project($project_id, $datasets = false)
+    {
+        return $this->do_http_request($this->base_url . "/get/project/$project_id?datatasets=$datasets");
+    }
+
+    public function get_datasets($project_id, $datasets = true)
+    {
+        return $this->do_http_request($this->base_url . "/get/project/$project_id?datatasets=$datasets");
+    }
+
+    public function get_dataset($dataset_id, $images = true)
+    {
+        return $this->do_http_request($this->base_url . "/get/dataset/$dataset_id?images=$images");
+    }
+
+    public function get_image($image_id, $rois = true)
+    {
+        return $this->do_http_request($this->base_url . "/get/image/$image_id?rois=$rois");
+    }
+
+    public function get_image_dzi($image_id)
+    {
+        return $this->do_http_request($this->base_url . "/deepzoom/image_mpp/${image_id}.dzi");
+    }
+
+    public function get_image_thumbnail($image_id, $lastUpdate, $height = 128, $width = 128)
+    {
+        return $this->do_http_request($this->base_url . "/deepzoom/get/thumbnail/${image_id}.dzi");
+    }
+}
+
+
 class RepositoryUrls
 {
     const ROOT = "/";
