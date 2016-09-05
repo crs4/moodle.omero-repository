@@ -71,16 +71,16 @@ class omero extends oauth_helper
     /**
      * Process request
      *
-     * @param string $path
+     * @param string $request
      * @param bool $decode
      * @param string $token
      * @param string $secret
      * @return mixed
      */
-    public function process_request($path = '/', $decode = true, $token = '', $secret = '')
+    public function process_request($request = '/', $decode = true, $token = '', $secret = '')
     {
         //debugging("PROCESSING REQUEST: $path - decode: $decode");
-        $url = $this->repository_server . "/ome_seadragon" . $path;
+        $url = $this->repository_server . "/ome_seadragon" . $request;
         $response = $this->get($url, array(), $token, $secret);
         $result = $decode ? json_decode($response) : $response;
         //debugging("PROCESSING REQUEST OK");
