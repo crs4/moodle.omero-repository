@@ -35,7 +35,7 @@ class omero extends oauth_helper
     /** @var string omero access type, can be omero or sandbox */
     private $mode = 'omero';
     /** @var string omero api url */
-    private $omero_api;
+    private $repository_server;
     /** @var string omero content api url */
     private $omero_content_api;
 
@@ -48,7 +48,7 @@ class omero extends oauth_helper
     function __construct($options = array())
     {
         parent::__construct($this->get_config($options));
-        $this->omero_api = get_config('omero', 'omero_restendpoint');
+        $this->repository_server = get_config('omero', 'omero_restendpoint');
     }
 
     /**
@@ -80,7 +80,7 @@ class omero extends oauth_helper
     public function process_request($path = '/', $decode = true, $token = '', $secret = '')
     {
         //debugging("PROCESSING REQUEST: $path - decode: $decode");
-        $url = $this->omero_api . "/ome_seadragon" . $path;
+        $url = $this->repository_server . "/ome_seadragon" . $path;
         $response = $this->get($url, array(), $token, $secret);
         $result = $decode ? json_decode($response) : $response;
         //debugging("PROCESSING REQUEST OK");
@@ -96,7 +96,7 @@ class omero extends oauth_helper
      */
     public function process_search($search_text, $token = '', $secret = '')
     {
-        $url = $this->omero_api . "/ome_seadragon" . PathUtils::build_find_annotations_url($search_text);
+        $url = $this->repository_server . "/ome_seadragon" . PathUtils::build_find_annotations_url($search_text);
         $content = $this->get($url, array(), $token, $secret);
         $data = json_decode($content);
         return $data;
@@ -133,7 +133,7 @@ class omero extends oauth_helper
      */
     public function get_thumbnail($filepath, $saveas, $timeout = 0)
     {
-        $url = $this->omero_api . '/thumbnails/' . $this->mode . $this->prepare_filepath($filepath);
+        $url = $this->repository_server . '/thumbnails/' . $this->mode . $this->prepare_filepath($filepath);
         if (!($fp = fopen($saveas, 'w'))) {
             throw new moodle_exception('cannotwritefile', 'error', '', $saveas);
         }
@@ -161,7 +161,7 @@ class omero extends oauth_helper
      */
     public function get_file($filepath, $saveas, $timeout = 0)
     {
-        $url = $this->omero_api . '/files/' . $this->mode . $this->prepare_filepath($filepath);
+        $url = $this->repository_server . '/files/' . $this->mode . $this->prepare_filepath($filepath);
         if (!($fp = fopen($saveas, 'w'))) {
             throw new moodle_exception('cannotwritefile', 'error', '', $saveas);
         }
@@ -185,7 +185,7 @@ class omero extends oauth_helper
      */
     public function get_file_share_link($filepath, $timeout = 0)
     {
-        $url = $this->omero_api . '/shares/' . $this->mode . $this->prepare_filepath($filepath);
+        $url = $this->repository_server . '/shares/' . $this->mode . $this->prepare_filepath($filepath);
         $this->setup_oauth_http_options(array('timeout' => $timeout));
         $result = $this->post($url, array('short_url' => 0));
         if (!$this->http->get_errno()) {
