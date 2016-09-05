@@ -209,6 +209,91 @@ class omero extends oauth_helper
 }
 
 
+class RepositoryUrls
+{
+    const ROOT = "/";
+    const PROJECT = "/get_project";
+    const PROJECTS = "/get_projects";
+    const DATASET = "/get_dataset";
+    const DATASETS = "/get_datasets";
+    const ANNOTATIONS = "/get_annotations";
+    const TAG = "/get_tag";
+    const TAGS = "/get_tags";
+    const TAGSET = "/get_tagset";
+    const TAGSETS = "/get_tagsets";
+    const IMAGE = "/get_image";
+    const IMAGES = "/get_images";
+
+
+    private static function get_pattern($path, $with_id = false)
+    {
+        if (isset($with_id)) $path .= $path . '/(\d+)';
+        return '/' . str_replace('/', '\/', $path) . '(\/)?/';
+    }
+
+    private static function is_url_type($type, $path, $with_id = false)
+    {
+        return preg_match(self::get_pattern($type, $with_id), $path);
+    }
+
+    public static function extract_request($path)
+    {
+        $result = false;
+        if (preg_match("/\/([^\/]+)(\/(\d+)(\/)?)?/", $path, $matches)) {
+            $result = array("request" => $matches[1]);
+            if (count($matches) == 4)
+                $result["id"] = $matches[3];
+        }
+        return $result;
+    }
+
+    public static function is_root_url($path)
+    {
+        return !strcmp($path, self::ROOT);
+    }
+
+    public static function is_projects_url($path)
+    {
+        return self::is_url_type(self::PROJECTS, $path);
+    }
+
+    public static function is_annotations_url($path)
+    {
+        return self::is_url_type(self::ANNOTATIONS, $path);
+    }
+
+    public static function is_annotations_query_url($path)
+    {
+        return self::is_url_type(self::ANNOTATIONS, $path, true);
+    }
+
+    public static function is_tagset_url($path)
+    {
+        return self::is_url_type(self::TAGSET, $path, true);
+    }
+
+    public static function is_tag_url($path)
+    {
+        return self::is_url_type(self::TAG, $path, true);
+    }
+
+    public static function is_project_url($path)
+    {
+        return self::is_url_type(self::PROJECT, $path, true);
+    }
+
+    public static function is_dataset_url($path)
+    {
+        return self::is_url_type(self::DATASET, $path, true);
+    }
+
+    public static function is_image_file_url($path)
+    {
+        return self::is_url_type(self::IMAGE, $path, true);
+    }
+}
+
+
 /**
  * Utility class for building REST Api url
  */
