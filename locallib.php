@@ -23,14 +23,14 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/oauthlib.php');
 
 /**
- * A helper class to access omero resources
+ * Base class of the helper to access OMERO resources.
  *
  * @since      Moodle 2.0
  * @package    repository_omero
  * @copyright  2015-2016 CRS4
  * @license    https://opensource.org/licenses/mit-license.php MIT license
  */
-abstract class omero extends oauth_helper
+abstract class OmeroImageRepository extends oauth_helper
 {
     /** @var string omero access type, can be omero or sandbox */
     protected $mode = 'omero';
@@ -72,6 +72,104 @@ abstract class omero extends oauth_helper
     }
 
     /**
+     * Returns the list of annotations (Tagsets and Tags).
+     *
+     * @return mixed
+     */
+    public abstract function get_annotations();
+
+    /**
+     * Find annotations matching the <code>query</code> parameter.
+     *
+     * @param $query
+     * @return mixed
+     */
+    public abstract function find_annotations($query);
+
+    /**
+     * Returns the TagSet with ID <code>tagset_id</code>.
+     *
+     * @param $tagset_id
+     * @param bool $tags
+     * @return mixed
+     */
+    public abstract function get_tagset($tagset_id, $tags = true);
+
+    /**
+     * Return the Tag with ID <code>tag_id</code>.
+     *
+     * @param $tag_id
+     * @param bool $images
+     * @return mixed
+     */
+    public abstract function get_tag($tag_id, $images = true);
+
+    /**
+     * Returns the list of projects.
+     *
+     * @return mixed
+     */
+    public abstract function get_projects();
+
+    /**
+     * Returns the Project with ID <code>project_id</code>.
+     *
+     * @param $project_id
+     * @param bool $datasets
+     * @return mixed
+     */
+    public abstract function get_project($project_id, $datasets = true);
+
+    /**
+     * Returns the list of datasets related to the project with ID <code>project_id</code>.
+     *
+     * @param $project_id
+     * @param bool $images
+     * @return mixed
+     */
+    public abstract function get_datasets($project_id, $images = true);
+
+    /**
+     * Returns the DataSet with ID <code>dataset_id</code>.
+     *
+     * @param $dataset_id
+     * @param bool $images
+     * @return mixed
+     */
+    public abstract function get_dataset($dataset_id, $images = true);
+
+    /**
+     * Returns the Image with ID <code>image_id</code>.
+     *
+     * @param $image_id
+     * @param bool $rois
+     * @param bool $decode
+     * @return mixed
+     */
+    public abstract function get_image($image_id, $rois = true, $decode = false);
+
+    /**
+     * Returns the DZI info of the Image with ID <code>image_id</code>.
+     *
+     * @param $image_id
+     * @param bool $decode
+     * @return mixed
+     */
+    public abstract function get_image_dzi($image_id, $decode = false);
+
+    /**
+     * Returns the thumbnail of the Image with ID <code>image_id</code>
+     *
+     * @param $image_id
+     * @param $lastUpdate
+     * @param int $height
+     * @param int $width
+     * @return mixed
+     */
+    public abstract function get_image_thumbnail($image_id, $lastUpdate, $height = 128, $width = 128);
+
+
+    /**
      * Process request
      *
      * @param string $request
@@ -104,29 +202,6 @@ abstract class omero extends oauth_helper
         debugging("HTTP request processed: $request, $decode");
         return $result;
     }
-
-
-    public abstract function get_annotations();
-
-    public abstract function find_annotations($query);
-
-    public abstract function get_tagset($tagset_id, $tags = true);
-
-    public abstract function get_tag($tag_id, $images = true);
-
-    public abstract function get_projects();
-
-    public abstract function get_project($project_id, $datasets = true);
-
-    public abstract function get_datasets($project_id, $images = true);
-
-    public abstract function get_dataset($dataset_id, $images = true);
-
-    public abstract function get_image($image_id, $rois = true, $decode = false);
-
-    public abstract function get_image_dzi($image_id, $decode = false);
-
-    public abstract function get_image_thumbnail($image_id, $lastUpdate, $height = 128, $width = 128);
 
     /**
      * @param $search
@@ -250,8 +325,17 @@ abstract class omero extends oauth_helper
     }
 }
 
-
-class OmeSeadragonApi extends omero
+/**
+ * Class OmeSeadragonApi
+ *
+ * The <code>OmeroImageRepository</code> implementation compliant
+ * with the OmeSeadragon interface.
+ *
+ * @package    repository_omero
+ * @copyright  2015-2016 CRS4
+ * @license    https://opensource.org/licenses/mit-license.php MIT license
+ */
+class OmeSeadragonImageRepository extends OmeroImageRepository
 {
     /** @var string */
     protected $base_url;
@@ -261,7 +345,6 @@ class OmeSeadragonApi extends omero
         parent::__construct($options);
         $this->base_url = $this->repository_server . "/ome_seadragon";
     }
-
 
     public function get_annotations()
     {
@@ -321,6 +404,9 @@ class OmeSeadragonApi extends omero
 }
 
 
+/**
+ * Utility class to manage urls to access the OMERO image repository.
+ */
 class RepositoryUrls
 {
     const ROOT = "/";
