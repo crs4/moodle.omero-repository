@@ -593,7 +593,7 @@ class repository_omero extends repository
         $response = $this->requests->get($key);
         if (!$response) {
             debugging("Getting data from the SERVER: $url");
-            $response = $this->omero->process_request($url, true, $this->access_key, $this->access_secret);
+            $response = $this->omero->process_request($url, true);
             $this->requests->set($key, $response);
             debugging("RESPONSE IS OBJECT: " . (is_object($response) ? "OK" : "NO"));
         } else debugging("Getting data from the CACHE: $url");
