@@ -124,9 +124,9 @@ abstract class omero extends oauth_helper
 
     public abstract function get_dataset($dataset_id, $images = true);
 
-    public abstract function get_image($image_id, $rois = true);
+    public abstract function get_image($image_id, $rois = true, $decode = false);
 
-    public abstract function get_image_dzi($image_id);
+    public abstract function get_image_dzi($image_id, $decode = false);
 
     public abstract function get_image_thumbnail($image_id, $lastUpdate, $height = 128, $width = 128);
 
@@ -303,19 +303,20 @@ class OmeSeadragonApi extends omero
         return $this->do_http_request($this->base_url . "/get/dataset/$dataset_id?images=$images");
     }
 
-    public function get_image($image_id, $rois = true)
+    public function get_image($image_id, $rois = true, $decode = false)
     {
-        return $this->do_http_request($this->base_url . "/get/image/$image_id?rois=$rois");
+        return $this->do_http_request($this->base_url . "/get/image/$image_id?rois=$rois", $decode);
     }
 
-    public function get_image_dzi($image_id)
+    public function get_image_dzi($image_id, $decode = false)
     {
-        return $this->do_http_request($this->base_url . "/deepzoom/image_mpp/${image_id}.dzi");
+        $result = ($this->do_http_request($this->base_url . "/deepzoom/image_mpp/${image_id}.dzi", $decode));
+        return $result;
     }
 
     public function get_image_thumbnail($image_id, $lastUpdate, $height = 128, $width = 128)
     {
-        return $this->do_http_request($this->base_url . "/deepzoom/get/thumbnail/${image_id}.dzi");
+        return $this->do_http_request($this->base_url . "/deepzoom/get/thumbnail/${image_id}.dzi", false);
     }
 }
 
