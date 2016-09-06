@@ -288,14 +288,14 @@ class OmeSeadragonApi extends omero
         return $this->do_http_request($this->base_url . "/get/projects");
     }
 
-    public function get_project($project_id, $datasets = false)
+    public function get_project($project_id, $datasets = true)
     {
-        return $this->do_http_request($this->base_url . "/get/project/$project_id?datatasets=$datasets");
+        return $this->do_http_request($this->base_url . "/get/project/$project_id?datasets=$datasets");
     }
 
     public function get_datasets($project_id, $datasets = true)
     {
-        return $this->do_http_request($this->base_url . "/get/project/$project_id?datatasets=$datasets");
+        return $this->do_http_request($this->base_url . "/get/project/$project_id?datasets=$datasets");
     }
 
     public function get_dataset($dataset_id, $images = true)
