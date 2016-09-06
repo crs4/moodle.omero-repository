@@ -334,6 +334,7 @@ class RepositoryUrls
     const TAGSET = "/get_tagset";
     const TAGSETS = "/get_tagsets";
     const IMAGE = "/get_image";
+    const IMAGE_DZI = "/get_image_dzi";
     const IMAGES = "/get_images";
     const THUMBNAIL = "/get_image_thumbnail";
 
