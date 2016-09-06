@@ -358,170 +358,117 @@ class RepositoryUrls
         return $result;
     }
 
-    public static function is_root_url($path)
+    public function get_root_url()
+    {
+        return self::ROOT;
+    }
+
+    public function is_root_url($path)
     {
         return !strcmp($path, self::ROOT);
     }
 
-    public static function is_projects_url($path)
+    public function is_projects_url($path)
     {
         return self::is_url_type(self::PROJECTS, $path);
     }
 
-    public static function is_annotations_url($path)
+    public function get_projects_url()
+    {
+        return self::PROJECTS;
+    }
+
+    public function is_annotations_url($path)
     {
         return self::is_url_type(self::ANNOTATIONS, $path);
     }
 
-    public static function is_annotations_query_url($path)
+    public function get_annotations_url()
+    {
+        return self::ANNOTATIONS;
+    }
+
+    public function is_annotations_query_url($path)
     {
         return self::is_url_type(self::ANNOTATIONS, $path, true);
     }
 
-    public static function is_tagset_url($path)
+    public function get_annotations_query_url($query)
+    {
+        return self::ANNOTATIONS . "/" . $query;
+    }
+
+    public function is_tagset_url($path)
     {
         return self::is_url_type(self::TAGSET, $path, true);
     }
 
-    public static function is_tag_url($path)
+    public function get_tagset_url($tagset_id)
+    {
+        return self::TAGSET . "/" . $tagset_id;
+    }
+
+    public function is_tag_url($path)
     {
         return self::is_url_type(self::TAG, $path, true);
     }
 
-    public static function is_project_url($path)
+    public function get_tag_url($tag_id)
+    {
+        return self::TAG . "/" . $tag_id;
+    }
+
+    public function is_project_url($path)
     {
         return self::is_url_type(self::PROJECT, $path, true);
     }
 
-    public static function is_dataset_url($path)
+    public function get_project_url($project_id)
+    {
+        return self::PROJECT . "/" . $project_id;
+    }
+
+    public function is_dataset_url($path)
     {
         return self::is_url_type(self::DATASET, $path, true);
     }
 
-    public static function is_image_file_url($path)
+    public function get_dataset_url($dataset_id)
+    {
+        return self::DATASET . "/" . $dataset_id;
+    }
+
+    public function is_image_url($path)
     {
         return self::is_url_type(self::IMAGE, $path, true);
     }
 
-    public static function is_image_thumnail_url($path)
+    public function get_image_url($image_id)
+    {
+        return self::IMAGE . "/" . $image_id;
+    }
+
+    public function get_image_dzi_url($image_id)
+    {
+        return self::IMAGE_DZI . "/" . $image_id;
+    }
+
+    public function is_image_thumnail_url($path)
     {
         return self::is_url_type(self::THUMBNAIL, $path, true);
     }
-}
 
-
-/**
- * Utility class for building REST Api url
- */
-class PathUtils
-{
-
-    public static function is_root_path($path)
-    {
-        return !strcmp($path, "/");
-    }
-
-    public static function is_projects_root($path)
-    {
-        return preg_match("/get\/projects/", $path);
-    }
-
-    public static function is_annotations_root($path)
-    {
-        return preg_match("/get\/annotations/", $path);
-    }
-
-    public static function is_tagset_root($path)
-    {
-        return preg_match("/get\/tagset\/(\d+)/", $path);
-    }
-
-    public static function is_tag($path)
-    {
-        return preg_match("/get\/tag\/(\d+)/", $path);
-    }
-
-    public static function is_project($path)
-    {
-        return preg_match("/get\/project\/(\d+)/", $path);
-    }
-
-    public static function is_dataset($path)
-    {
-        return preg_match("/get\/dataset\/(\d+)/", $path);
-    }
-
-    public static function is_image_file($path)
-    {
-        return preg_match("/get\/image/\/(\d+)/", $path);
-    }
-
-    public static function is_annotations_query($path)
-    {
-        return preg_match("/find\/annotations/", $path);
-    }
-
-    public static function build_project_list_url()
-    {
-        return "/get/projects";
-    }
-
-    public static function build_annotation_list_url()
-    {
-        return "/get/annotations";
-    }
-
-    public static function build_find_annotations_url($query)
-    {
-        return "/find/annotations?query=$query";
-    }
-
-    public static function build_tagset_deatails_url($tagset_id, $tags = true)
-    {
-        return "/get/tagset/$tagset_id?tags=$tags";
-    }
-
-    public static function build_tag_detail_url($tag_id)
-    {
-        return "/get/tag/$tag_id?images=true";
-    }
-
-    public static function build_project_detail_url($project_id)
-    {
-        return "/get/project/$project_id";
-    }
-
-    public static function build_dataset_list_url($project_id, $datasets = true)
-    {
-        return "/get/project/$project_id?datasets=$datasets";
-    }
-
-    public static function build_dataset_detail_url($dataset_id, $images = true)
-    {
-        return "/get/dataset/$dataset_id?images=$images";
-    }
-
-    public static function build_image_detail_url($image_id, $rois = true)
-    {
-        return "/get/image/$image_id?rois=$rois";
-    }
-
-    public static function build_image_dzi_url($image_id)
-    {
-        return "/deepzoom/image_mpp/${image_id}.dzi";
-    }
-
-    public static function build_image_thumbnail_url($image_id, $lastUpdate, $height = 128, $width = 128)
+    public function get_image_thumbnail_url($image_id, $lastUpdate, $height = 128, $width = 128)
     {
         global $CFG;
-        return "$CFG->wwwroot/repository/omero/thumbnail.php?id=$image_id&lastUpdate=$lastUpdate&height=$height&width=$width";
+        return "$CFG->wwwroot/repository/omero/thumbnail.php?" .
+        "id=$image_id&lastUpdate=$lastUpdate&height=$height&width=$width";
     }
 
-    public static function get_element_id_from_url($url, $element_name)
+    public function get_element_id_from_url($url)
     {
-        if (preg_match("/$element_name\/(\d+)/", $url, $matches))
-            return $matches[1];
-        return null;
+        $result = self::extract_request($url);
+        return ($result && isset($result["id"])) ? $result["id"] : false;
     }
 }
 
