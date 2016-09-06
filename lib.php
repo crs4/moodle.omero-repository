@@ -145,7 +145,7 @@ class repository_omero extends repository
         );
 
         // instantiate the omero client
-        $this->omero = new omero($args);
+        $this->omero = new OmeSeadragonApi($args);
 
         // set cache references
         $this->requests = cache::make('repository_omero', 'repository_info_cache');
@@ -254,7 +254,7 @@ class repository_omero extends repository
         $list['nosearch'] = false;
 
         // process search request
-        if (isset($search_text) || PathUtils::is_annotations_query($path)) {
+        if (isset($search_text) || $urls->is_annotations_query_url($path)) {
             if (isset($search_text))
                 $response = $this->omero->process_search($search_text, $this->access_key, $this->access_secret);
             else $response = $this->process_request($path);
@@ -280,26 +280,29 @@ class repository_omero extends repository
             $list['issearchresult'] = false;
 
 
-            if (PathUtils::is_root_path($path)) {
+            if ($urls->is_root_url($path)) {
+                debugging("Is Root");
                 $list['list'][] = $this->process_list_item("ProjectRoot", (object)$this->PROJECTS_ROOT_ITEM);
                 $list['list'][] = $this->process_list_item("TagRoot", (object)$this->TAGS_ROOT_ITEM);
                 // Build the navigation bar
                 $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
-            } else if (PathUtils::is_projects_root($path)) {
+            } else if ($urls->is_projects_url($path)) {
                 debugging("The root project path has been selected !!!");
-                $response = $this->process_request(PathUtils::build_project_list_url());
+                $response = $this->omero->get_projects();
                 foreach ($response as $item) {
+                    debugging("Processing project...");
                     $obj = $this->process_list_item("Project", $item);
+                    debugging("Project.... PATH: " . $obj["path"]);
                     if ($obj != null)
                         $list['list'][] = $obj;
                 }
                 // Build the navigation bar
                 $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
-            } else if (PathUtils::is_annotations_root($path)) {
+            } else if ($urls->is_annotations_url($path)) {
                 debugging("The root tag path has been selected !!!");
-                $response = $this->process_request(PathUtils::build_annotation_list_url());
+                $response = $this->omero->get_annotations();
                 foreach ($response as $item) {
                     $itype = "Tag";
                     if (strcmp($item->type, "tagset") == 0)
@@ -312,9 +315,10 @@ class repository_omero extends repository
                 // Build the navigation bar
                 $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
-            } else if (PathUtils::is_tagset_root($path)) {
+            } else if ($urls->is_tagset_url($path)) {
                 debugging("The tagset root path has been selected: $path !!!");
-                $response = $this->process_request($path);
+                $tagset_id = $urls->get_element_id_from_url($path);
+                $response = $this->omero->get_tagset($tagset_id);
                 foreach ($response->tags as $item) {
                     $obj = $this->process_list_item("Tag", $item);
                     if ($obj != null) {
@@ -326,9 +330,10 @@ class repository_omero extends repository
 
             } else {
 
-                if (PathUtils::is_tag($path)) {
+                if ($urls->is_tag_url($path)) {
                     debugging("Tag selected: $path!!!");
-                    $selected_obj_info = $this->process_request($path);
+                    $tag_id = $urls->get_element_id_from_url($path);
+                    $selected_obj_info = $this->omero->get_tag($tag_id);
                     $response = $selected_obj_info;
                     foreach ($response->images as $item) {
                         $obj = $this->process_list_item("Image", $item);
@@ -338,9 +343,11 @@ class repository_omero extends repository
                     // Build the navigation bar
                     $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
 
-                } else if (PathUtils::is_project($path)) {
-                    $project_id = PathUtils::get_element_id_from_url($path, "project");
-                    $response = $this->process_request(PathUtils::build_dataset_list_url($project_id));
+                } else if ($urls->is_project_url($path)) {
+                    debugging("Project selected: $path !!!");
+                    $project_id = $urls->get_element_id_from_url($path);
+                    $response = $this->omero->get_project($project_id);
+                    debugging(json_encode($response));
                     if (isset($response->datasets)) {
                         foreach ($response->datasets as $item) {
                             $obj = $this->process_list_item("Dataset", $item);
@@ -351,9 +358,10 @@ class repository_omero extends repository
                     // Build the navigation bar
                     $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
 
-                } else if (PathUtils::is_dataset($path)) {
-                    debugging("Dataset selected!!!");
-                    $response = $this->process_request($path);
+                } else if ($urls->is_dataset_url($path)) {
+                    debugging("Dataset selected: $path!!!");
+                    $dataset_id = $urls->get_element_id_from_url($path);
+                    $response = $this->omero->get_dataset($dataset_id, true);
                     // Build the navigation bar
                     $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
                     // process images
@@ -425,9 +433,9 @@ class repository_omero extends repository
 
         // clean current value sessions
         // when a new navigation path starts
-        if (PathUtils::is_root_path($path) ||
-            PathUtils::is_projects_root($path) ||
-            PathUtils::is_annotations_root($path)
+        if ($this->omero->URLS->is_root_url($path) ||
+            $this->omero->URLS->is_projects_url($path) ||
+            $this->omero->URLS->is_annotations_url($path)
         ) {
             // invalidate current session values
             $cache->delete_many(
@@ -443,55 +451,55 @@ class repository_omero extends repository
         }
 
         // adds the root
-        array_push($result, array('name' => "/", 'path' => "/"));
+        array_push($result, array('name' => "/", 'path' => $urls->get_root_url()));
 
         // Query reference
         if ($annotations_query) {
             if ($annotations_query) {
                 array_push($result, array(
                         'name' => "Query: $annotations_query",
-                        'path' => PathUtils::build_find_annotations_url($annotations_query))
+                        'path' => $urls->get_annotations_query_url($annotations_query))
                 );
                 $_SESSION['$omero_search_text'] = $annotations_query;
             }
         }
 
         // process remaining elements by type
-        if (PathUtils::is_annotations_root($path)) {
+        if ($urls->is_annotations_url($path)) {
             if (!$annotations_query)
                 array_push($result, array(
                         'name' => get_string('tags', 'repository_omero'),
-                        'path' => PathUtils::build_annotation_list_url())
+                        'path' => $urls->get_annotations_url())
                 );
 
-        } else if (PathUtils::is_tagset_root($path)) {
+        } else if ($urls->is_tagset_url($path)) {
             if (!$annotations_query)
                 array_push($result, array(
                         'name' => get_string('tags', 'repository_omero'),
-                        'path' => PathUtils::build_annotation_list_url()
+                        'path' => $urls->get_annotations_url()
                     )
                 );
             array_push($result, array(
                     'name' => $this->format_navbar_element_name(
                         get_string('tagset', 'repository_omero'), $obj_info->value, $obj_info->id
                     ),
-                    'path' => PathUtils::build_tagset_deatails_url($obj_info->id)
+                    'path' => $urls->get_tagset_url($obj_info->id)
                 )
             );
             $cache->set(self::OMERO_TAGSET_KEY, $obj_info);
 
-        } else if (PathUtils::is_tag($path)) {
+        } else if ($urls->is_tag_url($path)) {
             if (!$annotations_query)
                 array_push($result, array(
                         'name' => get_string('tags', 'repository_omero'),
-                        'path' => PathUtils::build_annotation_list_url())
+                        'path' => $urls->get_annotations_url())
                 );
             if (isset($omero_tagset) && !empty($omero_tagset)) {
                 array_push($result, array(
                         'name' => $this->format_navbar_element_name(
                             get_string('tagset', 'repository_omero'), $omero_tagset->value, $omero_tagset->id
                         ),
-                        'path' => PathUtils::build_tagset_deatails_url($omero_tagset->id)
+                        'path' => $urls->get_tagset_url($omero_tagset->id)
                     )
                 );
             }
@@ -503,42 +511,42 @@ class repository_omero extends repository
                 )
             );
 
-        } else if (PathUtils::is_projects_root($path)) {
+        } else if ($urls->is_projects_url($path)) {
             array_push($result, array(
                     'name' => get_string('projects', 'repository_omero'),
-                    'path' => PathUtils::build_project_list_url())
+                    'path' => $urls->get_projects_url())
             );
 
-        } else if (PathUtils::is_project($path)) {
+        } else if ($urls->is_project_url($path)) {
             $omero_project = $obj_info;
             $cache->set(self::OMERO_PROJECT_KEY, $omero_project);
             array_push($result, array(
                     'name' => get_string('projects', 'repository_omero'),
-                    'path' => PathUtils::build_project_list_url())
+                    'path' => $urls->get_projects_url())
             );
             array_push($result, array(
                     'name' => $this->format_navbar_element_name(
                         get_string('project', 'repository_omero'), $omero_project->name, $omero_project->id
                     ),
-                    'path' => PathUtils::build_project_detail_url($omero_project->id))
+                    'path' => $urls->get_project_url($omero_project->id))
             );
 
-        } else if (PathUtils::is_dataset($path)) {
+        } else if ($urls->is_dataset_url($path)) {
             $omero_dataset = $obj_info;
             $cache->set(self::OMERO_DATASET_KEY, $omero_dataset);
             array_push($result, array(
                 'name' => get_string('projects', 'repository_omero'),
-                'path' => PathUtils::build_project_list_url()));
+                'path' => $urls->get_projects_url()));
             array_push($result, array(
                     'name' => $this->format_navbar_element_name(
                         get_string('project', 'repository_omero'),
                         $omero_project->name, $omero_project->id),
-                    'path' => PathUtils::build_project_detail_url($omero_project->id))
+                    'path' => $urls->get_project_url($omero_project->id))
             );
             array_push($result, array(
                     'name' => $this->format_navbar_element_name(
                         get_string('dataset', 'repository_omero'), $omero_dataset->name, $omero_dataset->id),
-                    'path' => PathUtils::build_dataset_detail_url($omero_dataset->id))
+                    'path' => $urls->get_dataset_url($omero_dataset->id))
             );
         }
 
@@ -630,32 +638,32 @@ class repository_omero extends repository
 
         if (strcmp($type, "ProjectRoot") == 0) {
             $itemObj["title"] = get_string('projects', 'repository_omero');
-            $itemObj["path"] = PathUtils::build_project_list_url();
+            $itemObj["path"] = $urls->get_projects_url();
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "TagRoot") == 0) {
             $itemObj["title"] = get_string('tags', 'repository_omero');
-            $itemObj["path"] = PathUtils::build_annotation_list_url();
+            $itemObj["path"] = $urls->get_annotations_url();
             $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
 
         } else if (strcmp($type, "TagSet") == 0) {
             $itemObj["title"] = get_string('tagset', 'repository_omero') . $item->value;
-            $itemObj["path"] = PathUtils::build_tagset_deatails_url($item->id);
+            $itemObj["path"] = $urls->get_tagset_url($item->id);
             $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
 
         } else if (strcmp($type, "Tag") == 0) {
             $itemObj["title"] = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
-            $itemObj["path"] = PathUtils::build_tag_detail_url($item->id);
+            $itemObj["path"] = $urls->get_tag_url($item->id);
             $itemObj["thumbnail"] = $this->file_icon("tag", 64);
 
         } else if (strcmp($type, "Project") == 0) {
             $itemObj["title"] = $item->name . " [id:" . $item->id . "]";
-            $itemObj["path"] = PathUtils::build_project_detail_url($item->id);
+            $itemObj["path"] = $urls->get_project_url($item->id);
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "Dataset") == 0) {
             $itemObj["title"] = $item->name . " [id:" . $item->id . "]";
-            $itemObj["path"] = PathUtils::build_dataset_detail_url($item->id);
+            $itemObj["path"] = $urls->get_dataset_url($item->id);
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "Image") == 0) {
@@ -664,12 +672,12 @@ class repository_omero extends repository
             $image_source = isset($item->high_resolution_image) ?
                 $item->high_resolution_image : $item->id;
 
-            $image_thumbnail = PathUtils::build_image_thumbnail_url(
+            $image_thumbnail = $urls->get_image_thumbnail_url(
                 $item->id, $item->lastUpdate, $thumbnail_height, $thumbnail_width);
             $itemObj['source'] = $image_source;
             $itemObj["title"] = $item->name . " [id:" . $image_source . "]";
             $itemObj["author"] = $item->author;
-            $itemObj["path"] = PathUtils::build_image_detail_url($item->id);
+            $itemObj["path"] = $urls->get_image_url($item->id);
             $itemObj["thumbnail"] = $image_thumbnail;
             $itemObj["url"] = $image_thumbnail;
             $itemObj["date"] = $item->importTime;
@@ -1022,7 +1030,7 @@ class repository_omero extends repository
             if ($url) {
                 unset($reference->access_key);
                 unset($reference->access_secret);
-                $reference->url = PathUtils::build_image_detail_url($source);
+                $reference->url = $this->omero->URLS->get_image_url($source);
                 debugging("Computed reference: " . $reference->url);
             }
         }
@@ -1064,7 +1072,9 @@ class repository_omero extends repository
             } catch (Exception $e) {
             }
         }
-        $c->get($url, null, array('timeout' => $CFG->repositorysyncimagetimeout, 'followlocation' => true, 'nobody' => true));
+        $c->get($url, null, array(
+            'timeout' => $CFG->repositorysyncimagetimeout, 'followlocation' => true, 'nobody' => true
+        ));
         $info = $c->get_info();
         if (isset($info['http_code']) && $info['http_code'] == 200 &&
             array_key_exists('download_content_length', $info) &&
