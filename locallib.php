@@ -341,7 +341,7 @@ class RepositoryUrls
 
     private static function get_pattern($path, $with_id = false)
     {
-        if (isset($with_id)) $path .= $path . '/(\d+)';
+        if ($with_id) $path .= '/(\d+)';
         return '/' . str_replace('/', '\/', $path) . '(\/)?/';
     }
 
