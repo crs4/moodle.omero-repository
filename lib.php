@@ -256,7 +256,7 @@ class repository_omero extends repository
         // process search request
         if (isset($search_text) || $urls->is_annotations_query_url($path)) {
             if (isset($search_text))
-                $response = $this->omero->process_search($search_text, $this->access_key, $this->access_secret);
+                $response = $this->omero->find_annotations($search_text);
             else $response = $this->process_request($path);
 
             foreach ($response as $item) {
