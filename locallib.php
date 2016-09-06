@@ -76,11 +76,9 @@ abstract class omero extends oauth_helper
      *
      * @param string $request
      * @param bool $decode
-     * @param string $token
-     * @param string $secret
      * @return mixed
      */
-    public function process_request($request = '/', $decode = true, $token = '', $secret = '')
+    public function process_request($request = '/', $decode = true)
     {
         debugging("PROCESSING REQUEST: $request - decode: $decode" . ($decode ? "yes" : "no"));
         $request_info = RepositoryUrls::extract_request($request);
@@ -131,16 +129,10 @@ abstract class omero extends oauth_helper
     public abstract function get_image_thumbnail($image_id, $lastUpdate, $height = 128, $width = 128);
 
     /**
-     * @param $search_text
-     * @param string $token
-     * @param string $secret
+     * @param $search
      * @return mixed
      */
-    public function process_search($search_text, $token = '', $secret = '')
-    {
-        $url = $this->repository_server . "/ome_seadragon" . PathUtils::build_find_annotations_url($search_text);
-        $content = $this->get($url, array(), $token, $secret);
-        $data = json_decode($content);
+    public function process_search($search)
         return $data;
     }
 
