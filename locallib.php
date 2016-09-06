@@ -133,6 +133,14 @@ abstract class omero extends oauth_helper
      * @return mixed
      */
     public function process_search($search)
+    {
+        debugging("Processing SEARCH: $search ...");
+        $search_info = RepositoryUrls::extract_query($search);
+        if (!$search_info)
+            throw new InvalidArgumentException("Invalid request: unable to identify the actual request '$search'");
+        $response = $this->{$search_info["request"]}($search_info["query"]);
+        $data = json_decode($response);
+        debugging("Processed SEARCH: $search OK");
         return $data;
     }
 
