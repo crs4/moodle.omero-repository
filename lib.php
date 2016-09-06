@@ -647,12 +647,12 @@ class repository_omero extends repository
             $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
 
         } else if (strcmp($type, "TagSet") == 0) {
-            $itemObj["title"] = get_string('tagset', 'repository_omero') . $item->value;
+            $itemObj["title"] = $item->value . " [id:" . $item->id . "]";
             $itemObj["path"] = $urls->get_tagset_url($item->id);
             $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
 
         } else if (strcmp($type, "Tag") == 0) {
-            $itemObj["title"] = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
+            $itemObj["title"] = $item->value . (!empty($item->description) ? ( " " . $item->description) : "") . " [id:" . $item->id . "]";
             $itemObj["path"] = $urls->get_tag_url($item->id);
             $itemObj["thumbnail"] = $this->file_icon("tag", 64);
 
