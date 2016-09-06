@@ -231,6 +231,9 @@ class repository_omero extends repository
     {
         global $CFG, $OUTPUT;
 
+        // shortcut to the API urls
+        $urls = $this->omero->URLS;
+
         // format the current selected URL
         if (empty($path)) {
             $path = '/';
@@ -407,6 +410,9 @@ class repository_omero extends repository
     public function build_navigation_bar($result, $path, $obj_info = null, $annotations_query = false)
     {
         debugging("BUILDING NAVIGATION BAR: $path");
+
+        // shortcut to the API urls
+        $urls = $this->omero->URLS;
 
         // alias for the 'requests' cache
         $cache = $this->requests;
@@ -608,6 +614,10 @@ class repository_omero extends repository
             }
         }
 
+        // shortcut to the API urls
+        $urls = $this->omero->URLS;
+
+        //
         $thumbnail_height = 95;
         $thumbnail_width = 95;
         $itemObj = array(
