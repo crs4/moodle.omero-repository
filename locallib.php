@@ -82,16 +82,17 @@ abstract class omero extends oauth_helper
      */
     public function process_request($request = '/', $decode = true, $token = '', $secret = '')
     {
-        debugging("PROCESSING REQUEST: $request - decode: $decode");
+        debugging("PROCESSING REQUEST: $request - decode: $decode" . ($decode ? "yes" : "no"));
         $request_info = RepositoryUrls::extract_request($request);
         if (!$request_info)
             throw new InvalidArgumentException("Invalid request: unable to identify the actual request '$request'");
 
         $result = false;
-        if (isset($request_info["id"]))
+        if (isset($request_info["id"])) {
             $result = $this->{$request_info["request"]}($request_info["id"])
                 ? isset($request_info["id"])
                 : $this->{$request_info["request"]}();
+        }
         $result = $result ? $decode : json_encode($result);
         debugging("PROCESSING REQUEST OK");
         return $result;
