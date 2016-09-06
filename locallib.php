@@ -361,6 +361,17 @@ class RepositoryUrls
         return $result;
     }
 
+    public static function extract_query($request_url)
+    {
+        $result = false;
+        if (preg_match("/\/([^\/]+)(\/(\w+)(\/)?)?/", $request_url, $matches)) {
+            $result = array("request" => $matches[1]);
+            if (count($matches) == 4)
+                $result["query"] = $matches[3];
+        }
+        return $result;
+    }
+
     public function get_root_url()
     {
         return self::ROOT;
