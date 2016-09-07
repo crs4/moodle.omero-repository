@@ -32,7 +32,7 @@ require_once(dirname(__FILE__) . '/locallib.php');
  */
 class repository_omero extends repository
 {
-    /** @var omero the instance of omero client */
+    /** @var OmeroImageRepository the instance of omero client */
     private $omero;
 
     /** @var cache_session */
