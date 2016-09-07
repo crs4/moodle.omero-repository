@@ -42,6 +42,7 @@ if (!isloggedin()) {
 
 // get the OMERO server URL
 $omero_server = get_config('omero', 'omero_restendpoint');
+$omero = OmeroImageRepository::get_instance();
 
 // get the Image ID
 $image_id = required_param("id", PARAM_INT);

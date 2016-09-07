@@ -151,7 +151,7 @@ class repository_omero extends repository
         );
 
         // instantiate the omero client
-        $this->omero = new OmeSeadragonApi($args);
+        $this->omero = OmeroImageRepository::get_instance($args);
 
         // set cache references
         $this->requests = cache::make('repository_omero', 'repository_info_cache');
