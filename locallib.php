@@ -41,6 +41,26 @@ abstract class OmeroImageRepository extends oauth_helper
     /** @var RepositoryUrls */
     public $URLS;
 
+    /**
+     * Reference to the singleton instance of OmeroImageRepository
+     * @var OmeroImageRepository
+     */
+    private static $instance = null;
+
+    /**
+     * Returns the default instance of OmeroImageRepository
+     * instantiated accordingly to the repository plugin settings
+     *
+     * @param array $options
+     * @return OmeroImageRepository
+     */
+    public static function get_instance($options = array())
+    {
+        $api_version = get_config('omero', 'omero_apiversion');
+        if (self::$instance == null)
+            self::$instance = new $api_version($options);
+        return self::$instance;
+    }
 
     /**
      * Constructor for omero class
