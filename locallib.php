@@ -422,6 +422,80 @@ class OmeSeadragonImageRepository extends OmeroImageRepository
         return $this->do_http_request($this->base_url . "/deepzoom/get/thumbnail/${image_id}.dzi?size=$height", false);
     }
 }
+
+
+/**
+ * The <code>OmeroImageRepository</code> implementation compliant
+ * with the OmeSeadragon Gateway interface.
+ *
+ * @package    repository_omero
+ * @copyright  2015-2016 CRS4
+ * @license    https://opensource.org/licenses/mit-license.php MIT license
+ */
+class OmeSeadragonGatewayImageRepository extends OmeroImageRepository
+{
+    /** @var string */
+    protected $base_url;
+
+    public function __construct($options = array())
+    {
+        parent::__construct($options);
+        $this->base_url = $this->repository_server;
+    }
+
+    public function get_annotations()
+    {
+        return $this->do_http_request($this->base_url . "/api/annotations");
+    }
+
+    public function find_annotations($query)
+    {
+        return $this->do_http_request($this->base_url . "/api/annotations/$query");
+    }
+
+    public function get_tagset($tagset_id, $tags = true)
+    {
+        return $this->do_http_request($this->base_url . "/api/tagsets/$tagset_id" . ($tags ? "/tags" : ""));
+    }
+
+    public function get_tag($tag_id, $images = true)
+    {
+        return $this->do_http_request($this->base_url . "/api/tags/$tag_id" . ($images ? "/images" : ""));
+    }
+
+    public function get_projects()
+    {
+        return $this->do_http_request($this->base_url . "/api/projects");
+    }
+
+    public function get_project($project_id, $datasets = true)
+    {
+        return $this->do_http_request($this->base_url . "/api/projects/$project_id" . ($datasets ? "/datasets" : ""));
+    }
+
+    public function get_datasets($project_id, $datasets = true)
+    {
+        return $this->do_http_request($this->base_url . "/api/projects/$project_id" . ($datasets ? "/datasets" : ""));
+    }
+
+    public function get_dataset($dataset_id, $images = true)
+    {
+        return $this->do_http_request($this->base_url . "/api/datasets/$dataset_id" . ($images ? "/images" : ""));
+    }
+
+    public function get_image($image_id, $rois = true, $decode = false)
+    {
+        return $this->do_http_request($this->base_url . "/api/images/$image_id" . ($rois ? "/rois" : ""), $decode);
+    }
+
+    public function get_image_dzi($image_id, $decode = false)
+    {
+        return $this->do_http_request($this->base_url . "/api/image_mpp/${image_id}", $decode);
+    }
+
+    public function get_image_thumbnail($image_id, $height = 128, $width = 128)
+    {
+        return $this->do_http_request($this->base_url . "/api/thumbnail/${image_id}/$height/png", false);
     }
 }
 
