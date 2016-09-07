@@ -75,6 +75,12 @@ class repository_omero extends repository
         "path" => "/tags"
     );
 
+    /** @var array Defines the set of supported API versions */
+    public static $API_VERSIONS = array(
+        "OmeSeadragonImageRepository" => "OmeSeadragon API",
+        "OmeSeadragonGatewayImageRepository" => "OmeSeadragon Gateway API"
+    );
+
     // Session keys
     const OMERO_TAGSET_KEY = "omero_tagset";
     const OMERO_PROJECT_KEY = "omero_project";
