@@ -186,7 +186,7 @@ abstract class OmeroImageRepository extends oauth_helper
      * @param int $width
      * @return mixed
      */
-    public abstract function get_image_thumbnail($image_id, $lastUpdate, $height = 128, $width = 128);
+    public abstract function get_image_thumbnail($image_id, $height = 128, $width = 128);
 
 
     /**
@@ -417,9 +417,11 @@ class OmeSeadragonImageRepository extends OmeroImageRepository
         return $result;
     }
 
-    public function get_image_thumbnail($image_id, $lastUpdate, $height = 128, $width = 128)
+    public function get_image_thumbnail($image_id, $height = 128, $width = 128)
     {
-        return $this->do_http_request($this->base_url . "/deepzoom/get/thumbnail/${image_id}.dzi", false);
+        return $this->do_http_request($this->base_url . "/deepzoom/get/thumbnail/${image_id}.dzi?size=$height", false);
+    }
+}
     }
 }
 
