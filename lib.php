@@ -658,7 +658,7 @@ class repository_omero extends repository
             $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
 
         } else if (strcmp($type, "Tag") == 0) {
-            $itemObj["title"] = $item->value . (!empty($item->description) ? ( " " . $item->description) : "") . " [id:" . $item->id . "]";
+            $itemObj["title"] = $item->value . (!empty($item->description) ? (" " . $item->description) : "") . " [id:" . $item->id . "]";
             $itemObj["path"] = $urls->get_tag_url($item->id);
             $itemObj["thumbnail"] = $this->file_icon("tag", 64);
 
@@ -762,6 +762,9 @@ class repository_omero extends repository
      */
     public function set_option($options = array())
     {
+        if (!empty($options['omero_apiversion'])) {
+            set_config('omero_apiversion', trim($options['omero_apiversion']), 'omero');
+        }
         if (!empty($options['omero_restendpoint'])) {
             set_config('omero_restendpoint', trim($options['omero_restendpoint']), 'omero');
         }
@@ -776,10 +779,11 @@ class repository_omero extends repository
             set_config('omero_cachelimit', $this->cachelimit, 'omero');
         }
 
-        //unset($options['omero_restendpoint']);
+        unset($options['omero_restendpoint']);
         unset($options['omero_key']);
         unset($options['omero_secret']);
         unset($options['omero_cachelimit']);
+        unset($options['omero_api_version']);
         $ret = parent::set_option($options);
         return $ret;
     }
@@ -791,7 +795,9 @@ class repository_omero extends repository
      */
     public function get_option($config = '')
     {
-        if ($config === 'omero_key') {
+        if ($config === 'omero_apiversion') {
+            return trim(get_config('omero', 'omero_apiversion'));
+        } elseif ($config === 'omero_key') {
             return trim(get_config('omero', 'omero_key'));
         } elseif ($config === 'omero_secret') {
             return trim(get_config('omero', 'omero_secret'));
@@ -799,6 +805,7 @@ class repository_omero extends repository
             return $this->max_cache_bytes();
         } else {
             $options = parent::get_option();
+            $options['omero_apiversion'] = trim(get_config('omero', 'omero_apiversion'));
             $options['omero_key'] = trim(get_config('omero', 'omero_key'));
             $options['omero_secret'] = trim(get_config('omero', 'omero_secret'));
             $options['omero_cachelimit'] = $this->max_cache_bytes();
@@ -921,10 +928,15 @@ class repository_omero extends repository
     {
         global $CFG;
         parent::type_config_form($mform);
+
+        $api_version = get_config('omero', 'omero_apiversion');
         $endpoint = get_config('omero', 'omero_restendpoint');
         $key = get_config('omero', 'omero_key');
         $secret = get_config('omero', 'omero_secret');
 
+        if (empty($api_version)) {
+            $api_version = array_keys(self::$API_VERSIONS)[0];
+        }
         if (empty($endpoint)) {
             $endpoint = 'http://omero.crs4.it:8080';
         }
@@ -937,12 +949,16 @@ class repository_omero extends repository
 
         $strrequired = get_string('required');
 
-        $mform->addElement('text', 'omero_restendpoint', get_string('omero_restendpoint', 'repository_omero'), array('value' => $endpoint, 'size' => '80'));
+        $mform->addElement('text', 'omero_restendpoint', get_string('omero_server', 'repository_omero'), array('value' => $endpoint, 'size' => '80'));
         $mform->setType('omero_restendpoint', PARAM_RAW_TRIMMED);
+
+        $mform->addElement('select', 'omero_apiversion',
+            get_string('apiversion', 'repository_omero'), self::$API_VERSIONS);
+        $mform->setDefault('omero_apiversion', $api_version);
 
         $mform->addElement('text', 'omero_key', get_string('apikey', 'repository_omero'), array('value' => $key, 'size' => '40'));
         $mform->setType('omero_key', PARAM_RAW_TRIMMED);
-        $mform->addElement('text', 'omero_secret', get_string('secret', 'repository_omero'), array('value' => $secret, 'size' => '40'));
+        $mform->addElement('text', 'omero_secret', get_string('apisecret', 'repository_omero'), array('value' => $secret, 'size' => '40'));
 
         $mform->addRule('omero_key', $strrequired, 'required', null, 'client');
         $mform->addRule('omero_secret', $strrequired, 'required', null, 'client');
@@ -963,7 +979,13 @@ class repository_omero extends repository
      */
     public static function get_type_option_names()
     {
-        return array('omero_restendpoint', 'omero_key', 'omero_secret', 'pluginname', 'omero_cachelimit');
+        return array(
+            'pluginname',
+            'omero_apiversion',
+            'omero_restendpoint',
+            'omero_key', 'omero_secret',
+            'omero_cachelimit'
+        );
     }
 
     /**
