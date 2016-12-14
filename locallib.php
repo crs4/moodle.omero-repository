@@ -57,6 +57,8 @@ abstract class OmeroImageRepository extends oauth_helper
     public static function get_instance($options = array())
     {
         $api_version = get_config('omero', 'omero_apiversion');
+        if (!isset($api_version))
+            $api_version = "OmeSeadragonImageRepository";
         if (self::$instance == null)
             self::$instance = new $api_version($options);
         return self::$instance;
@@ -658,7 +660,7 @@ class RepositoryUrls
     {
         global $CFG;
         return "$CFG->wwwroot/repository/omero/thumbnail.php?" .
-        "id=$image_id&lastUpdate=$lastUpdate&height=$height&width=$width";
+            "id=$image_id&lastUpdate=$lastUpdate&height=$height&width=$width";
     }
 
     public function get_element_id_from_url($url)
