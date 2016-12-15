@@ -67,10 +67,10 @@ class confidential_oauth2_client extends oauth2_client
     public function is_logged_in() {
         // Has the token expired?
         $token = $this->get_accesstoken();
-//        debugging("Expired: " .
-//        (isset($token->expires) && time() >= $token->expires)
-//            ? "NO" : "YES"
-//        );
+        debugging("Expired: " .
+        (isset($token->expires) && time() >= $token->expires)
+            ? "NO" : "YES"
+        );
         if (isset($token->expires) && time() >= $token->expires) {
             $this->log_out();
             return false;
@@ -95,7 +95,7 @@ class confidential_oauth2_client extends oauth2_client
         $token = null;
         if (!$this->disable_login_check && (!$this->get_stored_token() || $refresh)) {
 
-            //debugging("Token not found in cache");
+            debugging("Token not found in cache");
 
             $this->disable_login_check = true;
 
@@ -114,14 +114,14 @@ class confidential_oauth2_client extends oauth2_client
 
             // register the new token
             if ($token && isset($token->access_token)) {
-                //debugging("retrieved token: " . json_encode($token));
+                debugging("retrieved token: " . json_encode($token));
                 $token->token = $token->access_token;
                 $token->expires = (time() + ($token->expires_in - 10)); // Expires 10 seconds before actual expiry.
                 $this->store_token($token);
-                //debugging("Type of retrieve object: " . gettype($token));
+                debugging("Type of retrieve object: " . gettype($token));
                 return true;
             } else {
-                //debugging("Unable to retrieve the authentication token");
+                debugging("Unable to retrieve the authentication token");
                 error("Authentication Error !!!");
             }
 
@@ -129,8 +129,8 @@ class confidential_oauth2_client extends oauth2_client
 
         } else {
             $token = $this->get_stored_token();
-            //debugging("Token is in SESSION");
-            //debugging("Type of token object: " . gettype($token));
+            debugging("Token is in SESSION");
+            debugging("Type of token object: " . gettype($token));
             return true;
         }
 
@@ -156,13 +156,13 @@ class confidential_oauth2_client extends oauth2_client
     protected function request($url, $options = array())
     {
         if (!$this->disable_login_check) {
-            //debugging("Is LOGGED: " . ($this->is_logged_in() ? "YES" : "NO"));
+            debugging("Is LOGGED: " . ($this->is_logged_in() ? "YES" : "NO"));
             if (!$this->is_logged_in()) {
                 if ($this->upgrade_token(false)) {
-                    //debugging("New TOKEN: " . json_encode($this->get_accesstoken()));
+                    debugging("New TOKEN: " . json_encode($this->get_accesstoken()));
                 }
             } else {
-                //debugging("Old TOKEN: " . json_encode($this->get_accesstoken()));
+                debugging("Old TOKEN: " . json_encode($this->get_accesstoken()));
             }
         }
         return parent::request($url, $options);
