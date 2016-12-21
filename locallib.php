@@ -364,6 +364,15 @@ abstract class OmeroImageRepository extends confidential_oauth2_client
     public abstract function get_image_dzi($image_id, $decode = false);
 
     /**
+     * Returns the MPP info of the Image with ID <code>image_id</code>.
+     *
+     * @param $image_id
+     * @param bool $decode
+     * @return mixed
+     */
+    public abstract function get_image_mpp($image_id, $decode = false);
+
+    /**
      * Returns the thumbnail of the Image with ID <code>image_id</code>
      *
      * @param $image_id
