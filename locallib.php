@@ -355,6 +355,15 @@ abstract class OmeroImageRepository extends confidential_oauth2_client
     public abstract function get_image($image_id, $rois = true, $decode = false);
 
     /**
+     * Returns the metadata of the Image with ID <code>image_id</code>.
+     *
+     * @param $image_id
+     * @param bool $decode
+     * @return mixed
+     */
+    public abstract function get_image_metadata($image_id, $decode = false);
+
+    /**
      * Returns the DZI info of the Image with ID <code>image_id</code>.
      *
      * @param $image_id
