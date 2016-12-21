@@ -688,6 +688,8 @@ class OmeSeadragonGatewayImageRepository extends OmeroImageRepository
 
     public function get_image_dzi($image_id, $decode = false)
     {
+    public function get_image_mpp($image_id, $decode = false)
+    {
         return $this->do_http_request($this->base_url . "/api/image_mpp/${image_id}", $decode);
     }
 
