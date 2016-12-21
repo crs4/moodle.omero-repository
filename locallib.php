@@ -92,6 +92,13 @@ class confidential_oauth2_client extends oauth2_client
         return false;
     }
 
+    public function log_out()
+    {
+        $this->revoke_token();
+        parent::log_out();
+    }
+
+
     /**
      * @param bool $refresh
      * @return bool
