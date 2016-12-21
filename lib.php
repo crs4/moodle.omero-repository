@@ -730,7 +730,6 @@ class repository_omero extends repository
         try {
             $access_key = get_user_preferences($this->setting . '_access_key', '');
             $access_secret = get_user_preferences($this->setting . '_access_secret', '');
-            $this->omero->set_access_token($access_key, $access_secret);
             $this->omero->get_thumbnail($source, $saveas, $CFG->repositorysyncimagetimeout);
             $content = file_get_contents($saveas);
             unlink($saveas);
@@ -824,7 +823,6 @@ class repository_omero extends repository
         global $CFG;
         $ref = unserialize($reference);
         if (!isset($ref->url)) {
-            $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
             if (!$ref->url) {
                 // some error occurred, do not fix reference for now
@@ -903,7 +901,6 @@ class repository_omero extends repository
         $ref = unserialize($reference);
         $saveas = $this->prepare_file($saveas);
         if (isset($ref->access_key) && isset($ref->access_secret) && isset($ref->path)) {
-            $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             return $this->omero->get_file($ref->path, $saveas, $CFG->repositorygetfiletimeout);
         } else if (isset($ref->url)) {
             $c = new curl;
@@ -1022,7 +1019,6 @@ class repository_omero extends repository
         debugging("get_link called: : $reference !!!");
         $ref = unserialize($reference);
         if (!isset($ref->url)) {
-            $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
         }
         return $ref->path;
@@ -1051,7 +1047,6 @@ class repository_omero extends repository
         $usefilereference = optional_param('usefilereference', false, PARAM_BOOL);
         if ($usefilereference) {
             debugging("Computing reference: $usefilereference");
-            $this->omero->set_access_token($reference->access_key, $reference->access_secret);
             $url = $this->omero->get_file_share_link($source, $CFG->repositorygetfiletimeout);
             if ($url) {
                 unset($reference->access_key);
