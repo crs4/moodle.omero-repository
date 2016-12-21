@@ -43,8 +43,7 @@ class confidential_oauth2_client extends oauth2_client
      */
     protected function auth_url()
     {
-        return "http://mep.crs4.it:8000/o/authorize/"; // FIXME: remove me: it's just for debugging!
-        return get_config('omero', 'omero_restendpoint') . "/o/authorize/";
+        return get_config('omero', 'omero_restendpoint') . "/oauth2/authorize/";
     }
 
     /**
@@ -53,8 +52,16 @@ class confidential_oauth2_client extends oauth2_client
      */
     protected function token_url()
     {
-        return "http://mep.crs4.it:8000/o/token/"; // FIXME: remove me: it's just for debugging!
-        return get_config('omero', 'omero_restendpoint') . "/o/token/";
+        return get_config('omero', 'omero_restendpoint') . "/oauth2/token/";
+    }
+
+    /**
+     * Returns the token url for OAuth 2.0 request
+     * @return string the auth url
+     */
+    protected function revoke_url()
+    {
+        return get_config('omero', 'omero_restendpoint') . "/oauth2/token/";
     }
 
     /**
