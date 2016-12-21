@@ -1044,8 +1044,6 @@ class repository_omero extends repository
         $reference->path = "/omero-image-repository/$source";
         $reference->userid = $USER->id;
         $reference->username = fullname($USER);
-//        $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
-//        $reference->access_secret = get_user_preferences($this->setting . '_access_secret', '');
 
         // by API we don't know if we need this reference to just download a file from omero
         // into moodle filepool or create a reference. Since we need to create a shared link
@@ -1285,10 +1283,6 @@ class repository_omero extends repository
                 return $fullname;
                 if ($iconsize >= $size && (file_exists($fullname)))
                     return $fullname;
-//                if ($iconsize >= $size && (file_exists($fullname.'.png') || file_exists($fullname.'.gif'))) {
-//                    $cached[$iconsize] = 'f/tag'.$postfix;
-//                    break;
-//                }
             }
         }
         return $cached[$iconsize];
