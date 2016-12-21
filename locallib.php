@@ -248,7 +248,14 @@ abstract class OmeroImageRepository extends oauth_helper
      */
     function __construct($options = array())
     {
-        parent::__construct($this->get_config($options));
+        global $CFG;
+        $config = $this->get_config($options);
+        parent::__construct(
+            $config["oauth_consumer_key"],
+            $config["oauth_consumer_secret"],
+            new moodle_url("$CFG->wwwroot/moodle/question/question.php"), // FIXME: check the correct callback URL
+            "read"
+        );
         $this->repository_server = get_config('omero', 'omero_restendpoint');
         $this->URLS = new RepositoryUrls();
     }
