@@ -622,8 +622,9 @@ class OmeSeadragonImageRepository extends OmeroImageRepository
 
     public function get_image_dzi($image_id, $decode = false)
     {
-        $result = ($this->do_http_request($this->base_url . "/deepzoom/image_mpp/${image_id}.dzi", $decode));
-        return $result;
+        return ($this->do_http_request($this->base_url . "/deepzoom/get/${image_id}.dzi", $decode));
+    }
+
     public function get_image_mpp($image_id, $decode = false)
     {
         return ($this->do_http_request($this->base_url . "/deepzoom/image_mpp/${image_id}.dzi", $decode));
@@ -707,6 +708,9 @@ class OmeSeadragonGatewayImageRepository extends OmeroImageRepository
 
     public function get_image_dzi($image_id, $decode = false)
     {
+        return $this->do_http_request($this->base_url . "/api/deepzoom/${image_id}.dzi", $decode);
+    }
+
     public function get_image_mpp($image_id, $decode = false)
     {
         return $this->do_http_request($this->base_url . "/api/image_mpp/${image_id}", $decode);
