@@ -615,6 +615,11 @@ class OmeSeadragonImageRepository extends OmeroImageRepository
         return $this->do_http_request($this->base_url . "/get/image/$image_id?rois=$rois", $decode);
     }
 
+    public function get_image_metadata($image_id, $decode = false)
+    {
+        return ($this->do_http_request($this->base_url . "/deepzoom/get/${image_id}_metadata.json", $decode));
+    }
+
     public function get_image_dzi($image_id, $decode = false)
     {
         $result = ($this->do_http_request($this->base_url . "/deepzoom/image_mpp/${image_id}.dzi", $decode));
