@@ -207,7 +207,7 @@ class confidential_oauth2_client extends oauth2_client
  * @copyright  2015-2016 CRS4
  * @license    https://opensource.org/licenses/mit-license.php MIT license
  */
-abstract class OmeroImageRepository extends oauth_helper
+abstract class OmeroImageRepository extends confidential_oauth2_client
 {
     /** @var string omero access type, can be omero or sandbox */
     protected $mode = 'omero';
