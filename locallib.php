@@ -71,7 +71,8 @@ class confidential_oauth2_client extends oauth2_client
      *
      * @return boolean true if logged in
      */
-    public function is_logged_in() {
+    public function is_logged_in()
+    {
         // Has the token expired?
         $token = $this->get_accesstoken();
         debugging("Expired: " .
@@ -185,8 +186,9 @@ class confidential_oauth2_client extends oauth2_client
     protected function request($url, $options = array())
     {
         if (!$this->disable_login_check) {
-            debugging("Is LOGGED: " . ($this->is_logged_in() ? "YES" : "NO"));
-            if (!$this->is_logged_in()) {
+            $logged = $this->is_logged_in();
+            debugging("Is LOGGED: " . ($logged ? "YES" : "NO"));
+            if (!$logged) {
                 if ($this->upgrade_token(false)) {
                     debugging("New TOKEN: " . json_encode($this->get_accesstoken()));
                 }
@@ -241,6 +243,7 @@ abstract class OmeroImageRepository extends confidential_oauth2_client
         return self::$instance;
     }
 
+
     /**
      * Constructor for omero class
      *
@@ -271,9 +274,7 @@ abstract class OmeroImageRepository extends confidential_oauth2_client
         // TODO: update the default settings
         return array_merge(array(
             "oauth_consumer_key" => get_config('omero', "omero_key"),
-            "oauth_consumer_secret" => get_config('omero', "omero_secret"),
-            "access_token" => "omero",
-            "access_token_secret" => "omero"
+            "oauth_consumer_secret" => get_config('omero', "omero_secret")
         ), $options);
     }
 
@@ -527,13 +528,10 @@ abstract class OmeroImageRepository extends confidential_oauth2_client
     public function get_file_share_link($filepath, $timeout = 0)
     {
         $url = $this->repository_server . '/shares/' . $this->mode . $this->prepare_filepath($filepath);
-        $this->setup_oauth_http_options(array('timeout' => $timeout));
         $result = $this->post($url, array('short_url' => 0));
-        if (!$this->http->get_errno()) {
-            $data = json_decode($result);
-            if (isset($data->url)) {
-                return $data->url;
-            }
+        $data = json_decode($result);
+        if (isset($data->url)) {
+            return $data->url;
         }
         return null;
     }
