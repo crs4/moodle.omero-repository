@@ -160,6 +160,21 @@ class confidential_oauth2_client extends oauth2_client
         $this->upgrade_token(true);
     }
 
+    public function revoke_token()
+    {
+        $token = $this->get_accesstoken();
+        $params = array(
+            'client_id' => $this->get_clientid(),
+            'client_secret' => $this->get_clientsecret(),
+            'token' => $token->token
+        );
+
+        // retrieve a new token
+        $response = $this->get($this->revoke_url(), $params);
+        debugging("TOKEN Revoked");
+    }
+
+
     /**
      * Process a request adding the required OAuth token
      *
