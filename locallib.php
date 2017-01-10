@@ -32,6 +32,54 @@ class confidential_oauth2_client extends oauth2_client
 {
     private $disable_login_check = false;
 
+    /**
+     * confidential_oauth2_client constructor, which ovverrides the base constructor
+     * with the capability of enabling cookies (useful to maintain a single HTTP session
+     * to communicate with the image server.
+     *
+     * @param string $clientid
+     * @param string $clientsecret
+     * @param moodle_url $returnurl
+     * @param string $scope
+     * @param bool $enable_cookies
+     */
+    public function __construct($clientid, $clientsecret, moodle_url $returnurl, $scope, $enable_cookies = true)
+    {
+        parent::__construct($clientid, $clientsecret, $returnurl, $scope);
+        if ($enable_cookies)
+            $this->enable_cookies();
+    }
+
+    /**
+     * Enable cookies to communicate with the image server.
+     *
+     * @param bool $session_based <code>true</code> to bind cookies to sessions;
+     * <code>false</code> to use global cookies.
+     */
+    protected function enable_cookies($session_based = false)
+    {
+        global $SESSION, $_COOKIE;
+        $cookie_filename = sys_get_temp_dir() . '/omemod_cookies';
+        if ($session_based) {
+            if (!isset($SESSION->cookie_filename)) {//
+                $cookie_filename = tempnam(sys_get_temp_dir(), 'omemod_');
+                $SESSION->cookie_filename = $cookie_filename;
+                debugging("temp directory for OmeSeadragon cookies: " . $cookie_filename);
+            } else
+                $cookie_filename = $SESSION->cookie_filename;
+        }
+        debugging("temp directory for OmeSeadragon cookies: " . $SESSION->cookie_filename);
+        $this->setopt(array(
+            'cookiejar' => $cookie_filename,
+            'cookiefile' => $cookie_filename
+        ));
+    }
+
+    /**
+     * Enable/disable the OAuth authorization to communicate with the image server.
+     *
+     * @param bool $enabled
+     */
     protected function enable_authorization($enabled = true)
     {
         $this->disable_login_check = !$enabled;
