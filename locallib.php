@@ -284,7 +284,7 @@ abstract class OmeroImageRepository extends confidential_oauth2_client
     public static function get_instance($options = array())
     {
         $api_version = get_config('omero', 'omero_apiversion');
-        if (!isset($api_version))
+        if (!isset($api_version) or empty($api_version))
             $api_version = "OmeSeadragonImageRepository";
         if (self::$instance == null)
             self::$instance = new $api_version($options);
