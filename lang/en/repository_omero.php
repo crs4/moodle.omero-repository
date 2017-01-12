@@ -32,6 +32,8 @@ $string['pluginname'] = 'Omero';
 $string['configplugin'] = 'Configurazione Repository Omero';
 $string['omero_server'] = 'OmeSeadragon Server';
 $string['omero_restendpoint'] = 'OmeSeadragon REST API EndPoint';
+$string['omero_webclient'] = 'Omero Web Client URL';
+
 
 # API authentication and authorization
 $string['omero'] = 'omero';

@@ -248,7 +248,7 @@ class repository_omero extends repository
         // Initializes the data structures needed to build the response
         $list = array();
         $list['list'] = array();
-        $list['manage'] = get_config('omero', 'omero_restendpoint');
+        $list['manage'] = get_config('omero', 'omero_webclient');
         $list['dynload'] = true;
         $list['nologin'] = true;
         $list['search_query'] = $search_text;
@@ -928,6 +928,7 @@ class repository_omero extends repository
 
         $api_version = get_config('omero', 'omero_apiversion');
         $endpoint = get_config('omero', 'omero_restendpoint');
+        $webclient = get_config('omero', 'omero_webclient');
         $key = get_config('omero', 'omero_key');
         $secret = get_config('omero', 'omero_secret');
 
@@ -936,6 +937,9 @@ class repository_omero extends repository
         }
         if (empty($endpoint)) {
             $endpoint = 'http://omero.crs4.it:8080';
+        }
+        if (empty($webclient)) {
+            $webclient = $endpoint;
         }
         if (empty($key)) {
             $key = '';
@@ -948,6 +952,9 @@ class repository_omero extends repository
 
         $mform->addElement('text', 'omero_restendpoint', get_string('omero_server', 'repository_omero'), array('value' => $endpoint, 'size' => '80'));
         $mform->setType('omero_restendpoint', PARAM_RAW_TRIMMED);
+
+        $mform->addElement('text', 'omero_webclient', get_string('omero_webclient', 'repository_omero'), array('value' => $webclient, 'size' => '80'));
+        $mform->setType('omero_webclient', PARAM_RAW_TRIMMED);
 
         $mform->addElement('select', 'omero_apiversion',
             get_string('apiversion', 'repository_omero'), self::$API_VERSIONS);
@@ -980,6 +987,7 @@ class repository_omero extends repository
             'pluginname',
             'omero_apiversion',
             'omero_restendpoint',
+            'omero_webclient',
             'omero_key', 'omero_secret',
             'omero_cachelimit'
         );
