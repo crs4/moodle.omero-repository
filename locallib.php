@@ -614,6 +614,7 @@ class OmeSeadragonImageRepository extends OmeroImageRepository
     {
         parent::__construct($options);
         $this->base_url = $this->repository_server . "/ome_seadragon";
+        $this->enable_authorization(false);
     }
 
     public function get_annotations()
