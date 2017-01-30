@@ -32,7 +32,7 @@ require_once(dirname(__FILE__) . '/locallib.php');
  */
 class repository_omero extends repository
 {
-    /** @var omero the instance of omero client */
+    /** @var OmeroImageRepository the instance of omero client */
     private $omero;
 
     /** @var cache_session */
@@ -73,6 +73,12 @@ class repository_omero extends repository
         "name" => "tags",
         "type" => "tags",
         "path" => "/tags"
+    );
+
+    /** @var array Defines the set of supported API versions */
+    public static $API_VERSIONS = array(
+        "OmeSeadragonImageRepository" => "OmeSeadragon API",
+        "OmeSeadragonGatewayImageRepository" => "OmeSeadragon Gateway API"
     );
 
     // Session keys
@@ -145,7 +151,7 @@ class repository_omero extends repository
         );
 
         // instantiate the omero client
-        $this->omero = new omero($args);
+        $this->omero = OmeroImageRepository::get_instance($args);
 
         // set cache references
         $this->requests = cache::make('repository_omero', 'repository_info_cache');
@@ -231,6 +237,9 @@ class repository_omero extends repository
     {
         global $CFG, $OUTPUT;
 
+        // shortcut to the API urls
+        $urls = $this->omero->URLS;
+
         // format the current selected URL
         if (empty($path)) {
             $path = '/';
@@ -239,7 +248,7 @@ class repository_omero extends repository
         // Initializes the data structures needed to build the response
         $list = array();
         $list['list'] = array();
-        $list['manage'] = get_config('omero', 'omero_restendpoint');
+        $list['manage'] = get_config('omero', 'omero_webclient');
         $list['dynload'] = true;
         $list['nologin'] = true;
         $list['search_query'] = $search_text;
@@ -251,9 +260,9 @@ class repository_omero extends repository
         $list['nosearch'] = false;
 
         // process search request
-        if (isset($search_text) || PathUtils::is_annotations_query($path)) {
+        if (isset($search_text) || $urls->is_annotations_query_url($path)) {
             if (isset($search_text))
-                $response = $this->omero->process_search($search_text, $this->access_key, $this->access_secret);
+                $response = $this->omero->find_annotations($search_text);
             else $response = $this->process_request($path);
 
             foreach ($response as $item) {
@@ -277,26 +286,29 @@ class repository_omero extends repository
             $list['issearchresult'] = false;
 
 
-            if (PathUtils::is_root_path($path)) {
+            if ($urls->is_root_url($path)) {
+                debugging("Is Root");
                 $list['list'][] = $this->process_list_item("ProjectRoot", (object)$this->PROJECTS_ROOT_ITEM);
                 $list['list'][] = $this->process_list_item("TagRoot", (object)$this->TAGS_ROOT_ITEM);
                 // Build the navigation bar
                 $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
-            } else if (PathUtils::is_projects_root($path)) {
+            } else if ($urls->is_projects_url($path)) {
                 debugging("The root project path has been selected !!!");
-                $response = $this->process_request(PathUtils::build_project_list_url());
+                $response = $this->omero->get_projects();
                 foreach ($response as $item) {
+                    debugging("Processing project...");
                     $obj = $this->process_list_item("Project", $item);
+                    debugging("Project.... PATH: " . $obj["path"]);
                     if ($obj != null)
                         $list['list'][] = $obj;
                 }
                 // Build the navigation bar
                 $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
-            } else if (PathUtils::is_annotations_root($path)) {
+            } else if ($urls->is_annotations_url($path)) {
                 debugging("The root tag path has been selected !!!");
-                $response = $this->process_request(PathUtils::build_annotation_list_url());
+                $response = $this->omero->get_annotations();
                 foreach ($response as $item) {
                     $itype = "Tag";
                     if (strcmp($item->type, "tagset") == 0)
@@ -309,9 +321,10 @@ class repository_omero extends repository
                 // Build the navigation bar
                 $list['path'] = $this->build_navigation_bar($navigation_list, $path);
 
-            } else if (PathUtils::is_tagset_root($path)) {
+            } else if ($urls->is_tagset_url($path)) {
                 debugging("The tagset root path has been selected: $path !!!");
-                $response = $this->process_request($path);
+                $tagset_id = $urls->get_element_id_from_url($path);
+                $response = $this->omero->get_tagset($tagset_id);
                 foreach ($response->tags as $item) {
                     $obj = $this->process_list_item("Tag", $item);
                     if ($obj != null) {
@@ -323,9 +336,10 @@ class repository_omero extends repository
 
             } else {
 
-                if (PathUtils::is_tag($path)) {
+                if ($urls->is_tag_url($path)) {
                     debugging("Tag selected: $path!!!");
-                    $selected_obj_info = $this->process_request($path);
+                    $tag_id = $urls->get_element_id_from_url($path);
+                    $selected_obj_info = $this->omero->get_tag($tag_id);
                     $response = $selected_obj_info;
                     foreach ($response->images as $item) {
                         $obj = $this->process_list_item("Image", $item);
@@ -335,9 +349,11 @@ class repository_omero extends repository
                     // Build the navigation bar
                     $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
 
-                } else if (PathUtils::is_project($path)) {
-                    $project_id = PathUtils::get_element_id_from_url($path, "project");
-                    $response = $this->process_request(PathUtils::build_dataset_list_url($project_id));
+                } else if ($urls->is_project_url($path)) {
+                    debugging("Project selected: $path !!!");
+                    $project_id = $urls->get_element_id_from_url($path);
+                    $response = $this->omero->get_project($project_id);
+                    debugging(json_encode($response));
                     if (isset($response->datasets)) {
                         foreach ($response->datasets as $item) {
                             $obj = $this->process_list_item("Dataset", $item);
@@ -348,9 +364,10 @@ class repository_omero extends repository
                     // Build the navigation bar
                     $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
 
-                } else if (PathUtils::is_dataset($path)) {
-                    debugging("Dataset selected!!!");
-                    $response = $this->process_request($path);
+                } else if ($urls->is_dataset_url($path)) {
+                    debugging("Dataset selected: $path!!!");
+                    $dataset_id = $urls->get_element_id_from_url($path);
+                    $response = $this->omero->get_dataset($dataset_id, true);
                     // Build the navigation bar
                     $list['path'] = $this->build_navigation_bar($navigation_list, $path, $response);
                     // process images
@@ -408,6 +425,9 @@ class repository_omero extends repository
     {
         debugging("BUILDING NAVIGATION BAR: $path");
 
+        // shortcut to the API urls
+        $urls = $this->omero->URLS;
+
         // alias for the 'requests' cache
         $cache = $this->requests;
 
@@ -419,9 +439,9 @@ class repository_omero extends repository
 
         // clean current value sessions
         // when a new navigation path starts
-        if (PathUtils::is_root_path($path) ||
-            PathUtils::is_projects_root($path) ||
-            PathUtils::is_annotations_root($path)
+        if ($this->omero->URLS->is_root_url($path) ||
+            $this->omero->URLS->is_projects_url($path) ||
+            $this->omero->URLS->is_annotations_url($path)
         ) {
             // invalidate current session values
             $cache->delete_many(
@@ -437,55 +457,55 @@ class repository_omero extends repository
         }
 
         // adds the root
-        array_push($result, array('name' => "/", 'path' => "/"));
+        array_push($result, array('name' => "/", 'path' => $urls->get_root_url()));
 
         // Query reference
         if ($annotations_query) {
             if ($annotations_query) {
                 array_push($result, array(
                         'name' => "Query: $annotations_query",
-                        'path' => PathUtils::build_find_annotations_url($annotations_query))
+                        'path' => $urls->get_annotations_query_url($annotations_query))
                 );
                 $_SESSION['$omero_search_text'] = $annotations_query;
             }
         }
 
         // process remaining elements by type
-        if (PathUtils::is_annotations_root($path)) {
+        if ($urls->is_annotations_url($path)) {
             if (!$annotations_query)
                 array_push($result, array(
                         'name' => get_string('tags', 'repository_omero'),
-                        'path' => PathUtils::build_annotation_list_url())
+                        'path' => $urls->get_annotations_url())
                 );
 
-        } else if (PathUtils::is_tagset_root($path)) {
+        } else if ($urls->is_tagset_url($path)) {
             if (!$annotations_query)
                 array_push($result, array(
                         'name' => get_string('tags', 'repository_omero'),
-                        'path' => PathUtils::build_annotation_list_url()
+                        'path' => $urls->get_annotations_url()
                     )
                 );
             array_push($result, array(
                     'name' => $this->format_navbar_element_name(
                         get_string('tagset', 'repository_omero'), $obj_info->value, $obj_info->id
                     ),
-                    'path' => PathUtils::build_tagset_deatails_url($obj_info->id)
+                    'path' => $urls->get_tagset_url($obj_info->id)
                 )
             );
             $cache->set(self::OMERO_TAGSET_KEY, $obj_info);
 
-        } else if (PathUtils::is_tag($path)) {
+        } else if ($urls->is_tag_url($path)) {
             if (!$annotations_query)
                 array_push($result, array(
                         'name' => get_string('tags', 'repository_omero'),
-                        'path' => PathUtils::build_annotation_list_url())
+                        'path' => $urls->get_annotations_url())
                 );
             if (isset($omero_tagset) && !empty($omero_tagset)) {
                 array_push($result, array(
                         'name' => $this->format_navbar_element_name(
                             get_string('tagset', 'repository_omero'), $omero_tagset->value, $omero_tagset->id
                         ),
-                        'path' => PathUtils::build_tagset_deatails_url($omero_tagset->id)
+                        'path' => $urls->get_tagset_url($omero_tagset->id)
                     )
                 );
             }
@@ -497,42 +517,42 @@ class repository_omero extends repository
                 )
             );
 
-        } else if (PathUtils::is_projects_root($path)) {
+        } else if ($urls->is_projects_url($path)) {
             array_push($result, array(
                     'name' => get_string('projects', 'repository_omero'),
-                    'path' => PathUtils::build_project_list_url())
+                    'path' => $urls->get_projects_url())
             );
 
-        } else if (PathUtils::is_project($path)) {
+        } else if ($urls->is_project_url($path)) {
             $omero_project = $obj_info;
             $cache->set(self::OMERO_PROJECT_KEY, $omero_project);
             array_push($result, array(
                     'name' => get_string('projects', 'repository_omero'),
-                    'path' => PathUtils::build_project_list_url())
+                    'path' => $urls->get_projects_url())
             );
             array_push($result, array(
                     'name' => $this->format_navbar_element_name(
                         get_string('project', 'repository_omero'), $omero_project->name, $omero_project->id
                     ),
-                    'path' => PathUtils::build_project_detail_url($omero_project->id))
+                    'path' => $urls->get_project_url($omero_project->id))
             );
 
-        } else if (PathUtils::is_dataset($path)) {
+        } else if ($urls->is_dataset_url($path)) {
             $omero_dataset = $obj_info;
             $cache->set(self::OMERO_DATASET_KEY, $omero_dataset);
             array_push($result, array(
                 'name' => get_string('projects', 'repository_omero'),
-                'path' => PathUtils::build_project_list_url()));
+                'path' => $urls->get_projects_url()));
             array_push($result, array(
                     'name' => $this->format_navbar_element_name(
                         get_string('project', 'repository_omero'),
                         $omero_project->name, $omero_project->id),
-                    'path' => PathUtils::build_project_detail_url($omero_project->id))
+                    'path' => $urls->get_project_url($omero_project->id))
             );
             array_push($result, array(
                     'name' => $this->format_navbar_element_name(
                         get_string('dataset', 'repository_omero'), $omero_dataset->name, $omero_dataset->id),
-                    'path' => PathUtils::build_dataset_detail_url($omero_dataset->id))
+                    'path' => $urls->get_dataset_url($omero_dataset->id))
             );
         }
 
@@ -579,7 +599,7 @@ class repository_omero extends repository
         $response = $this->requests->get($key);
         if (!$response) {
             debugging("Getting data from the SERVER: $url");
-            $response = $this->omero->process_request($url, true, $this->access_key, $this->access_secret);
+            $response = $this->omero->process_request($url, true);
             $this->requests->set($key, $response);
             debugging("RESPONSE IS OBJECT: " . (is_object($response) ? "OK" : "NO"));
         } else debugging("Getting data from the CACHE: $url");
@@ -608,6 +628,10 @@ class repository_omero extends repository
             }
         }
 
+        // shortcut to the API urls
+        $urls = $this->omero->URLS;
+
+        //
         $thumbnail_height = 95;
         $thumbnail_width = 95;
         $itemObj = array(
@@ -620,32 +644,32 @@ class repository_omero extends repository
 
         if (strcmp($type, "ProjectRoot") == 0) {
             $itemObj["title"] = get_string('projects', 'repository_omero');
-            $itemObj["path"] = PathUtils::build_project_list_url();
+            $itemObj["path"] = $urls->get_projects_url();
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "TagRoot") == 0) {
             $itemObj["title"] = get_string('tags', 'repository_omero');
-            $itemObj["path"] = PathUtils::build_annotation_list_url();
+            $itemObj["path"] = $urls->get_annotations_url();
             $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
 
         } else if (strcmp($type, "TagSet") == 0) {
-            $itemObj["title"] = get_string('tagset', 'repository_omero') . $item->value;
-            $itemObj["path"] = PathUtils::build_tagset_deatails_url($item->id);
+            $itemObj["title"] = $item->value . " [id:" . $item->id . "]";
+            $itemObj["path"] = $urls->get_tagset_url($item->id);
             $itemObj["thumbnail"] = $this->file_icon("tagset", 64);
 
         } else if (strcmp($type, "Tag") == 0) {
-            $itemObj["title"] = $item->value . ": " . $item->description . " [id:" . $item->id . "]";
-            $itemObj["path"] = PathUtils::build_tag_detail_url($item->id);
+            $itemObj["title"] = $item->value . (!empty($item->description) ? (" " . $item->description) : "") . " [id:" . $item->id . "]";
+            $itemObj["path"] = $urls->get_tag_url($item->id);
             $itemObj["thumbnail"] = $this->file_icon("tag", 64);
 
         } else if (strcmp($type, "Project") == 0) {
             $itemObj["title"] = $item->name . " [id:" . $item->id . "]";
-            $itemObj["path"] = PathUtils::build_project_detail_url($item->id);
+            $itemObj["path"] = $urls->get_project_url($item->id);
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "Dataset") == 0) {
             $itemObj["title"] = $item->name . " [id:" . $item->id . "]";
-            $itemObj["path"] = PathUtils::build_dataset_detail_url($item->id);
+            $itemObj["path"] = $urls->get_dataset_url($item->id);
             $itemObj["thumbnail"] = $OUTPUT->pix_url(file_folder_icon(64))->out(true);
 
         } else if (strcmp($type, "Image") == 0) {
@@ -654,12 +678,12 @@ class repository_omero extends repository
             $image_source = isset($item->high_resolution_image) ?
                 $item->high_resolution_image : $item->id;
 
-            $image_thumbnail = PathUtils::build_image_thumbnail_url(
+            $image_thumbnail = $urls->get_image_thumbnail_url(
                 $item->id, $item->lastUpdate, $thumbnail_height, $thumbnail_width);
             $itemObj['source'] = $image_source;
             $itemObj["title"] = $item->name . " [id:" . $image_source . "]";
             $itemObj["author"] = $item->author;
-            $itemObj["path"] = PathUtils::build_image_detail_url($item->id);
+            $itemObj["path"] = $urls->get_image_url($item->id);
             $itemObj["thumbnail"] = $image_thumbnail;
             $itemObj["url"] = $image_thumbnail;
             $itemObj["date"] = $item->importTime;
@@ -706,7 +730,6 @@ class repository_omero extends repository
         try {
             $access_key = get_user_preferences($this->setting . '_access_key', '');
             $access_secret = get_user_preferences($this->setting . '_access_secret', '');
-            $this->omero->set_access_token($access_key, $access_secret);
             $this->omero->get_thumbnail($source, $saveas, $CFG->repositorysyncimagetimeout);
             $content = file_get_contents($saveas);
             unlink($saveas);
@@ -738,6 +761,9 @@ class repository_omero extends repository
      */
     public function set_option($options = array())
     {
+        if (!empty($options['omero_apiversion'])) {
+            set_config('omero_apiversion', trim($options['omero_apiversion']), 'omero');
+        }
         if (!empty($options['omero_restendpoint'])) {
             set_config('omero_restendpoint', trim($options['omero_restendpoint']), 'omero');
         }
@@ -752,10 +778,11 @@ class repository_omero extends repository
             set_config('omero_cachelimit', $this->cachelimit, 'omero');
         }
 
-        //unset($options['omero_restendpoint']);
+        unset($options['omero_restendpoint']);
         unset($options['omero_key']);
         unset($options['omero_secret']);
         unset($options['omero_cachelimit']);
+        unset($options['omero_api_version']);
         $ret = parent::set_option($options);
         return $ret;
     }
@@ -767,7 +794,9 @@ class repository_omero extends repository
      */
     public function get_option($config = '')
     {
-        if ($config === 'omero_key') {
+        if ($config === 'omero_apiversion') {
+            return trim(get_config('omero', 'omero_apiversion'));
+        } elseif ($config === 'omero_key') {
             return trim(get_config('omero', 'omero_key'));
         } elseif ($config === 'omero_secret') {
             return trim(get_config('omero', 'omero_secret'));
@@ -775,6 +804,7 @@ class repository_omero extends repository
             return $this->max_cache_bytes();
         } else {
             $options = parent::get_option();
+            $options['omero_apiversion'] = trim(get_config('omero', 'omero_apiversion'));
             $options['omero_key'] = trim(get_config('omero', 'omero_key'));
             $options['omero_secret'] = trim(get_config('omero', 'omero_secret'));
             $options['omero_cachelimit'] = $this->max_cache_bytes();
@@ -793,7 +823,6 @@ class repository_omero extends repository
         global $CFG;
         $ref = unserialize($reference);
         if (!isset($ref->url)) {
-            $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
             if (!$ref->url) {
                 // some error occurred, do not fix reference for now
@@ -872,7 +901,6 @@ class repository_omero extends repository
         $ref = unserialize($reference);
         $saveas = $this->prepare_file($saveas);
         if (isset($ref->access_key) && isset($ref->access_secret) && isset($ref->path)) {
-            $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             return $this->omero->get_file($ref->path, $saveas, $CFG->repositorygetfiletimeout);
         } else if (isset($ref->url)) {
             $c = new curl;
@@ -897,12 +925,21 @@ class repository_omero extends repository
     {
         global $CFG;
         parent::type_config_form($mform);
+
+        $api_version = get_config('omero', 'omero_apiversion');
         $endpoint = get_config('omero', 'omero_restendpoint');
+        $webclient = get_config('omero', 'omero_webclient');
         $key = get_config('omero', 'omero_key');
         $secret = get_config('omero', 'omero_secret');
 
+        if (empty($api_version)) {
+            $api_version = array_keys(self::$API_VERSIONS)[0];
+        }
         if (empty($endpoint)) {
             $endpoint = 'http://omero.crs4.it:8080';
+        }
+        if (empty($webclient)) {
+            $webclient = $endpoint;
         }
         if (empty($key)) {
             $key = '';
@@ -913,12 +950,19 @@ class repository_omero extends repository
 
         $strrequired = get_string('required');
 
-        $mform->addElement('text', 'omero_restendpoint', get_string('omero_restendpoint', 'repository_omero'), array('value' => $endpoint, 'size' => '80'));
+        $mform->addElement('text', 'omero_restendpoint', get_string('omero_server', 'repository_omero'), array('value' => $endpoint, 'size' => '80'));
         $mform->setType('omero_restendpoint', PARAM_RAW_TRIMMED);
+
+        $mform->addElement('text', 'omero_webclient', get_string('omero_webclient', 'repository_omero'), array('value' => $webclient, 'size' => '80'));
+        $mform->setType('omero_webclient', PARAM_RAW_TRIMMED);
+
+        $mform->addElement('select', 'omero_apiversion',
+            get_string('apiversion', 'repository_omero'), self::$API_VERSIONS);
+        $mform->setDefault('omero_apiversion', $api_version);
 
         $mform->addElement('text', 'omero_key', get_string('apikey', 'repository_omero'), array('value' => $key, 'size' => '40'));
         $mform->setType('omero_key', PARAM_RAW_TRIMMED);
-        $mform->addElement('text', 'omero_secret', get_string('secret', 'repository_omero'), array('value' => $secret, 'size' => '40'));
+        $mform->addElement('text', 'omero_secret', get_string('apisecret', 'repository_omero'), array('value' => $secret, 'size' => '40'));
 
         $mform->addRule('omero_key', $strrequired, 'required', null, 'client');
         $mform->addRule('omero_secret', $strrequired, 'required', null, 'client');
@@ -939,7 +983,14 @@ class repository_omero extends repository
      */
     public static function get_type_option_names()
     {
-        return array('omero_restendpoint', 'omero_key', 'omero_secret', 'pluginname', 'omero_cachelimit');
+        return array(
+            'pluginname',
+            'omero_apiversion',
+            'omero_restendpoint',
+            'omero_webclient',
+            'omero_key', 'omero_secret',
+            'omero_cachelimit'
+        );
     }
 
     /**
@@ -976,7 +1027,6 @@ class repository_omero extends repository
         debugging("get_link called: : $reference !!!");
         $ref = unserialize($reference);
         if (!isset($ref->url)) {
-            $this->omero->set_access_token($ref->access_key, $ref->access_secret);
             $ref->url = $this->omero->get_file_share_link($ref->path, $CFG->repositorygetfiletimeout);
         }
         return $ref->path;
@@ -998,8 +1048,6 @@ class repository_omero extends repository
         $reference->path = "/omero-image-repository/$source";
         $reference->userid = $USER->id;
         $reference->username = fullname($USER);
-//        $reference->access_key = get_user_preferences($this->setting . '_access_key', '');
-//        $reference->access_secret = get_user_preferences($this->setting . '_access_secret', '');
 
         // by API we don't know if we need this reference to just download a file from omero
         // into moodle filepool or create a reference. Since we need to create a shared link
@@ -1007,12 +1055,11 @@ class repository_omero extends repository
         $usefilereference = optional_param('usefilereference', false, PARAM_BOOL);
         if ($usefilereference) {
             debugging("Computing reference: $usefilereference");
-            $this->omero->set_access_token($reference->access_key, $reference->access_secret);
             $url = $this->omero->get_file_share_link($source, $CFG->repositorygetfiletimeout);
             if ($url) {
                 unset($reference->access_key);
                 unset($reference->access_secret);
-                $reference->url = PathUtils::build_image_detail_url($source);
+                $reference->url = $this->omero->URLS->get_image_url($source);
                 debugging("Computed reference: " . $reference->url);
             }
         }
@@ -1054,7 +1101,9 @@ class repository_omero extends repository
             } catch (Exception $e) {
             }
         }
-        $c->get($url, null, array('timeout' => $CFG->repositorysyncimagetimeout, 'followlocation' => true, 'nobody' => true));
+        $c->get($url, null, array(
+            'timeout' => $CFG->repositorysyncimagetimeout, 'followlocation' => true, 'nobody' => true
+        ));
         $info = $c->get_info();
         if (isset($info['http_code']) && $info['http_code'] == 200 &&
             array_key_exists('download_content_length', $info) &&
@@ -1237,10 +1286,6 @@ class repository_omero extends repository
                 return $fullname;
                 if ($iconsize >= $size && (file_exists($fullname)))
                     return $fullname;
-//                if ($iconsize >= $size && (file_exists($fullname.'.png') || file_exists($fullname.'.gif'))) {
-//                    $cached[$iconsize] = 'f/tag'.$postfix;
-//                    break;
-//                }
             }
         }
         return $cached[$iconsize];

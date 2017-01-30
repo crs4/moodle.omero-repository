@@ -42,6 +42,7 @@ if (!isloggedin()) {
 
 // get the OMERO server URL
 $omero_server = get_config('omero', 'omero_restendpoint');
+$omero = OmeroImageRepository::get_instance();
 
 // get the Image ID
 $image_id = required_param("id", PARAM_INT);
@@ -71,18 +72,9 @@ if ($force_reload || !$file) {
     try {
         $file = $force_reload ? null : $cache->get($cache_key);
         if (!$file) {
-            $url = "${omero_server}/ome_seadragon/deepzoom/get/thumbnail/${image_id}.dzi";
-            //$url = "${omero_server}/webgateway/render_thumbnail/${image_id}/${image_width}/${image_height}";
-            $c = new curl();
-            $file = $c->download_one($url,
-                array(
-                    "size" => $image_height,
-                    "width" => $image_width,
-                    "height" => $image_height
-                )
-            );
+            $image = $omero->get_image_thumbnail($image_id, $image_width, $image_height);
             if ($file) {
-                $cache->set($cache_key, $file);
+                $cache->set($cache_key, $image);
             }
         }
     } finally {
@@ -92,5 +84,5 @@ if ($force_reload || !$file) {
 
 // send the thumbnail
 header("Content-Type: image/png");
-echo $file;
+echo $image;
 exit;

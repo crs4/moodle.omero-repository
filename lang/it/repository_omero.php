@@ -29,12 +29,15 @@
 # general
 $string['pluginname'] = 'Omero';
 $string['configplugin'] = 'Configurazione Repository Omero';
-$string['omero_restendpoint'] = 'Ome-Seadragon REST API EndPoint';
+$string['omero_server'] = 'OmeSeadragon Server';
+$string['omero_restendpoint'] = 'OmeSeadragon REST API EndPoint';
+$string['omero_webclient'] = 'Omero Web Client URL';
 
 # API authentication and authorization
-$string['apikey'] = 'omero API key';
 $string['omero'] = 'omero';
-$string['secret'] = 'omero secret';
+$string['apiversion'] = 'OmeSeadragon API Version';
+$string['apikey'] = 'OmeSeadragon API key';
+$string['apisecret'] = 'OmeSeadragon API secret';
 # TODO: to be updated
 $string['instruction'] = 'E\' possibile ottenere l\'<em>API Key</em> e l\'<em>API secret</em>em> da <pre>OMERO API Endpoint>/apps</pre>.';
 
